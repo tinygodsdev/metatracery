@@ -1,62 +1,45 @@
 # Scientific Grammar Engine - Makefile
 # Convenient commands for development and testing
 
-.PHONY: help install build test test-watch test-coverage demo quick-test ui-dev ui-build clean lint format
+.PHONY: help install test test-watch test-coverage ui-dev ui-build clean lint format
 
 # Default target
 help:
 	@echo "Scientific Grammar Engine - Available commands:"
 	@echo ""
-	@echo "  make install      - Install dependencies"
-	@echo "  make build        - Build TypeScript to JavaScript"
-	@echo "  make test         - Run all tests"
+	@echo "  make install      - Install UI dependencies"
+	@echo "  make test         - Run all tests (UI engine tests)"
 	@echo "  make test-watch   - Run tests in watch mode"
 	@echo "  make test-coverage - Run tests with coverage report"
-	@echo "  make demo         - Run demonstration example"
-	@echo "  make quick-test   - Run quick test example"
 	@echo "  make ui-dev       - Start UI development server"
 	@echo "  make ui-build     - Build UI for production"
 	@echo "  make clean        - Clean build artifacts"
 	@echo ""
-	@echo "  make dev          - Development mode (build + test)"
-	@echo "  make ci           - CI mode (install + build + test + coverage)"
+	@echo "  make dev          - Development mode (test + ui-dev)"
+	@echo "  make ci           - CI mode (install + test + coverage)"
 	@echo ""
 
 # Install dependencies
 install:
-	@echo "Installing dependencies..."
-	npm install
+	@echo "Installing UI dependencies..."
+	cd ui && npm install
+	@echo "Dependencies installed!"
 
-# Build TypeScript to JavaScript
-build:
-	@echo "Building TypeScript..."
-	npx tsc
-	@echo "Build completed!"
-
-# Run all tests
+# Run all tests (UI engine tests)
 test:
-	@echo "Running tests..."
-	npm test
+	@echo "Running UI engine tests..."
+	cd ui && npm test
 
 # Run tests in watch mode
 test-watch:
 	@echo "Running tests in watch mode..."
-	npm run test:watch
+	cd ui && npm run test:watch
 
 # Run tests with coverage
 test-coverage:
 	@echo "Running tests with coverage..."
-	npm run test:coverage
+	cd ui && npm run test:coverage
 
-# Run demonstration example
-demo: build
-	@echo "Running demonstration example..."
-	node dist/examples/demo.js
-
-# Run quick test example
-quick-test: build
-	@echo "Running quick test example..."
-	node dist/examples/quick-test.js
 
 # UI Development
 ui-dev:
@@ -71,17 +54,17 @@ ui-build:
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
-	rm -rf dist/
-	rm -rf coverage/
-	rm -rf node_modules/.cache/
+	cd ui && rm -rf dist/
+	cd ui && rm -rf coverage/
+	cd ui && rm -rf node_modules/.cache/
 	@echo "Clean completed!"
 
-# Development mode - build and test
-dev: build test
-	@echo "Development build completed!"
+# Development mode - test and start UI
+dev: test ui-dev
+	@echo "Development mode started!"
 
 # CI mode - full pipeline
-ci: install build test-coverage
+ci: install test-coverage
 	@echo "CI pipeline completed!"
 
 # Lint code (placeholder - can be configured later)
@@ -96,5 +79,5 @@ format:
 
 
 # Full clean and rebuild
-rebuild: clean install build test
+rebuild: clean install test
 	@echo "Full rebuild completed!"

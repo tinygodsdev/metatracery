@@ -2,6 +2,19 @@
 
 A universal, domain-agnostic grammar generation engine for scientific research. This engine allows you to create controlled, systematic generation of content with full metadata tracking and parameter control.
 
+## Project Structure
+
+```
+/home/titkovd/My/metatracery/
+├── ui/                    # Main application (React + Engine)
+│   ├── src/engine/        # Grammar engine (TypeScript)
+│   ├── src/components/    # React UI components
+│   └── ...
+├── Makefile              # Development commands
+├── .gitignore            # Git ignore rules
+└── tracery.js            # Original library (archive)
+```
+
 ## Features
 
 - **Universal Design**: Works with any domain (linguistics, mathematics, biology, chemistry, etc.)
@@ -10,6 +23,7 @@ A universal, domain-agnostic grammar generation engine for scientific research. 
 - **Metadata Tracking**: Complete trace of applied rules and generation path
 - **TypeScript**: Fully typed for scientific research
 - **Comprehensive Testing**: 95%+ test coverage with Jest
+- **Web Interface**: React-based UI for interactive grammar editing and testing
 
 ## Quick Start
 
@@ -18,34 +32,17 @@ A universal, domain-agnostic grammar generation engine for scientific research. 
 ```bash
 # Install dependencies
 make install
-# or
-npm install
 ```
 
-### Basic Usage
+### Usage
 
-```typescript
-import { GrammarEngine, createGrammar } from './src';
+The project provides a web interface for interactive grammar editing and testing. Start the development server:
 
-// Define your grammar
-const grammar = {
-  "subject": ["cat", "dog"],
-  "verb": ["runs", "jumps"],
-  "sentence": ["#subject# #verb#"],
-  "origin": ["#sentence#"]
-};
+```bash
+make ui-dev
+```
 
-// Create engine
-const engine = createGrammar(grammar);
-
-// Generate with specific parameters
-const result = engine.generateWithParameters('#origin#', {
-  subject: 'cat',
-  verb: 'runs'
-});
-
-console.log(result.content); // "cat runs"
-console.log(result.metadata.parameters); // { subject: 'cat', verb: 'runs' }
+Then open your browser to `http://localhost:5173` to use the interactive grammar editor.
 ```
 
 ## Development
@@ -54,41 +51,36 @@ console.log(result.metadata.parameters); // { subject: 'cat', verb: 'runs' }
 
 ```bash
 make help          # Show all available commands
-make build         # Build TypeScript to JavaScript
-make test          # Run all tests
+make install       # Install UI dependencies
+make test          # Run all tests (UI engine tests)
 make test-watch    # Run tests in watch mode
 make test-coverage # Run tests with coverage report
-make demo          # Run comprehensive demonstration
-make quick-test    # Run quick test example
-make dev           # Development mode (build + test)
-make ci            # CI mode (full pipeline)
+make ui-dev        # Start UI development server
+make ui-build      # Build UI for production
+make dev           # Development mode (test + ui-dev)
+make ci            # CI mode (install + test + coverage)
 make clean         # Clean build artifacts
 ```
 
-### Running Examples
+### Web Interface
+
+The project includes a React-based web interface for interactive grammar editing and testing:
 
 ```bash
-# Run comprehensive demonstration
-make demo
+# Start development server
+make ui-dev
 
-# Run quick test
-make quick-test
+# Build for production
+make ui-build
 ```
 
-### Project Structure
+The web interface provides:
+- Interactive grammar editor with JSON syntax highlighting
+- Parameter controls with automatic filtering
+- Real-time generation results
+- Metadata visualization
+- Export functionality
 
-```
-src/
-├── __tests__/           # Unit tests (Jest)
-│   ├── GrammarEngine.test.ts
-│   ├── ParameterExtractor.test.ts
-│   └── GenericStructureExtractor.test.ts
-├── GrammarEngine.ts     # Main grammar generation engine
-├── ParameterExtractor.ts # Automatic parameter extraction
-├── GenericStructureExtractor.ts # Universal structure extraction
-├── types.ts            # TypeScript type definitions
-└── index.ts            # Main exports
-```
 
 ## API Reference
 
