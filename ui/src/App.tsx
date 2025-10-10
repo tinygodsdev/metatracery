@@ -5,16 +5,13 @@ import '@mantine/notifications/styles.css';
 import { 
   MantineProvider, 
   AppShell, 
-  Header, 
   Title, 
   Container, 
   Grid,
   Stack,
   Paper,
   Group,
-  Button,
   Alert,
-  Text,
   Badge
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
@@ -44,9 +41,27 @@ function App() {
         console.error('Failed to load example grammar:', err);
       }
     };
-    
+
     loadExampleGrammar();
   }, []);
+
+  // Update engine when grammar changes
+  useEffect(() => {
+    if (Object.keys(grammar).length > 0) {
+      try {
+        const newEngine = new GrammarEngine(grammar);
+        setEngine(newEngine);
+        setError(null);
+        // Clear results when grammar changes
+        setResults([]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Invalid grammar');
+        setEngine(null);
+      }
+    } else {
+      setEngine(null);
+    }
+  }, [grammar]);
 
   const handleGrammarChange = (newGrammar: GrammarRule) => {
     setGrammar(newGrammar);
@@ -73,19 +88,44 @@ function App() {
     }
   };
 
-  const handleGenerateAll = async () => {
+  const handleGenerateAll = async (selectedParameters: Record<string, string>) => {
     if (!engine) return;
+    
+    console.log('handleGenerateAll called with selectedParameters:', selectedParameters);
     
     setIsLoading(true);
     try {
-      const allResults = engine.generateAllCombinations('#origin#');
+      // Get all parameter combinations that match the selected parameters
+      const allCombinations = engine.parameterExtractor.getAllParameterCombinations(engine.getParameters());
+      console.log('All combinations:', allCombinations.length, allCombinations);
+      
+      // Filter combinations that match selected parameters
+      const matchingCombinations = allCombinations.filter(combination => {
+        for (const [paramName, selectedValue] of Object.entries(selectedParameters)) {
+          if (selectedValue && combination[paramName] !== selectedValue) {
+            return false;
+          }
+        }
+        return true;
+      });
+      
+      console.log('Matching combinations:', matchingCombinations.length, matchingCombinations);
+      
+      // Generate results for matching combinations
+      const allResults = matchingCombinations.map(combination => 
+        engine.generateWithParameters('#origin#', combination)
+      );
+      
+      console.log('Generated results:', allResults.length, allResults);
       setResults(allResults);
     } catch (err) {
+      console.error('Generation error:', err);
       setError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <MantineProvider defaultColorScheme="dark">

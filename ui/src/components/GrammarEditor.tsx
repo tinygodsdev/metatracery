@@ -8,10 +8,13 @@ import {
   Badge,
   Alert,
   Code,
-  ScrollArea
+  ScrollArea,
+  Select
 } from '@mantine/core';
 // Icons removed temporarily to fix import issues
 import type { GrammarRule } from '../engine/types';
+import { fixtures } from '../fixtures';
+import { GrammarEngine } from '../engine/GrammarEngine';
 
 interface GrammarEditorProps {
   grammar: GrammarRule;
@@ -22,6 +25,7 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFixture, setSelectedFixture] = useState<string | null>(null);
 
   // Update JSON text when grammar changes
   useEffect(() => {
@@ -55,6 +59,24 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
     }
   };
 
+  const getCombinationCount = (grammar: GrammarRule): number => {
+    try {
+      const engine = new GrammarEngine(grammar);
+      const stats = engine.getParameterStatistics();
+      return stats.totalVariants;
+    } catch {
+      return 0;
+    }
+  };
+
+  const loadFixture = (fixtureName: string) => {
+    const fixture = fixtures.find(f => f.name === fixtureName);
+    if (fixture) {
+      onChange(fixture.grammar);
+      setSelectedFixture(fixtureName);
+    }
+  };
+
   const handleLoadExample = () => {
     const exampleGrammar: GrammarRule = {
       "SP": ["#NP#"],
@@ -71,6 +93,7 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
     onChange(exampleGrammar);
     setIsValid(true);
     setError(null);
+    setSelectedFixture(null);
   };
 
   return (
@@ -90,6 +113,14 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         </Group>
         
         <Group>
+          <Select
+            placeholder="Load fixture..."
+            data={fixtures.map(f => ({ value: f.name, label: f.name }))}
+            value={selectedFixture}
+            onChange={(value) => value && loadFixture(value)}
+            size="xs"
+            w={150}
+          />
           <Button size="xs" variant="light" onClick={handleFormat}>
             Format JSON
           </Button>
@@ -98,6 +129,27 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
           </Button>
         </Group>
       </Group>
+
+      {selectedFixture && (
+        <Text size="xs" c="dimmed">
+          {fixtures.find(f => f.name === selectedFixture)?.description}
+        </Text>
+      )}
+
+      {isValid && (() => {
+        const combinationCount = getCombinationCount(grammar);
+        if (combinationCount > 100) {
+          return (
+            <Alert color="orange">
+              <Text size="xs">
+                ⚠️ This grammar can generate {combinationCount} combinations, which exceeds the safe limit of 100. 
+                Consider reducing the number of parameter values or using more specific parameters.
+              </Text>
+            </Alert>
+          );
+        }
+        return null;
+      })()}
 
       {error && (
         <Alert color="red">

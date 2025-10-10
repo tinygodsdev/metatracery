@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Stack, 
   Button, 
@@ -24,7 +24,7 @@ interface ResultsPanelProps {
   results: GenerationResult[];
   isLoading: boolean;
   onGenerate: (parameters: Record<string, string>) => void;
-  onGenerateAll: () => void;
+  onGenerateAll: (selectedParameters: Record<string, string>) => void;
 }
 
 export function ResultsPanel({ 
@@ -32,7 +32,7 @@ export function ResultsPanel({
   results, 
   isLoading, 
   onGenerate, 
-  onGenerateAll 
+  onGenerateAll
 }: ResultsPanelProps) {
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
   const [showMetadata, setShowMetadata] = useState(false);
@@ -43,6 +43,30 @@ export function ResultsPanel({
   // Separate parameters with multiple values from those with single values
   const filterableParameters = Object.entries(parameters).filter(([_, param]) => param.values.length > 1);
   const singleValueParameters = Object.entries(parameters).filter(([_, param]) => param.values.length === 1);
+
+  // Calculate actual combinations with selected parameters
+  const getActualCombinationCount = (): number => {
+    if (!engine) return 0;
+    
+    let combinations = 1;
+    for (const [paramName, param] of Object.entries(parameters)) {
+      if (selectedParameters[paramName]) {
+        // If parameter is selected, it contributes 1 combination
+        combinations *= 1;
+      } else {
+        // If parameter is not selected, it contributes all its values
+        combinations *= param.values.length;
+      }
+    }
+    return combinations;
+  };
+
+  const actualCombinations = getActualCombinationCount();
+
+  // Reset selected parameters when grammar changes
+  useEffect(() => {
+    setSelectedParameters({});
+  }, [engine]);
 
   const handleParameterChange = (paramName: string, value: string) => {
     setSelectedParameters(prev => ({
@@ -133,13 +157,14 @@ export function ResultsPanel({
           >
             Generate
           </Button>
-          <Button 
+          <Button
             size="sm" 
             variant="outline"
-            onClick={onGenerateAll}
-            disabled={isLoading}
+            onClick={() => onGenerateAll(selectedParameters)}
+            disabled={isLoading || actualCombinations > 100}
+            title={actualCombinations > 100 ? `Too many combinations (${actualCombinations}). Use more specific parameters.` : undefined}
           >
-            Generate All
+            Generate All ({actualCombinations})
           </Button>
         </Group>
 
@@ -148,6 +173,14 @@ export function ResultsPanel({
             <Text size="xs" c="dimmed">
               Total combinations: {stats.totalVariants}
             </Text>
+            <Text size="xs" c={actualCombinations !== stats.totalVariants ? "blue" : "dimmed"}>
+              With selected parameters: {actualCombinations}
+            </Text>
+            {actualCombinations > 100 && (
+              <Text size="xs" c="orange">
+                ⚠️ Too many combinations ({actualCombinations}). Use more specific parameters to reduce results.
+              </Text>
+            )}
             {singleValueParameters.length > 0 && (
               <Text size="xs" c="dimmed">
                 Fixed: {singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}
@@ -249,7 +282,7 @@ export function ResultsPanel({
                       <Stack gap="xs">
                         <div>
                           <Text size="xs" c="dimmed">Generation Path:</Text>
-                          <Code size="xs">{result.metadata.generationPath.join(' → ')}</Code>
+                          <Code>{result.metadata.generationPath.join(' → ')}</Code>
                         </div>
                         <div>
                           <Text size="xs" c="dimmed">Applied Rules:</Text>

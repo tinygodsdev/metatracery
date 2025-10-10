@@ -1,0 +1,6 @@
+{
+  "animal": ["cat", "dog", "bird"],
+  "action": ["runs", "jumps", "flies"],
+  "sentence": ["#animal# #action#"],
+  "origin": ["#sentence#"]
+}

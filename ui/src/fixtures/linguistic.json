@@ -1,0 +1,22 @@
+{
+  "SP": ["#NP#"],
+  "OP": ["#NP#"],
+  "NP": ["girl", "cat", "dog", "bird"],
+  "VP": [
+    "loves",
+    "eats",
+    "pets",
+    "chases"
+  ],
+  "SVO": ["#SP# #VP# #OP#"],
+  "VSO": ["#VP# #SP# #OP#"],
+  "SOV": ["#SP# #OP# #VP#"],
+  "word_order": [
+    "#SVO#",
+    "#VSO#",
+    "#SOV#"
+  ],
+  "origin": [
+    "#word_order#"
+  ]
+}

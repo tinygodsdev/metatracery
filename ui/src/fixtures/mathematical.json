@@ -1,0 +1,11 @@
+{
+  "number": ["1", "2", "3", "4", "5"],
+  "operator": ["+", "-", "*", "/"],
+  "expression": ["#number# #operator# #number#"],
+  "brackets": ["(#expression#)", "#expression#"],
+  "complex": ["#brackets# #operator# #brackets#"],
+  "origin": [
+    "#expression#",
+    "#complex#"
+  ]
+}

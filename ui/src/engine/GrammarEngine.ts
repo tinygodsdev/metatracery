@@ -17,7 +17,7 @@ import { GenericStructureExtractor } from './GenericStructureExtractor';
 export class GrammarEngine {
   private grammar: GrammarRule;
   private parameters: ExtractedParameters;
-  private parameterExtractor: ParameterExtractor;
+  public parameterExtractor: ParameterExtractor;
   private structureExtractor: StructureExtractor;
   private config: EngineConfig;
   

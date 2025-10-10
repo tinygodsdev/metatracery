@@ -1,0 +1,9 @@
+{
+    "happy": ["😄", "😊", "😍", "😇"],
+    "sad": ["😢", "😭", "😔", "😟"],
+    "neutral": ["😐", "😑"],
+    "happy_group": ["#happy# #happy# #happy#"],
+    "sad_group": ["#sad# #sad# #sad#"],
+    "neutral_group": ["#neutral# #neutral# #neutral#"],
+    "origin": ["#happy_group#", "#sad_group#", "#neutral_group#"]
+}
