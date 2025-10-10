@@ -1,0 +1,16 @@
+{
+	"SP": ["#NP#"],
+        "OP": ["#NP#"],
+        "NP": ["girl", "cat"],
+	"VP": [
+		"loves",
+		"eats",
+		"pets"
+	],
+       "SVO": ["#SP# #VP# #OP#"],
+       "VSO": ["#VP# #SP# #OP#"],
+	"origin": [
+		"#SVO#",
+        "#VSO#"
+	]
+}
