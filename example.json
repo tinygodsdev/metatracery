@@ -7,10 +7,13 @@
 		"eats",
 		"pets"
 	],
-       "SVO": ["#SP# #VP# #OP#"],
-       "VSO": ["#VP# #SP# #OP#"],
-	"origin": [
+    "SVO": ["#SP# #VP# #OP#"],
+    "VSO": ["#VP# #SP# #OP#"],
+	"word_order": [
 		"#SVO#",
         "#VSO#"
-	]
+	],
+    "origin": [
+        "#word_order#"
+    ]
 }
