@@ -157,14 +157,13 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         </Alert>
       )}
 
-      <ScrollArea h={400}>
         <Textarea
           value={jsonText}
           autosize
           onChange={(e) => handleJsonChange(e.target.value)}
           placeholder="Enter your grammar definition in JSON format..."
           minRows={15}
-          maxRows={20}
+          maxRows={30}
           styles={{
             input: {
               fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
@@ -173,7 +172,6 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
             }
           }}
         />
-      </ScrollArea>
 
       <Text size="xs" c="dimmed">
         <Code>#symbol#</Code> references other symbols. Use <Code>origin</Code> as the starting point.
