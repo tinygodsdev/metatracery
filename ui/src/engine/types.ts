@@ -11,7 +11,7 @@ export interface GrammarRule {
 // Template for generation before rendering
 export interface GenerationTemplate {
   template: string;          // Original template: "#SP# #VP# #OP#"
-  parameters: Record<string, string>; // Parameter values: {SP: "girl", VP: "loves", OP: "cat"}
+  parameters: Array<{symbol: string, value: string}>; // Ordered parameter values: [{symbol: "SP", value: "girl"}, {symbol: "VP", value: "loves"}, ...]
   path: string[];           // Generation path: ["origin", "word_order", "SVO", ...]
 }
 

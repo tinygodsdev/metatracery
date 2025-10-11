@@ -1,4 +1,5 @@
-import type { GrammarRule } from './types';
+import type { GrammarRule, GenerationTemplate } from './types';
+import { TemplateRenderer } from './TemplateRenderer';
 
 /**
  * Represents a node in the grammar tree
@@ -18,11 +19,6 @@ interface GenerationPath {
   path: string[];           // Путь генерации: ["origin", "word_order", "SVO", ...]
 }
 
-interface GenerationTemplate {
-  template: string;          // Оригинальный шаблон: "#SP# #VP# #OP#"
-  parameters: Record<string, string>; // Значения параметров: {SP: "girl", VP: "loves", OP: "cat"}
-  path: string[];           // Путь генерации: ["origin", "word_order", "SVO", ...]
-}
 
 /**
  * Represents a path through the grammar tree
@@ -41,9 +37,11 @@ interface GenerationTemplate {
 export class GrammarAnalyzer {
   private grammar: GrammarRule;
   private rootNode: GrammarNode | null = null;
+  private templateRenderer: TemplateRenderer;
 
   constructor(grammar: GrammarRule) {
     this.grammar = grammar;
+    this.templateRenderer = new TemplateRenderer();
     this.buildTree();
   }
 
@@ -364,24 +362,6 @@ export class GrammarAnalyzer {
     };
   }
 
-  /**
-   * Applies a template with parameters to generate the final content
-   */
-  private applyTemplate(template: string, parameters: Record<string, string>): string {
-    let result = template;
-    
-    // Replace all parameter references with their values
-    for (const [param, value] of Object.entries(parameters)) {
-      const regex = new RegExp(`#${param}#`, 'g');
-      result = result.replace(regex, value);
-    }
-    
-    // Handle missing symbols - replace any remaining #symbol# with ((missing:symbol))
-    const missingSymbolRegex = /#([^#]+)#/g;
-    result = result.replace(missingSymbolRegex, '((missing:$1))');
-    
-    return result;
-  }
 
   /**
    * Generates all possible template combinations (without applying templates)
@@ -422,12 +402,15 @@ export class GrammarAnalyzer {
     // Generate templates first
     const templates = this.generateAllTemplates(constraints);
     
-    // Apply templates to generate final content
-    return templates.map(template => ({
-      content: this.applyTemplate(template.template, template.parameters),
-      parameters: template.parameters,
-      path: template.path
-    }));
+    // Apply templates to generate final content  
+    return templates.map(template => {
+      const renderResult = this.templateRenderer.render(template);
+      return {
+        content: renderResult.content,
+        parameters: renderResult.appliedParameters,
+        path: template.path
+      };
+    });
   }
 
   /**

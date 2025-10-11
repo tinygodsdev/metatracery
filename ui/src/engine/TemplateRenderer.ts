@@ -11,7 +11,7 @@ export interface RenderResult {
  */
 export class TemplateRenderer {
   /**
-   * Renders a template by replacing all parameter references with their values
+   * Renders a template by replacing parameter references in the order they were added
    * @param template The template to render
    * @returns The rendered content and applied parameters
    */
@@ -19,16 +19,16 @@ export class TemplateRenderer {
     let content = template.template;
     const appliedParameters: Record<string, string> = {};
     
-    // Replace all parameter references with their values
-    for (const [param, value] of Object.entries(template.parameters)) {
-      const regex = new RegExp(`#${param}#`, 'g');
+    // Replace parameters in the exact order they appear in the array
+    for (const param of template.parameters) {
+      const regex = new RegExp(`#${param.symbol}#`, 'g');
       const matches = content.match(regex);
       
       if (matches) {
         // Record that this parameter was applied
-        appliedParameters[param] = value;
+        appliedParameters[param.symbol] = param.value;
         // Replace all occurrences
-        content = content.replace(regex, value);
+        content = content.replace(regex, param.value);
       }
     }
     
