@@ -68,6 +68,29 @@ describe('GrammarAnalyzer', () => {
       analyzer.printTree();
     });
 
+    test('should visualize tree structure', () => {
+      const analyzer = new GrammarAnalyzer(linguisticGrammar);
+      const visualization = analyzer.visualizeTree();
+      console.log('Tree visualization:');
+      console.log(visualization);
+      
+      expect(visualization).toContain('origin');
+      expect(visualization).toContain('word_order');
+      expect(visualization).toContain('SVO');
+      expect(visualization).toContain('VSO');
+    });
+
+    test('should get tree structure as JSON', () => {
+      const analyzer = new GrammarAnalyzer(linguisticGrammar);
+      const treeStructure = analyzer.getTreeStructure();
+      console.log('Tree structure JSON:');
+      console.log(JSON.stringify(treeStructure, null, 2));
+      
+      expect(treeStructure).toBeDefined();
+      expect(treeStructure.symbol).toBe('origin');
+      expect(treeStructure.children).toBeDefined();
+    });
+
     test('should count all paths correctly', () => {
       const analyzer = new GrammarAnalyzer(linguisticGrammar);
       
@@ -76,6 +99,7 @@ describe('GrammarAnalyzer', () => {
       
       expect(pathCount).toBe(24);
     });
+
   });
 
   describe('Tree Structure Analysis', () => {

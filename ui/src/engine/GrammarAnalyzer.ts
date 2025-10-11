@@ -7,6 +7,7 @@ interface GrammarNode {
   symbol: string;
   alternatives: string[];
   isParameter: boolean; // true if has multiple alternatives
+  isSequence: boolean; // true if all children are used together (not alternatives)
   children: GrammarNode[];
 }
 
@@ -57,12 +58,18 @@ export class GrammarAnalyzer {
       symbol,
       alternatives,
       isParameter,
+      isSequence: false, // Will be determined below
       children: []
     };
 
     // For each alternative, find symbol references and build children
     for (const alternative of alternatives) {
       const symbolRefs = this.extractSymbolReferences(alternative);
+      
+      // Determine if this is a sequence (multiple symbols in one alternative)
+      if (symbolRefs.length > 1) {
+        node.isSequence = true;
+      }
       
       for (const symbolRef of symbolRefs) {
         const childNode = this.buildNode(symbolRef.symbol, alternative);
@@ -329,10 +336,75 @@ export class GrammarAnalyzer {
   private printNode(node: GrammarNode, depth: number): void {
     const indent = '  '.repeat(depth);
     const paramIndicator = node.isParameter ? ' (PARAM)' : '';
-    console.log(`${indent}${node.symbol}${paramIndicator}: [${node.alternatives.join(', ')}]`);
+    const sequenceIndicator = node.isSequence ? ' (SEQUENCE)' : '';
+    console.log(`${indent}${node.symbol}${paramIndicator}${sequenceIndicator}: [${node.alternatives.join(', ')}]`);
     
     for (const child of node.children) {
       this.printNode(child, depth + 1);
     }
+  }
+
+  /**
+   * Creates a visual representation of the tree structure
+   */
+  public visualizeTree(): string {
+    if (!this.rootNode) {
+      return 'No tree to visualize';
+    }
+
+    return this.visualizeNode(this.rootNode, 0, '');
+  }
+
+  /**
+   * Recursively creates visual representation of a node
+   */
+  private visualizeNode(node: GrammarNode, depth: number, prefix: string): string {
+    const indent = '  '.repeat(depth);
+    const paramIndicator = node.isParameter ? ' (PARAM)' : '';
+    const sequenceIndicator = node.isSequence ? ' (SEQUENCE)' : '';
+    const nodeLine = `${prefix}${node.symbol}${paramIndicator}${sequenceIndicator}: [${node.alternatives.join(', ')}]`;
+    
+    if (node.children.length === 0) {
+      return nodeLine;
+    }
+
+    let result = nodeLine + '\n';
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i];
+      const isLast = i === node.children.length - 1;
+      const childPrefix = prefix + (isLast ? '└── ' : '├── ');
+      const nextPrefix = prefix + (isLast ? '    ' : '│   ');
+      
+      result += this.visualizeNode(child, depth + 1, childPrefix);
+      if (i < node.children.length - 1) {
+        result += '\n';
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * Gets the tree structure as a JSON object for debugging
+   */
+  public getTreeStructure(): any {
+    if (!this.rootNode) {
+      return null;
+    }
+
+    return this.nodeToObject(this.rootNode);
+  }
+
+  /**
+   * Converts a node to a plain object
+   */
+  private nodeToObject(node: GrammarNode): any {
+    return {
+      symbol: node.symbol,
+      alternatives: node.alternatives,
+      isParameter: node.isParameter,
+      isSequence: node.isSequence,
+      children: node.children.map(child => this.nodeToObject(child))
+    };
   }
 }
