@@ -115,17 +115,30 @@ export class GrammarAnalyzer {
 
   /**
    * Counts all possible paths from root to leaves
+   * @param constraints Optional parameter constraints to limit combinations
    */
-  public countAllPaths(): number {
+  public countAllPaths(constraints?: Record<string, string>): number {
     const originAlternatives = this.grammar.origin;
     if (!originAlternatives || originAlternatives.length === 0) {
       return 0;
     }
 
-    // Count combinations for all origin alternatives
+    // Check if there's a constraint on origin
+    if (constraints && constraints.origin) {
+      // If constrained, only count combinations for the specific origin alternative
+      const constrainedOrigin = constraints.origin;
+      if (originAlternatives.includes(constrainedOrigin)) {
+        return this.countRuleCombinations(constrainedOrigin, constraints);
+      } else {
+        // Constrained origin value not found in alternatives
+        return 0;
+      }
+    }
+
+    // No constraint on origin, count combinations for all origin alternatives
     let totalCombinations = 0;
     for (const originRule of originAlternatives) {
-      totalCombinations += this.countRuleCombinations(originRule);
+      totalCombinations += this.countRuleCombinations(originRule, constraints);
     }
 
     return totalCombinations;
@@ -133,8 +146,10 @@ export class GrammarAnalyzer {
 
   /**
    * Counts all possible combinations for a rule
+   * @param rule The rule to count combinations for
+   * @param constraints Optional parameter constraints to limit combinations
    */
-  private countRuleCombinations(rule: string): number {
+  private countRuleCombinations(rule: string, constraints?: Record<string, string>): number {
     const symbolRefs = this.extractSymbolReferences(rule);
     
     if (symbolRefs.length === 0) {
@@ -149,18 +164,32 @@ export class GrammarAnalyzer {
       const symbol = symbolRef.symbol;
       const alternatives = this.grammar[symbol] || [];
       
-      if (alternatives.length > 1) {
-        // Parameter with multiple alternatives - sum combinations from all alternatives
-        let alternativeCombinations = 0;
-        for (const alternative of alternatives) {
-          const subCombinations = this.countRuleCombinations(alternative);
-          alternativeCombinations += subCombinations;
+      // Check if this symbol has a constraint
+      if (constraints && constraints[symbol]) {
+        // If constrained, only count combinations for the specific value
+        const constrainedValue = constraints[symbol];
+        if (alternatives.includes(constrainedValue)) {
+          const subCombinations = this.countRuleCombinations(constrainedValue, constraints);
+          totalCombinations *= subCombinations;
+        } else {
+          // Constrained value not found in alternatives
+          return 0;
         }
-        totalCombinations *= alternativeCombinations;
-      } else if (alternatives.length === 1) {
-        // Single alternative - recursively count its combinations
-        const subCombinations = this.countRuleCombinations(alternatives[0]);
-        totalCombinations *= subCombinations;
+      } else {
+        // No constraint, count all alternatives
+        if (alternatives.length > 1) {
+          // Parameter with multiple alternatives - sum combinations from all alternatives
+          let alternativeCombinations = 0;
+          for (const alternative of alternatives) {
+            const subCombinations = this.countRuleCombinations(alternative, constraints);
+            alternativeCombinations += subCombinations;
+          }
+          totalCombinations *= alternativeCombinations;
+        } else if (alternatives.length === 1) {
+          // Single alternative - recursively count its combinations
+          const subCombinations = this.countRuleCombinations(alternatives[0], constraints);
+          totalCombinations *= subCombinations;
+        }
       }
     }
 

@@ -69,7 +69,6 @@ export class GrammarEngine {
   generateAllCombinations(rule: string): GenerationResult[] {
     // Get all generation paths from GrammarAnalyzer
     const generationPaths = this.grammarAnalyzer.generateAllCombinations();
-    console.log('Total generation paths from analyzer:', generationPaths.length, rule);
     
     // Convert GenerationPath to GenerationResult
     const results = generationPaths.map(path => ({
@@ -87,18 +86,11 @@ export class GrammarEngine {
 
   /**
    * Gets the total number of possible combinations using GrammarAnalyzer
+   * @param constraints Optional parameter constraints to limit combinations
    */
-  public getTotalCombinations(): number {
-    return this.grammarAnalyzer.countAllPaths();
+  public getTotalCombinations(constraints?: Record<string, string>): number {
+    return this.grammarAnalyzer.countAllPaths(constraints);
   }
-
-  /**
-   * Gets the number of combinations with parameter constraints
-   */
-  public getCombinationsWithConstraints(constraints: Record<string, string>): number {
-    return this.grammarAnalyzer.countPathsWithConstraints(constraints);
-  }
-  
 
 
 

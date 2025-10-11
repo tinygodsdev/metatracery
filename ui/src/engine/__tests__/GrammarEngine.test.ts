@@ -125,8 +125,6 @@ describe('GrammarEngine', () => {
       // Check that we have all possible combinations
       const contents = results.map(r => r.content);
       const uniqueContents = [...new Set(contents)];
-      console.log('Basic grammar results:', contents);
-      console.log('Unique contents:', uniqueContents);
       expect(uniqueContents.length).toBe(27); // All should be unique
       
       // Check some specific examples

@@ -48,8 +48,8 @@ export function ResultsPanel({
     if (!engine) return 0;
     
     try {
-      // Use the new method to count combinations with constraints
-      return engine.getCombinationsWithConstraints(selectedParameters);
+      // Use the unified method to count combinations with constraints
+      return engine.getTotalCombinations(selectedParameters);
     } catch (err) {
       console.error('Error calculating combination count:', err);
       return 0;

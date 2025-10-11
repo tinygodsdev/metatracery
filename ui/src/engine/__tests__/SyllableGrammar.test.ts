@@ -37,8 +37,7 @@ describe('Syllable Grammar', () => {
       // Total: 215 + 46,225 + 9,938,375 = 9,984,815
       
       const totalCombinations = analyzer.countAllPaths();
-      console.log('Total combinations from analyzer:', totalCombinations);
-      
+
       // Expected: 9,984,815
       expect(totalCombinations).toBe(9984815);
     });
@@ -85,8 +84,6 @@ describe('Syllable Grammar', () => {
       const startTime = Date.now();
       const totalCombinations = analyzer.countAllPaths();
       const endTime = Date.now();
-      
-      console.log(`Counted ${totalCombinations} combinations in ${endTime - startTime}ms`);
       
       // Should complete quickly (under 100ms for this size)
       expect(endTime - startTime).toBeLessThan(100);
