@@ -115,14 +115,33 @@ export class GrammarEngine {
   private generateWithTracking(rule: string): GenerationResult {
     const appliedRules: AppliedRule[] = [];
     const generationPath: string[] = [];
+    const usedSymbols = new Set<string>();
     
     // Fully expand the rule
-    const result = this.expandRule(rule, appliedRules, generationPath, 0);
+    const result = this.expandRule(rule, appliedRules, generationPath, usedSymbols, 0);
+    
+    // Extract relevant parameters based on used symbols
+    const relevantParameters: Record<string, any> = {};
+    const currentParams = this.getCurrentParameters();
+    
+    usedSymbols.forEach(symbol => {
+      // Include all used symbols in relevant parameters
+      // If the symbol has a value in currentParams, use it
+      // Otherwise, use the actual rule that was selected for this symbol
+      if (currentParams[symbol] !== undefined) {
+        relevantParameters[symbol] = currentParams[symbol];
+      } else {
+        // For symbols that were used but don't have explicit parameter values,
+        // we need to find what rule was actually selected for them
+        relevantParameters[symbol] = this.getSelectedRuleForSymbol(symbol, appliedRules);
+      }
+    });
     
     return {
       content: result,
       metadata: {
-        parameters: this.getCurrentParameters(),
+        parameters: currentParams,
+        relevantParameters,
         appliedRules,
         generationPath,
         structure: this.structureExtractor.extractStructure(appliedRules)
@@ -137,6 +156,7 @@ export class GrammarEngine {
     rule: string, 
     appliedRules: AppliedRule[], 
     generationPath: string[],
+    usedSymbols: Set<string>,
     depth: number
   ): string {
     if (depth > this.config.maxDepth) {
@@ -158,8 +178,17 @@ export class GrammarEngine {
       const symbol = symbolRef.symbol;
       const placeholder = symbolRef.placeholder;
       
+      // Track used symbol
+      usedSymbols.add(symbol);
+      
       // Select rule for symbol
       const selectedRule = this.selectRule(symbol);
+      
+      // Also track symbols that are referenced in the selected rule
+      const ruleSymbols = this.extractAllSymbolReferences(selectedRule);
+      ruleSymbols.forEach(ruleSymbol => {
+        usedSymbols.add(ruleSymbol.symbol);
+      });
       
       // Record applied rule
       if (this.config.enableTracking) {
@@ -176,7 +205,7 @@ export class GrammarEngine {
       generationPath.push(symbol);
       
       // Recursively expand selected rule
-      const expandedRule = this.expandRule(selectedRule, appliedRules, generationPath, depth + 1);
+      const expandedRule = this.expandRule(selectedRule, appliedRules, generationPath, usedSymbols, depth + 1);
       
       // Replace reference with expanded rule
       result = result.replace(placeholder, expandedRule);
@@ -302,5 +331,19 @@ export class GrammarEngine {
    */
   getContextualParameters(): Record<string, string[]> {
     return this.parameterExtractor.extractContextualParameters(this.grammar);
+  }
+  
+  /**
+   * Gets the selected rule for a symbol from applied rules
+   */
+  private getSelectedRuleForSymbol(symbol: string, appliedRules: AppliedRule[]): string {
+    // Find the last applied rule for this symbol
+    for (let i = appliedRules.length - 1; i >= 0; i--) {
+      if (appliedRules[i].symbol === symbol) {
+        return appliedRules[i].selectedRule;
+      }
+    }
+    // If not found in applied rules, return the first available rule
+    return this.grammar[symbol]?.[0] || `((missing:${symbol}))`;
   }
 }

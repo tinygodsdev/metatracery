@@ -13,6 +13,7 @@ export interface GenerationResult {
   content: string;
   metadata: {
     parameters: Record<string, any>;
+    relevantParameters: Record<string, any>; // Only parameters that were actually used
     appliedRules: AppliedRule[];
     generationPath: string[];
     structure?: Record<string, any>; // Generic structure, not hardcoded

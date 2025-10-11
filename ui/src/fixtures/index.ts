@@ -1,7 +1,6 @@
 import linguistic from './linguistic.json';
 import mathematical from './mathematical.json';
 import biological from './biological.json';
-import chemical from './chemical.json';
 import simple from './simple.json';
 import emoji from './emoji.json';
 
@@ -31,11 +30,6 @@ export const fixtures: Fixture[] = [
     name: 'Biological',
     description: 'DNA sequences with codons and gene structures',
     grammar: biological
-  },
-  {
-    name: 'Chemical',
-    description: 'Chemical compounds with elements and functional groups',
-    grammar: chemical
   },
   {
     name: 'Emoji',

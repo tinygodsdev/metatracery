@@ -177,6 +177,65 @@ describe('GrammarEngine', () => {
     });
   });
 
+  describe('Relevant Parameters Tracking', () => {
+    test('should track only parameters that were actually used in generation', () => {
+      const result = engine.generateWithParameters('#origin#', {
+        NP: 'cat',
+        VP: 'loves',
+        word_order: '#VSO#'
+      });
+      
+      // Check that relevantParameters contains only used symbols
+      const relevantParams = result.metadata.relevantParameters;
+      
+      // These should be present (used in generation)
+      expect(relevantParams).toHaveProperty('NP');
+      expect(relevantParams).toHaveProperty('VP');
+      expect(relevantParams).toHaveProperty('word_order');
+      expect(relevantParams).toHaveProperty('VSO'); // VSO was used via word_order
+      expect(relevantParams).toHaveProperty('SP'); // SP was used via VSO
+      expect(relevantParams).toHaveProperty('OP'); // OP was used via VSO
+      
+      // These should NOT be present (not used in generation)
+      expect(relevantParams).not.toHaveProperty('SVO');
+      expect(relevantParams).not.toHaveProperty('SOV');
+      
+      // Check values
+      expect(relevantParams.NP).toBe('cat');
+      expect(relevantParams.VP).toBe('loves');
+      expect(relevantParams.word_order).toBe('#VSO#');
+    });
+
+    test('should track parameters correctly for different word orders', () => {
+      // Test SVO order
+      const svoResult = engine.generateWithParameters('#origin#', {
+        NP: 'girl',
+        VP: 'eats',
+        word_order: '#SVO#'
+      });
+      
+      const svoRelevant = svoResult.metadata.relevantParameters;
+      expect(svoRelevant).toHaveProperty('SVO');
+      expect(svoRelevant).toHaveProperty('SP');
+      expect(svoRelevant).toHaveProperty('OP');
+      expect(svoRelevant).not.toHaveProperty('VSO');
+      expect(svoRelevant).not.toHaveProperty('SOV');
+      
+      // Test VSO order (since SOV is not defined in test grammar)
+      const vsoResult = engine.generateWithParameters('#origin#', {
+        NP: 'dog',
+        VP: 'chases',
+        word_order: '#VSO#'
+      });
+      
+      const vsoRelevant = vsoResult.metadata.relevantParameters;
+      expect(vsoRelevant).toHaveProperty('VSO');
+      expect(vsoRelevant).toHaveProperty('SP');
+      expect(vsoRelevant).toHaveProperty('OP');
+      expect(vsoRelevant).not.toHaveProperty('SVO');
+    });
+  });
+
   describe('Error Handling', () => {
     test('should handle missing symbols gracefully', () => {
       const result = engine.generateWithParameters('#missingSymbol#', {});

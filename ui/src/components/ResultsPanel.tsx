@@ -63,6 +63,11 @@ export function ResultsPanel({
 
   const actualCombinations = getActualCombinationCount();
 
+  // Get relevant parameters from the engine (now provided by the engine itself)
+  const getRelevantParameters = (result: GenerationResult): Record<string, any> => {
+    return result.metadata.relevantParameters || {};
+  };
+
   // Reset selected parameters when grammar changes
   useEffect(() => {
     setSelectedParameters({});
@@ -85,12 +90,47 @@ export function ResultsPanel({
   };
 
   const exportResults = () => {
-    const dataStr = JSON.stringify(results, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    if (results.length === 0) return;
+    
+    // Get all unique parameter names from relevant parameters only
+    const allParamNames = new Set<string>();
+    results.forEach(result => {
+      const relevantParams = getRelevantParameters(result);
+      Object.keys(relevantParams).forEach(param => allParamNames.add(param));
+    });
+    
+    // Create header row with basic columns + relevant parameters + optional metadata
+    const headers = [
+      'index', 
+      'generated_text', 
+      ...Array.from(allParamNames).sort(),
+      'generation_time_ms',
+      'generation_path'
+    ];
+    
+    // Create CSV content
+    const csvRows = [headers.join(',')];
+    
+    results.forEach((result, index) => {
+      const relevantParams = getRelevantParameters(result);
+      const row = [
+        index + 1, // 1-based index
+        `"${result.content.replace(/"/g, '""')}"`, // Escape quotes in content
+        ...Array.from(allParamNames).sort().map(paramName => 
+          `"${(relevantParams[paramName] || '').toString().replace(/"/g, '""')}"`
+        ),
+        result.metadata.generationTime || 0,
+        `"${result.metadata.generationPath.join(' → ').replace(/"/g, '""')}"`
+      ];
+      csvRows.push(row.join(','));
+    });
+    
+    const csvContent = csvRows.join('\n');
+    const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'grammar-results.json';
+    link.download = 'grammar-results.csv';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -205,8 +245,9 @@ export function ResultsPanel({
               size="xs" 
               variant="light"
               onClick={exportResults}
+              disabled={results.length === 0}
             >
-              Export
+              Export CSV
             </Button>
           )}
         </Group>
@@ -241,7 +282,7 @@ export function ResultsPanel({
                     </Table.Td>
                     <Table.Td>
                       <Stack gap={2}>
-                        {Object.entries(result.metadata.parameters).map(([key, value]) => (
+                        {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
                           <Badge key={key} size="xs" variant="light">
                             {key}: {value}
                           </Badge>
@@ -283,6 +324,16 @@ export function ResultsPanel({
                         <div>
                           <Text size="xs" c="dimmed">Generation Path:</Text>
                           <Code>{result.metadata.generationPath.join(' → ')}</Code>
+                        </div>
+                        <div>
+                          <Text size="xs" c="dimmed">Relevant Parameters:</Text>
+                          <Stack gap={2} mt={4}>
+                            {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
+                              <Badge key={key} size="xs" variant="light">
+                                {key}: {value}
+                              </Badge>
+                            ))}
+                          </Stack>
                         </div>
                         <div>
                           <Text size="xs" c="dimmed">Applied Rules:</Text>
