@@ -1,4 +1,5 @@
 // not used, kept for reference
+// ISC License
 /**
  * @author Kate
 */

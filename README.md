@@ -2,6 +2,10 @@
 
 A universal, domain-agnostic grammar generation engine for scientific research. This engine allows you to create controlled, systematic generation of content with full metadata tracking and parameter control.
 
+**Created by [Dani Polani](https://tinygods.dev) from [TinyGods.Dev](https://tinygods.dev)**  
+**Inspired by [Tracery.js](https://github.com/galaxykate/tracery)** 
+**Repository: [github.com/tinygodsdev/metatracery](https://github.com/tinygodsdev/metatracery)**
+
 ## Project Structure
 
 ```
@@ -39,7 +43,7 @@ make install
 The project provides a web interface for interactive grammar editing and testing. Start the development server:
 
 ```bash
-make ui-dev
+make dev
 ```
 
 Then open your browser to `http://localhost:5173` to use the interactive grammar editor.
@@ -205,7 +209,7 @@ Test coverage:
 
 ## License
 
-ISC License - see package.json for details.
+MIT license 
 
 ## Scientific Applications
 

@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "A universal, domain-agnostic grammar generation engine for scientific research",
+  "author": "Dani Polani <dani@tinygods.dev> (https://tinygods.dev)",
+  "homepage": "https://github.com/tinygodsdev/metatracery",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinygodsdev/metatracery.git"
+  },
+  "keywords": ["grammar", "generation", "scientific", "research", "tracery", "linguistics", "mathematics"],
   "exports": {
     ".": {
       "types": "./src/engine/index.ts",

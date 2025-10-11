@@ -19,6 +19,7 @@ import { Notifications } from '@mantine/notifications';
 
 import { GrammarEditor } from './components/GrammarEditor';
 import { ResultsPanel } from './components/ResultsPanel';
+import { Footer } from './components/Footer';
 import { GrammarEngine } from './engine/GrammarEngine';
 import type { GrammarRule, GenerationResult } from './engine/types';
 
@@ -152,7 +153,7 @@ function App() {
             )}
 
             <Grid>
-              <Grid.Col span={6}>
+              <Grid.Col span={4}>
                 <Stack>
                   <Paper p="md" withBorder>
                     <Group mb="md">
@@ -166,7 +167,7 @@ function App() {
                 </Stack>
               </Grid.Col>
 
-              <Grid.Col span={6}>
+              <Grid.Col span={8}>
                 <Stack>
                   <Paper p="md" withBorder>
                     <Group mb="md">
@@ -184,6 +185,8 @@ function App() {
               </Grid.Col>
             </Grid>
           </Container>
+          
+          <Footer />
         </AppShell.Main>
       </AppShell>
     </MantineProvider>
