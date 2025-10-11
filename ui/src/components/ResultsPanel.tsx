@@ -35,7 +35,6 @@ export function ResultsPanel({
   onGenerateAll
 }: ResultsPanelProps) {
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
-  const [showMetadata, setShowMetadata] = useState(false);
 
   const parameters = engine?.getParameters() || {};
   const stats = engine?.getParameterStatistics();
@@ -48,21 +47,9 @@ export function ResultsPanel({
   const getActualCombinationCount = (): number => {
     if (!engine) return 0;
     
-    // Use the new generateAllCombinations method to get the actual count
     try {
-      const allResults = engine.generateAllCombinations('#origin#');
-      
-      // Filter results that match selected parameters
-      const matchingResults = allResults.filter(result => {
-        for (const [paramName, selectedValue] of Object.entries(selectedParameters)) {
-          if (selectedValue && result.metadata.relevantParameters[paramName] !== selectedValue) {
-            return false;
-          }
-        }
-        return true;
-      });
-      
-      return matchingResults.length;
+      // Use the new method to count combinations with constraints
+      return engine.getCombinationsWithConstraints(selectedParameters);
     } catch (err) {
       console.error('Error calculating combination count:', err);
       return 0;
@@ -164,36 +151,44 @@ export function ResultsPanel({
           )}
         </Group>
         
-        <Stack gap="sm">
-          {filterableParameters.length === 0 ? (
-            <Text size="sm" c="dimmed" ta="center" py="md">
-              No variable parameters found. All parameters have fixed values.
-            </Text>
-          ) : (
-            filterableParameters.map(([name, param]) => (
-            <Group key={name} justify="space-between">
-              <Text size="sm" fw={500}>{name}:</Text>
-              <select
-                value={selectedParameters[name] || ''}
-                onChange={(e) => handleParameterChange(name, e.target.value)}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  backgroundColor: 'var(--mantine-color-body)',
-                  color: 'var(--mantine-color-text)',
-                  fontSize: '12px'
-                }}
-              >
-                <option value="">Random</option>
-                {param.values.map(value => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </Group>
-            ))
-          )}
-        </Stack>
+        {filterableParameters.length === 0 ? (
+          <Text size="sm" c="dimmed" ta="center" py="md">
+            No variable parameters found. All parameters have fixed values.
+          </Text>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+            gap: '12px',
+            alignItems: 'start'
+          }}>
+            {filterableParameters.map(([name, param]) => (
+              <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <Text size="xs" c="dimmed" fw={500} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {name}
+                </Text>
+                <select
+                  value={selectedParameters[name] || ''}
+                  onChange={(e) => handleParameterChange(name, e.target.value)}
+                  style={{
+                    padding: '6px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                    backgroundColor: 'var(--mantine-color-body)',
+                    color: 'var(--mantine-color-text)',
+                    fontSize: '12px',
+                    minWidth: '100%'
+                  }}
+                >
+                  <option value="">Random</option>
+                  {param.values.map(value => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
 
         <Divider my="md" />
 
@@ -219,9 +214,9 @@ export function ResultsPanel({
         {stats && (
           <Stack gap={2} mt="sm">
             <Text size="xs" c="dimmed">
-              Total combinations: {engine ? engine.generateAllCombinations('#origin#').length : 0}
+              Total combinations: {engine ? engine.getTotalCombinations() : 0}
             </Text>
-            <Text size="xs" c={actualCombinations !== (engine ? engine.generateAllCombinations('#origin#').length : 0) ? "blue" : "dimmed"}>
+            <Text size="xs" c={actualCombinations !== (engine ? engine.getTotalCombinations() : 0) ? "blue" : "dimmed"}>
               With selected parameters: {actualCombinations}
             </Text>
             {actualCombinations > 100 && (
@@ -278,8 +273,6 @@ export function ResultsPanel({
                 <Table.Tr>
                   <Table.Th>Content</Table.Th>
                   <Table.Th>Parameters</Table.Th>
-                  <Table.Th>Time</Table.Th>
-                  <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -296,18 +289,6 @@ export function ResultsPanel({
                           </Badge>
                         ))}
                       </Stack>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs">{result.metadata.generationTime}ms</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Button 
-                        size="xs" 
-                        variant="light"
-                        onClick={() => setShowMetadata(!showMetadata)}
-                      >
-                        Details
-                      </Button>
                     </Table.Td>
                   </Table.Tr>
                 ))}

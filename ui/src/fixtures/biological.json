@@ -1,11 +1,11 @@
 {
   "base": ["A", "T", "G", "C"],
-  "codon": ["#base##base##base#"],
+  "codon": ["#base##base##base#", "#base##base#", "#base#"],
   "start_codon": ["ATG"],
   "stop_codon": ["TAA", "TAG", "TGA"],
   "gene": ["#start_codon# #codon# #stop_codon#"],
   "promoter": ["TATAAT", "TTGACA"],
-  "sequence": ["#promoter# #gene#"],
+  "sequence": ["#promoter# #gene#", "#gene# #promoter#"],
   "origin": [
     "#gene#",
     "#sequence#"

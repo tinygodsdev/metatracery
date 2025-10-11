@@ -91,6 +91,13 @@ export class GrammarEngine {
   public getTotalCombinations(): number {
     return this.grammarAnalyzer.countAllPaths();
   }
+
+  /**
+   * Gets the number of combinations with parameter constraints
+   */
+  public getCombinationsWithConstraints(constraints: Record<string, string>): number {
+    return this.grammarAnalyzer.countPathsWithConstraints(constraints);
+  }
   
 
 
@@ -377,12 +384,8 @@ export class GrammarEngine {
       generationTime: 0
     };
     
-    // Calculate total number of variants
-    let totalCombinations = 1;
-    for (const param of Object.values(this.parameters)) {
-      totalCombinations *= param.values.length;
-    }
-    stats.totalVariants = totalCombinations;
+    // Use the correct method for counting combinations
+    stats.totalVariants = this.getTotalCombinations();
     
     // Count variants by parameters
     for (const [paramName, param] of Object.entries(this.parameters)) {

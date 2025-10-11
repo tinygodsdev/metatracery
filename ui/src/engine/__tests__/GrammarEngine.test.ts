@@ -220,7 +220,9 @@ describe('GrammarEngine', () => {
     test('should calculate correct statistics', () => {
       const stats = engine.getParameterStatistics();
       
-      expect(stats.totalVariants).toBe(12); // 2 × 2 × 3 × 2
+      // Now stats.totalVariants should use the correct method
+      expect(stats.totalVariants).toBe(24); // Correct count based on grammar structure
+      
       expect(stats.parameterCounts).toBeDefined();
       expect(stats.parameterCounts.NP).toBeDefined();
       expect(stats.parameterCounts.VP).toBeDefined();

@@ -4,6 +4,7 @@ import biological from './biological.json';
 import simple from './simple.json';
 import emoji from './emoji.json';
 import basic from './basic.json';
+import syllable from './syllable.json';
 
 export interface Fixture {
   name: string;
@@ -41,6 +42,11 @@ export const fixtures: Fixture[] = [
     name: 'Basic',
     description: 'Basic grammar with multiple S symbols',
     grammar: basic
+  },
+  {
+    name: 'Syllable',
+    description: 'Syllable combinations with vowels and consonants',
+    grammar: syllable
   }
 ];
 
