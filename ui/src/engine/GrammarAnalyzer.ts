@@ -21,13 +21,13 @@ interface GenerationPath {
 /**
  * Represents a path through the grammar tree
  */
-interface GrammarPath {
-  nodes: Array<{
-    symbol: string;
-    value: string;
-    occurrence: number; // which occurrence of this symbol in the path
-  }>;
-}
+// interface GrammarPath {
+//   nodes: Array<{
+//     symbol: string;
+//     value: string;
+//     occurrence: number; // which occurrence of this symbol in the path
+//   }>;
+// }
 
 /**
  * Grammar analyzer that builds a tree and counts all possible paths
@@ -59,7 +59,7 @@ export class GrammarAnalyzer {
   /**
    * Recursively builds a node and its children
    */
-  private buildNode(symbol: string, rule: string, parentPath: string = '', positionInParent: number = 0): GrammarNode {
+  private buildNode(symbol: string, _: string, parentPath: string = '', positionInParent: number = 0): GrammarNode {
     const alternatives = this.grammar[symbol] || [];
     const isParameter = alternatives.length > 1;
 
@@ -159,105 +159,6 @@ export class GrammarAnalyzer {
     }
 
     return totalCombinations;
-  }
-
-  /**
-   * Finds all possible paths from a node to leaves
-   */
-  private findAllPaths(node: GrammarNode): GrammarPath[] {
-    if (node.children.length === 0) {
-      // Leaf node - return a single path
-      return [{
-        nodes: [{
-          symbol: node.symbol,
-          value: node.alternatives[0] || '',
-          occurrence: 1
-        }]
-      }];
-    }
-
-    const allPaths: GrammarPath[] = [];
-
-    // For each alternative of this node
-    for (const alternative of node.alternatives) {
-      // Find all symbol references in this alternative
-      const symbolRefs = this.extractSymbolReferences(alternative);
-      
-      if (symbolRefs.length === 0) {
-        // Terminal alternative - add as leaf
-        allPaths.push({
-          nodes: [{
-            symbol: node.symbol,
-            value: alternative,
-            occurrence: 1
-          }]
-        });
-        continue;
-      }
-
-      // For each symbol reference, get all possible paths
-      const childPaths: GrammarPath[][] = [];
-      for (const symbolRef of symbolRefs) {
-        const childNode = node.children.find(child => child.symbol === symbolRef.symbol);
-        if (childNode) {
-          childPaths.push(this.findAllPaths(childNode));
-        }
-      }
-
-      // Generate all combinations of child paths
-      const combinations = this.generatePathCombinations(childPaths);
-      
-      // Add this node to each combination
-      for (const combination of combinations) {
-        const allNodes = [{
-          symbol: node.symbol,
-          value: alternative,
-          occurrence: 1
-        }];
-        
-        // Add all nodes from the combination
-        allNodes.push(...combination.nodes);
-        
-        allPaths.push({
-          nodes: allNodes
-        });
-      }
-    }
-
-    return allPaths;
-  }
-
-  /**
-   * Generates all combinations of paths from different children
-   */
-  private generatePathCombinations(childPaths: GrammarPath[][]): GrammarPath[] {
-    if (childPaths.length === 0) {
-      return [];
-    }
-
-    if (childPaths.length === 1) {
-      return childPaths[0];
-    }
-
-    const combinations: GrammarPath[] = [];
-    const firstChildPaths = childPaths[0];
-    const remainingChildPaths = childPaths.slice(1);
-
-    for (const firstPath of firstChildPaths) {
-      const remainingCombinations = this.generatePathCombinations(remainingChildPaths);
-      
-      if (remainingCombinations.length === 0) {
-        combinations.push(firstPath);
-      } else {
-        for (const remainingCombination of remainingCombinations) {
-          combinations.push({
-            nodes: [...firstPath.nodes, ...remainingCombination.nodes]
-          });
-        }
-      }
-    }
-
-    return combinations;
   }
 
   /**
@@ -374,7 +275,6 @@ export class GrammarAnalyzer {
    * Recursively creates visual representation of a node
    */
   private visualizeNode(node: GrammarNode, depth: number, prefix: string): string {
-    const indent = '  '.repeat(depth);
     const paramIndicator = node.isParameter ? ' (PARAM)' : '';
     const sequenceIndicator = node.isSequence ? ' (SEQUENCE)' : '';
     const nodeLine = `${prefix}${node.symbol}${paramIndicator}${sequenceIndicator}: [${node.alternatives.join(', ')}]`;
@@ -388,7 +288,6 @@ export class GrammarAnalyzer {
       const child = node.children[i];
       const isLast = i === node.children.length - 1;
       const childPrefix = prefix + (isLast ? '└── ' : '├── ');
-      const nextPrefix = prefix + (isLast ? '    ' : '│   ');
       
       result += this.visualizeNode(child, depth + 1, childPrefix);
       if (i < node.children.length - 1) {

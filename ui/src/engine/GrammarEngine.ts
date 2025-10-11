@@ -66,12 +66,10 @@ export class GrammarEngine {
   /**
    * Generates all possible combinations
    */
-  generateAllCombinations(
-    rule: string
-  ): GenerationResult[] {
+  generateAllCombinations(rule: string): GenerationResult[] {
     // Get all generation paths from GrammarAnalyzer
     const generationPaths = this.grammarAnalyzer.generateAllCombinations();
-    console.log('Total generation paths from analyzer:', generationPaths.length);
+    console.log('Total generation paths from analyzer:', generationPaths.length, rule);
     
     // Convert GenerationPath to GenerationResult
     const results = generationPaths.map(path => ({
@@ -85,19 +83,6 @@ export class GrammarEngine {
     }));
     
     return results;
-  }
-  
-  /**
-   * Gets all possible combinations for a rule by analyzing its structure
-   */
-  private getAllRuleCombinations(rule: string): Record<string, string>[] {
-    // Use GrammarAnalyzer to get the correct count and structure
-    const structureInfo = this.grammarAnalyzer.getStructureInfo();
-    console.log('Grammar structure info:', structureInfo);
-    
-    // For now, return empty array - we'll implement generation logic later
-    // This is a placeholder to maintain compatibility
-    return [];
   }
 
   /**
@@ -190,44 +175,6 @@ export class GrammarEngine {
       }
     };
   }
-
-  /**
-   * Generates with direct expansion using GrammarAnalyzer combinations
-   */
-  private generateWithDirectExpansion(rule: string, combination: Record<string, string>): GenerationResult {
-    const appliedRules: AppliedRule[] = [];
-    const generationPath: string[] = [];
-    const usedSymbols = new Set<string>();
-    
-    // Directly expand the rule using the combination
-    const result = this.expandRuleWithCombination(rule, combination, appliedRules, generationPath, usedSymbols, 0);
-    
-    // Extract relevant parameters from the combination
-    const relevantParameters: Record<string, any> = {};
-    
-    // Map combination keys to relevant parameters
-    for (const [key, value] of Object.entries(combination)) {
-      // Extract symbol from key (e.g., "origin_word_order_0_SVO_0_SP_0_NP_0_0" -> "NP")
-      const parts = key.split('_');
-      const symbol = parts[parts.length - 2]; // Second to last part is usually the symbol
-      if (symbol && !relevantParameters[symbol]) {
-        relevantParameters[symbol] = value;
-      }
-    }
-    
-    // Add generation path to relevant parameters
-    relevantParameters.generationPath = generationPath;
-    
-    return {
-      content: result,
-      metadata: {
-        parameters: {},
-        appliedRules,
-        generationPath,
-        relevantParameters
-      }
-    };
-  }
   
   /**
    * Fully expands a rule
@@ -309,89 +256,6 @@ export class GrammarEngine {
     }
     
     return result;
-  }
-
-  /**
-   * Expands rule using GrammarAnalyzer combination directly
-   */
-  private expandRuleWithCombination(
-    rule: string, 
-    combination: Record<string, string>,
-    appliedRules: AppliedRule[], 
-    generationPath: string[], 
-    usedSymbols: Set<string>, 
-    depth: number
-  ): string {
-    let result = rule;
-    
-    // Find all symbol references in the rule
-    const symbolReferences = this.extractAllSymbolReferences(rule);
-    
-    for (const { symbol, placeholder } of symbolReferences) {
-      usedSymbols.add(symbol);
-      
-      // Find the value for this symbol in the combination
-      let selectedValue = this.findValueInCombination(symbol, combination);
-      
-      if (!selectedValue) {
-        // Fallback to random selection if not found in combination
-        const rules = this.grammar[symbol];
-        if (rules && rules.length > 0) {
-          const randomIndex = Math.floor(Math.random() * rules.length);
-          selectedValue = rules[randomIndex];
-        } else {
-          selectedValue = `((missing:${symbol}))`;
-        }
-      }
-      
-      // Record applied rule
-      if (this.config.enableTracking) {
-        appliedRules.push({
-          symbol,
-          selectedRule: selectedValue,
-          result: '',
-          depth,
-          alternatives: this.grammar[symbol] || [],
-          timestamp: Date.now()
-        });
-      }
-      
-      generationPath.push(symbol);
-      
-      // Recursively expand if the selected value contains symbols
-      if (selectedValue.includes('#')) {
-        const expandedValue = this.expandRuleWithCombination(selectedValue, combination, appliedRules, generationPath, usedSymbols, depth + 1);
-        result = result.replace(placeholder, expandedValue);
-        
-        // Update result in appliedRules
-        if (this.config.enableTracking && appliedRules.length > 0) {
-          appliedRules[appliedRules.length - 1].result = expandedValue;
-        }
-      } else {
-        // Direct replacement for terminal values
-        result = result.replace(placeholder, selectedValue);
-        
-        // Update result in appliedRules
-        if (this.config.enableTracking && appliedRules.length > 0) {
-          appliedRules[appliedRules.length - 1].result = selectedValue;
-        }
-      }
-    }
-    
-    return result;
-  }
-
-  /**
-   * Finds value for symbol in GrammarAnalyzer combination
-   */
-  private findValueInCombination(symbol: string, combination: Record<string, string>): string | null {
-    // Look for keys that end with the symbol
-    for (const [key, value] of Object.entries(combination)) {
-      if (key.endsWith(`_${symbol}_`) || key.endsWith(`_${symbol}`)) {
-        return value;
-      }
-    }
-    return null;
   }
   
   /**
