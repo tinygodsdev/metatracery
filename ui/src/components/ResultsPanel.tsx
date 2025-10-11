@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 // Icons removed temporarily to fix import issues
 import { GrammarEngine } from '../engine/GrammarEngine';
-import type { ExtractedParameters, GenerationResult } from '../engine/types';
+import type { GenerationResult } from '../engine/types';
 
 interface ResultsPanelProps {
   engine: GrammarEngine | null;

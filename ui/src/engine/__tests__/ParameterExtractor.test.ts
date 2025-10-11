@@ -1,5 +1,5 @@
 import { ParameterExtractor } from '../ParameterExtractor';
-import { GrammarRule } from '../types';
+import type { GrammarRule } from '../types';
 
 describe('ParameterExtractor', () => {
   let extractor: ParameterExtractor;

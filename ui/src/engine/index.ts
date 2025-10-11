@@ -14,7 +14,7 @@ export function createGrammar(grammar: any, config?: any) {
   return new GrammarEngine(grammar, config);
 }
 
-export function loadGrammarFromFile(filePath: string) {
+export function loadGrammarFromFile(_filePath: string) {
   // TODO: Implement file loading
   throw new Error('Not implemented yet');
 }

@@ -8,7 +8,6 @@ import {
   Badge,
   Alert,
   Code,
-  ScrollArea,
   Select
 } from '@mantine/core';
 // Icons removed temporarily to fix import issues

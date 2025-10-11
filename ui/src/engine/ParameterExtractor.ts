@@ -1,6 +1,6 @@
 import type { GrammarRule, ExtractedParameters, ExtractedParameter } from './types';
 
-export { ExtractedParameters, ExtractedParameter };
+export type { ExtractedParameters, ExtractedParameter };
 
 /**
  * Class for automatic parameter extraction from grammar
@@ -49,7 +49,7 @@ export class ParameterExtractor {
    * Determines if symbol is a parameter
    */
   private isParameterSymbol(
-    symbol: string, 
+    _symbol: string, 
     rules: string[], 
     grammar: GrammarRule
   ): boolean {

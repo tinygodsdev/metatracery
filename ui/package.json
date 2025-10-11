@@ -10,7 +10,15 @@
     "type": "git",
     "url": "https://github.com/tinygodsdev/metatracery.git"
   },
-  "keywords": ["grammar", "generation", "scientific", "research", "tracery", "linguistics", "mathematics"],
+  "keywords": [
+    "grammar",
+    "generation",
+    "scientific",
+    "research",
+    "tracery",
+    "linguistics",
+    "mathematics"
+  ],
   "exports": {
     ".": {
       "types": "./src/engine/index.ts",

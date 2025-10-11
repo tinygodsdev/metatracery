@@ -26,7 +26,7 @@ export class GenericStructureExtractor implements StructureExtractor {
    * Extracts structure information from a single rule
    */
   private extractFromRule(rule: AppliedRule, structure: Record<string, any>): void {
-    const { symbol, selectedRule, result } = rule;
+    const { selectedRule, result } = rule;
     
     // Extract based on rule content patterns only
     this.extractFromRuleContent(selectedRule, result, structure);
@@ -38,7 +38,7 @@ export class GenericStructureExtractor implements StructureExtractor {
   /**
    * Extracts structure based on rule content patterns
    */
-  private extractFromRuleContent(selectedRule: string, result: string, structure: Record<string, any>): void {
+  private extractFromRuleContent(selectedRule: string, _result: string, structure: Record<string, any>): void {
     // Look for patterns in the rule itself
     if (selectedRule.includes('#')) {
       const references = selectedRule.match(/#([^#]+)#/g);
