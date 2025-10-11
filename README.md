@@ -9,7 +9,7 @@ A universal, domain-agnostic grammar generation engine for scientific research. 
 ## Project Structure
 
 ```
-/home/titkovd/My/metatracery/
+/
 ├── ui/                    # Main application (React + Engine)
 │   ├── src/engine/        # Grammar engine (TypeScript)
 │   ├── src/components/    # React UI components

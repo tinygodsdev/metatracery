@@ -96,29 +96,22 @@ function App() {
     
     setIsLoading(true);
     try {
-      // Get all parameter combinations that match the selected parameters
-      const allCombinations = engine.parameterExtractor.getAllParameterCombinations(engine.getParameters());
-      console.log('All combinations:', allCombinations.length, allCombinations);
+      // Use the new generateAllCombinations method
+      const allResults = engine.generateAllCombinations('#origin#');
+      console.log('All results from generateAllCombinations:', allResults.length, allResults);
       
-      // Filter combinations that match selected parameters
-      const matchingCombinations = allCombinations.filter(combination => {
+      // Filter results that match selected parameters
+      const matchingResults = allResults.filter(result => {
         for (const [paramName, selectedValue] of Object.entries(selectedParameters)) {
-          if (selectedValue && combination[paramName] !== selectedValue) {
+          if (selectedValue && result.metadata.relevantParameters[paramName] !== selectedValue) {
             return false;
           }
         }
         return true;
       });
       
-      console.log('Matching combinations:', matchingCombinations.length, matchingCombinations);
-      
-      // Generate results for matching combinations
-      const allResults = matchingCombinations.map(combination => 
-        engine.generateWithParameters('#origin#', combination)
-      );
-      
-      console.log('Generated results:', allResults.length, allResults);
-      setResults(allResults);
+      console.log('Matching results:', matchingResults.length, matchingResults);
+      setResults(matchingResults);
     } catch (err) {
       console.error('Generation error:', err);
       setError(err instanceof Error ? err.message : 'Generation failed');

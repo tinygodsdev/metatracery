@@ -48,17 +48,25 @@ export function ResultsPanel({
   const getActualCombinationCount = (): number => {
     if (!engine) return 0;
     
-    let combinations = 1;
-    for (const [paramName, param] of Object.entries(parameters)) {
-      if (selectedParameters[paramName]) {
-        // If parameter is selected, it contributes 1 combination
-        combinations *= 1;
-      } else {
-        // If parameter is not selected, it contributes all its values
-        combinations *= param.values.length;
-      }
+    // Use the new generateAllCombinations method to get the actual count
+    try {
+      const allResults = engine.generateAllCombinations('#origin#');
+      
+      // Filter results that match selected parameters
+      const matchingResults = allResults.filter(result => {
+        for (const [paramName, selectedValue] of Object.entries(selectedParameters)) {
+          if (selectedValue && result.metadata.relevantParameters[paramName] !== selectedValue) {
+            return false;
+          }
+        }
+        return true;
+      });
+      
+      return matchingResults.length;
+    } catch (err) {
+      console.error('Error calculating combination count:', err);
+      return 0;
     }
-    return combinations;
   };
 
   const actualCombinations = getActualCombinationCount();
@@ -211,9 +219,9 @@ export function ResultsPanel({
         {stats && (
           <Stack gap={2} mt="sm">
             <Text size="xs" c="dimmed">
-              Total combinations: {stats.totalVariants}
+              Total combinations: {engine ? engine.generateAllCombinations('#origin#').length : 0}
             </Text>
-            <Text size="xs" c={actualCombinations !== stats.totalVariants ? "blue" : "dimmed"}>
+            <Text size="xs" c={actualCombinations !== (engine ? engine.generateAllCombinations('#origin#').length : 0) ? "blue" : "dimmed"}>
               With selected parameters: {actualCombinations}
             </Text>
             {actualCombinations > 100 && (

@@ -3,6 +3,7 @@ import mathematical from './mathematical.json';
 import biological from './biological.json';
 import simple from './simple.json';
 import emoji from './emoji.json';
+import basic from './basic.json';
 
 export interface Fixture {
   name: string;
@@ -35,6 +36,11 @@ export const fixtures: Fixture[] = [
     name: 'Emoji',
     description: 'Emoji combinations with happy, sad, and neutral groups',
     grammar: emoji
+  },
+  {
+    name: 'Basic',
+    description: 'Basic grammar with multiple S symbols',
+    grammar: basic
   }
 ];
 
