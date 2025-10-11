@@ -360,14 +360,38 @@ export class GrammarAnalyzer {
 
   /**
    * Generates all possible combinations with full content and parameters
+   * @param constraints Optional parameter constraints to limit combinations
    */
-  public generateAllCombinations(): GenerationPath[] {
-    if (!this.rootNode) {
+  public generateAllCombinations(constraints?: Record<string, string>): GenerationPath[] {
+    const originAlternatives = this.grammar.origin;
+    if (!originAlternatives || originAlternatives.length === 0) {
       return [];
     }
 
-    // Start with empty content and generate all paths with content
-    return this.generateAllPathsWithContent(this.rootNode, '', [], {});
+    // Check if there's a constraint on origin
+    if (constraints && constraints.origin) {
+      // If constrained, only generate combinations for the specific origin alternative
+      const constrainedOrigin = constraints.origin;
+      if (originAlternatives.includes(constrainedOrigin)) {
+        // Build a temporary tree for this specific origin alternative
+        const tempRootNode = this.buildNode('origin', constrainedOrigin);
+        return this.generateAllPathsWithContent(tempRootNode, '', [], {}, constraints);
+      } else {
+        // Constrained origin value not found in alternatives
+        return [];
+      }
+    }
+
+    // No constraint on origin, generate combinations for all origin alternatives
+    const allPaths: GenerationPath[] = [];
+    for (const originRule of originAlternatives) {
+      // Build a temporary tree for this origin alternative
+      const tempRootNode = this.buildNode('origin', originRule);
+      const paths = this.generateAllPathsWithContent(tempRootNode, '', [], {}, constraints);
+      allPaths.push(...paths);
+    }
+
+    return allPaths;
   }
 
   /**
@@ -479,39 +503,76 @@ export class GrammarAnalyzer {
     node: GrammarNode, 
     currentContent: string, 
     currentPath: string[], 
-    currentParameters: Record<string, string>
+    currentParameters: Record<string, string>,
+    constraints?: Record<string, string>
   ): GenerationPath[] {
     // If this is a parameter node (has multiple alternatives), create branches for each alternative
     if (node.isParameter) {
       const allPaths: GenerationPath[] = [];
       
-      for (let i = 0; i < node.alternatives.length; i++) {
-        const alternative = node.alternatives[i];
-        
-        // Create new parameters with this alternative choice
-        const newParameters = {
-          ...currentParameters,
-          [node.symbol]: alternative
-        };
-        
-        // Add to path
-        const newPath = [...currentPath, node.symbol];
-        
-        // Find the child node that corresponds to this alternative
-        const childNode = this.findChildNodeForAlternative(node, alternative);
-        
-        if (childNode) {
-          // Continue the path with the child node
-          const childPaths = this.generateAllPathsWithContent(childNode, currentContent, newPath, newParameters);
-          allPaths.push(...childPaths);
-        } else {
-          // No child node - this is a terminal path
-          // The alternative is the final content
-          allPaths.push({
-            content: alternative,
-            parameters: newParameters,
-            path: newPath
-          });
+      // Check if this symbol has a constraint
+      if (constraints && constraints[node.symbol]) {
+        // If constrained, only consider the specific value
+        const constrainedValue = constraints[node.symbol];
+        if (node.alternatives.includes(constrainedValue)) {
+          // Create new parameters with this alternative choice
+          const newParameters = {
+            ...currentParameters,
+            [node.symbol]: constrainedValue
+          };
+          
+          // Add to path
+          const newPath = [...currentPath, node.symbol];
+          
+          // Find the child node that corresponds to this alternative
+          const childNode = this.findChildNodeForAlternative(node, constrainedValue);
+          
+          if (childNode) {
+            // Continue the path with the child node
+            const childPaths = this.generateAllPathsWithContent(childNode, currentContent, newPath, newParameters, constraints);
+            allPaths.push(...childPaths);
+          } else {
+            // No child node - this is a terminal path
+            // The alternative is the final content
+            allPaths.push({
+              content: constrainedValue,
+              parameters: newParameters,
+              path: newPath
+            });
+          }
+        }
+        // If constrained value not found in alternatives, return empty array
+        return allPaths;
+      } else {
+        // No constraint, consider all alternatives
+        for (let i = 0; i < node.alternatives.length; i++) {
+          const alternative = node.alternatives[i];
+          
+          // Create new parameters with this alternative choice
+          const newParameters = {
+            ...currentParameters,
+            [node.symbol]: alternative
+          };
+          
+          // Add to path
+          const newPath = [...currentPath, node.symbol];
+          
+          // Find the child node that corresponds to this alternative
+          const childNode = this.findChildNodeForAlternative(node, alternative);
+          
+          if (childNode) {
+            // Continue the path with the child node
+            const childPaths = this.generateAllPathsWithContent(childNode, currentContent, newPath, newParameters, constraints);
+            allPaths.push(...childPaths);
+          } else {
+            // No child node - this is a terminal path
+            // The alternative is the final content
+            allPaths.push({
+              content: alternative,
+              parameters: newParameters,
+              path: newPath
+            });
+          }
         }
       }
       
@@ -520,7 +581,7 @@ export class GrammarAnalyzer {
 
     // If this is a sequence node, process all children in sequence
     if (node.isSequence) {
-      return this.generateSequencePathsWithContent(node.children, currentContent, currentPath, currentParameters);
+      return this.generateSequencePathsWithContent(node.children, currentContent, currentPath, currentParameters, constraints);
     }
 
     // If no children, this is a terminal node
@@ -535,7 +596,7 @@ export class GrammarAnalyzer {
     // Process all children (for non-sequence nodes)
     const allPaths: GenerationPath[] = [];
     for (const child of node.children) {
-      const childPaths = this.generateAllPathsWithContent(child, currentContent, currentPath, currentParameters);
+      const childPaths = this.generateAllPathsWithContent(child, currentContent, currentPath, currentParameters, constraints);
       allPaths.push(...childPaths);
     }
     return allPaths;
@@ -548,7 +609,8 @@ export class GrammarAnalyzer {
     children: GrammarNode[], 
     currentContent: string, 
     currentPath: string[], 
-    currentParameters: Record<string, string>
+    currentParameters: Record<string, string>,
+    constraints?: Record<string, string>
   ): GenerationPath[] {
     if (children.length === 0) {
       return [{
@@ -559,7 +621,7 @@ export class GrammarAnalyzer {
     }
 
     if (children.length === 1) {
-      return this.generateAllPathsWithContent(children[0], currentContent, currentPath, currentParameters);
+      return this.generateAllPathsWithContent(children[0], currentContent, currentPath, currentParameters, constraints);
     }
 
     // For sequences, we need to generate all combinations of all children
@@ -569,7 +631,7 @@ export class GrammarAnalyzer {
     // Generate all possible combinations for each child
     const childCombinations: GenerationPath[][] = [];
     for (const child of children) {
-      const childPaths = this.generateAllPathsWithContent(child, '', currentPath, currentParameters);
+      const childPaths = this.generateAllPathsWithContent(child, '', currentPath, currentParameters, constraints);
       childCombinations.push(childPaths);
     }
     
