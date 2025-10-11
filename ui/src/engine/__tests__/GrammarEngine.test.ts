@@ -104,6 +104,39 @@ describe('GrammarEngine', () => {
   });
 
   describe('All Combinations Generation', () => {
+    test('should generate all possible combinations for basic grammar', () => {
+      const basicGrammar = {
+        "S": ["A", "B", "C"],
+        "origin": ["#S# #S# #S#"]
+      };
+      const basicEngine = new GrammarEngine(basicGrammar);
+      const results = basicEngine.generateAllCombinations('#origin#');
+      
+      expect(results).toBeDefined();
+      expect(results.length).toBe(27); // 3^3 = 27 combinations
+      
+      // Check that all results have content
+      results.forEach(result => {
+        expect(result.content).toBeDefined();
+        expect(result.content.length).toBeGreaterThan(0);
+        expect(result.metadata.parameters).toBeDefined();
+      });
+
+      // Check that we have all possible combinations
+      const contents = results.map(r => r.content);
+      const uniqueContents = [...new Set(contents)];
+      console.log('Basic grammar results:', contents);
+      console.log('Unique contents:', uniqueContents);
+      expect(uniqueContents.length).toBe(27); // All should be unique
+      
+      // Check some specific examples
+      expect(contents).toContain('A A A');
+      expect(contents).toContain('A A B');
+      expect(contents).toContain('A A C');
+      expect(contents).toContain('B B B');
+      expect(contents).toContain('C C C');
+    });
+
     test('should generate all possible combinations', () => {
       const results = engine.generateAllCombinations('#origin#');
       
@@ -115,6 +148,33 @@ describe('GrammarEngine', () => {
         expect(result.content).toBeDefined();
         expect(result.content.length).toBeGreaterThan(0);
         expect(result.metadata.parameters).toBeDefined();
+      });
+
+      // Check specific content examples
+      const svoResults = results.filter(r => r.metadata.relevantParameters.word_order === '#SVO#');
+      const vsoResults = results.filter(r => r.metadata.relevantParameters.word_order === '#VSO#');
+      
+      expect(svoResults.length).toBe(12);
+      expect(vsoResults.length).toBe(12);
+      
+      // Check that SVO results have correct word order (Subject Verb Object)
+      svoResults.forEach(result => {
+        const words = result.content.split(' ');
+        expect(words.length).toBe(3); // Should have exactly 3 words
+        // The order should be: NP VP NP (Subject Verb Object)
+        expect(['girl', 'cat']).toContain(words[0]); // First NP
+        expect(['loves', 'eats', 'pets']).toContain(words[1]); // VP
+        expect(['girl', 'cat']).toContain(words[2]); // Second NP
+      });
+      
+      // Check that VSO results have correct word order (Verb Subject Object)
+      vsoResults.forEach(result => {
+        const words = result.content.split(' ');
+        expect(words.length).toBe(3); // Should have exactly 3 words
+        // The order should be: VP NP NP (Verb Subject Object)
+        expect(['loves', 'eats', 'pets']).toContain(words[0]); // VP
+        expect(['girl', 'cat']).toContain(words[1]); // First NP
+        expect(['girl', 'cat']).toContain(words[2]); // Second NP
       });
     });
 
@@ -128,6 +188,7 @@ describe('GrammarEngine', () => {
       expect(vsoResults.length).toBe(12); // 2 NP × 2 NP × 3 VP = 12
       expect(svoResults.length + vsoResults.length).toBe(results.length);
     });
+
   });
 
   describe('Parameter Matrix Generation', () => {
@@ -265,7 +326,7 @@ describe('GrammarEngine', () => {
     test('should not have stuck parameters after generateAllCombinations', () => {
       // Generate all combinations
       const allResults = engine.generateAllCombinations('#origin#');
-      expect(allResults.length).toBe(12); // 2 × 2 × 3
+      expect(allResults.length).toBe(24); // 2 × 2 × 3 × 2 (SVO/VSO orders)
       
       // Generate single random result after generateAllCombinations
       const randomResult1 = engine.generateWithParameters('#origin#', {});
@@ -389,9 +450,9 @@ describe('GrammarEngine', () => {
         expect(relevantParams).toHaveProperty('S');
         expect(['A', 'B', 'C']).toContain(relevantParams.S);
         
-        // Should have origin parameter
-        expect(relevantParams).toHaveProperty('origin');
-        expect(relevantParams.origin).toBe('#S# #S# #S#');
+        // Should have generation path
+        expect(result.metadata.generationPath).toBeDefined();
+        expect(result.metadata.generationPath.length).toBeGreaterThan(0);
       }
       
       // Check that we have all 3 different S values

@@ -8,7 +8,14 @@ interface GrammarNode {
   alternatives: string[];
   isParameter: boolean; // true if has multiple alternatives
   isSequence: boolean; // true if all children are used together (not alternatives)
+  nodeId: string; // unique identifier for this node instance
   children: GrammarNode[];
+}
+
+interface GenerationPath {
+  content: string;           // Финальный результат: "girl loves cat"
+  parameters: Record<string, string>; // Релевантные параметры: {word_order: "SVO", NP: "girl", VP: "loves", ...}
+  path: string[];           // Путь генерации: ["origin", "word_order", "SVO", ...]
 }
 
 /**
@@ -41,7 +48,9 @@ export class GrammarAnalyzer {
     // Start from the origin rule
     const originRule = this.grammar.origin?.[0];
     if (!originRule) {
-      throw new Error('No origin rule found in grammar');
+      // Handle empty grammar gracefully
+      this.rootNode = null;
+      return;
     }
 
     this.rootNode = this.buildNode('origin', originRule);
@@ -50,15 +59,19 @@ export class GrammarAnalyzer {
   /**
    * Recursively builds a node and its children
    */
-  private buildNode(symbol: string, rule: string): GrammarNode {
+  private buildNode(symbol: string, rule: string, parentPath: string = '', positionInParent: number = 0): GrammarNode {
     const alternatives = this.grammar[symbol] || [];
     const isParameter = alternatives.length > 1;
+
+    // Generate unique node ID based on path and position
+    const nodeId = parentPath ? `${parentPath}_${symbol}_${positionInParent}` : symbol;
 
     const node: GrammarNode = {
       symbol,
       alternatives,
       isParameter,
       isSequence: false, // Will be determined below
+      nodeId,
       children: []
     };
 
@@ -71,8 +84,10 @@ export class GrammarAnalyzer {
         node.isSequence = true;
       }
       
-      for (const symbolRef of symbolRefs) {
-        const childNode = this.buildNode(symbolRef.symbol, alternative);
+      // Create a separate child node for each symbol occurrence
+      for (let i = 0; i < symbolRefs.length; i++) {
+        const symbolRef = symbolRefs[i];
+        const childNode = this.buildNode(symbolRef.symbol, alternative, nodeId, i);
         node.children.push(childNode);
       }
     }
@@ -404,7 +419,268 @@ export class GrammarAnalyzer {
       alternatives: node.alternatives,
       isParameter: node.isParameter,
       isSequence: node.isSequence,
+      nodeId: node.nodeId,
       children: node.children.map(child => this.nodeToObject(child))
     };
+  }
+
+  /**
+   * Generates all possible combinations with full content and parameters
+   */
+  public generateAllCombinations(): GenerationPath[] {
+    if (!this.rootNode) {
+      return [];
+    }
+
+    // Start with empty content and generate all paths with content
+    return this.generateAllPathsWithContent(this.rootNode, '', [], {});
+  }
+
+  /**
+   * Recursively generates all possible paths through the tree
+   */
+  private generateAllPaths(node: GrammarNode, currentCombination: Record<string, string>): Record<string, string>[] {
+    // If this is a parameter node (has multiple alternatives), create branches for each alternative
+    if (node.isParameter) {
+      const allCombinations: Record<string, string>[] = [];
+      
+      for (let i = 0; i < node.alternatives.length; i++) {
+        const alternative = node.alternatives[i];
+        
+        // Create a new combination with this alternative choice
+        // Use nodeId to ensure uniqueness across all node instances
+        const newCombination = {
+          ...currentCombination,
+          [`${node.nodeId}_${i}`]: alternative
+        };
+        
+        // Find the child node that corresponds to this alternative
+        const childNode = this.findChildNodeForAlternative(node, alternative);
+        
+        if (childNode) {
+          // Continue the path with the child node
+          const childCombinations = this.generateAllPaths(childNode, newCombination);
+          allCombinations.push(...childCombinations);
+        } else {
+          // No child node - this is a terminal path
+          allCombinations.push(newCombination);
+        }
+      }
+      
+      return allCombinations;
+    }
+
+    // If this is not a parameter node, we need to process all children
+    if (node.children.length === 0) {
+      // Terminal node - return the current combination
+      return [currentCombination];
+    }
+
+    // For sequence nodes, we need to process all children in sequence
+    if (node.isSequence) {
+      return this.generateSequencePaths(node.children, currentCombination);
+    }
+
+    // For non-sequence nodes, we need to process all children
+    // This case should be rare in our current tree structure
+    const allCombinations: Record<string, string>[] = [];
+    for (const child of node.children) {
+      const childCombinations = this.generateAllPaths(child, currentCombination);
+      allCombinations.push(...childCombinations);
+    }
+    
+    return allCombinations;
+  }
+
+  /**
+   * Generates paths for a sequence of child nodes
+   */
+  private generateSequencePaths(children: GrammarNode[], currentCombination: Record<string, string>): Record<string, string>[] {
+    if (children.length === 0) {
+      return [currentCombination];
+    }
+
+    if (children.length === 1) {
+      return this.generateAllPaths(children[0], currentCombination);
+    }
+
+    // For sequences, we need to generate all combinations of all children
+    // This is a cartesian product of all possible combinations
+    const allCombinations: Record<string, string>[] = [];
+    
+    // Generate combinations for the first child
+    const firstCombinations = this.generateAllPaths(children[0], currentCombination);
+    
+    // For each combination of the first child, generate combinations for the rest
+    for (const firstComb of firstCombinations) {
+      const restCombinations = this.generateSequencePaths(children.slice(1), firstComb);
+      allCombinations.push(...restCombinations);
+    }
+
+    return allCombinations;
+  }
+
+  /**
+   * Finds the child node that corresponds to a specific alternative
+   */
+  private findChildNodeForAlternative(node: GrammarNode, alternative: string): GrammarNode | null {
+    // Extract symbol references from the alternative
+    const symbolRefs = this.extractSymbolReferences(alternative);
+    
+    if (symbolRefs.length === 0) {
+      return null;
+    }
+
+    // For now, return the first matching child
+    // This is a simplified approach - in a more complex case we might need
+    // to handle multiple symbols in one alternative
+    const firstSymbol = symbolRefs[0].symbol;
+    return node.children.find(child => child.symbol === firstSymbol) || null;
+  }
+
+  /**
+   * Recursively generates all possible paths with content and parameters
+   */
+  private generateAllPathsWithContent(
+    node: GrammarNode, 
+    currentContent: string, 
+    currentPath: string[], 
+    currentParameters: Record<string, string>
+  ): GenerationPath[] {
+    // If this is a parameter node (has multiple alternatives), create branches for each alternative
+    if (node.isParameter) {
+      const allPaths: GenerationPath[] = [];
+      
+      for (let i = 0; i < node.alternatives.length; i++) {
+        const alternative = node.alternatives[i];
+        
+        // Create new parameters with this alternative choice
+        const newParameters = {
+          ...currentParameters,
+          [node.symbol]: alternative
+        };
+        
+        // Add to path
+        const newPath = [...currentPath, node.symbol];
+        
+        // Find the child node that corresponds to this alternative
+        const childNode = this.findChildNodeForAlternative(node, alternative);
+        
+        if (childNode) {
+          // Continue the path with the child node
+          const childPaths = this.generateAllPathsWithContent(childNode, currentContent, newPath, newParameters);
+          allPaths.push(...childPaths);
+        } else {
+          // No child node - this is a terminal path
+          // The alternative is the final content
+          allPaths.push({
+            content: alternative,
+            parameters: newParameters,
+            path: newPath
+          });
+        }
+      }
+      
+      return allPaths;
+    }
+
+    // If this is a sequence node, process all children in sequence
+    if (node.isSequence) {
+      return this.generateSequencePathsWithContent(node.children, currentContent, currentPath, currentParameters);
+    }
+
+    // If no children, this is a terminal node
+    if (node.children.length === 0) {
+      return [{
+        content: currentContent,
+        parameters: currentParameters,
+        path: currentPath
+      }];
+    }
+
+    // Process all children (for non-sequence nodes)
+    const allPaths: GenerationPath[] = [];
+    for (const child of node.children) {
+      const childPaths = this.generateAllPathsWithContent(child, currentContent, currentPath, currentParameters);
+      allPaths.push(...childPaths);
+    }
+    return allPaths;
+  }
+
+  /**
+   * Generates paths for sequence nodes (all children used together)
+   */
+  private generateSequencePathsWithContent(
+    children: GrammarNode[], 
+    currentContent: string, 
+    currentPath: string[], 
+    currentParameters: Record<string, string>
+  ): GenerationPath[] {
+    if (children.length === 0) {
+      return [{
+        content: currentContent,
+        parameters: currentParameters,
+        path: currentPath
+      }];
+    }
+
+    if (children.length === 1) {
+      return this.generateAllPathsWithContent(children[0], currentContent, currentPath, currentParameters);
+    }
+
+    // For sequences, we need to generate all combinations of all children
+    // This is a cartesian product approach
+    const allPaths: GenerationPath[] = [];
+    
+    // Generate all possible combinations for each child
+    const childCombinations: GenerationPath[][] = [];
+    for (const child of children) {
+      const childPaths = this.generateAllPathsWithContent(child, '', currentPath, currentParameters);
+      childCombinations.push(childPaths);
+    }
+    
+    // Generate cartesian product of all child combinations
+    const cartesianProduct = this.generateCartesianProduct(childCombinations);
+    
+    // Combine the results
+    for (const combination of cartesianProduct) {
+      const combinedContent = combination.map(path => path.content).join(' ').trim();
+      const combinedParameters = { ...currentParameters };
+      const combinedPath = [...currentPath];
+      
+      // Merge parameters and paths from all paths in the combination
+      for (const path of combination) {
+        Object.assign(combinedParameters, path.parameters);
+        combinedPath.push(...path.path);
+      }
+      
+      allPaths.push({
+        content: combinedContent,
+        parameters: combinedParameters,
+        path: combinedPath
+      });
+    }
+    
+    return allPaths;
+  }
+
+  /**
+   * Generates cartesian product of arrays
+   */
+  private generateCartesianProduct<T>(arrays: T[][]): T[][] {
+    if (arrays.length === 0) return [[]];
+    if (arrays.length === 1) return arrays[0].map(item => [item]);
+    
+    const result: T[][] = [];
+    const firstArray = arrays[0];
+    const restProduct = this.generateCartesianProduct(arrays.slice(1));
+    
+    for (const item of firstArray) {
+      for (const rest of restProduct) {
+        result.push([item, ...rest]);
+      }
+    }
+    
+    return result;
   }
 }

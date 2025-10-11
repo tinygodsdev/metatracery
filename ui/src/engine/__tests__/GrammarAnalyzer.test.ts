@@ -91,14 +91,53 @@ describe('GrammarAnalyzer', () => {
       expect(treeStructure.children).toBeDefined();
     });
 
-    test('should count all paths correctly', () => {
-      const analyzer = new GrammarAnalyzer(linguisticGrammar);
-      
-      const pathCount = analyzer.countAllPaths();
-      console.log('Total paths:', pathCount);
-      
-      expect(pathCount).toBe(24);
-    });
+        test('should count all paths correctly', () => {
+          const analyzer = new GrammarAnalyzer(linguisticGrammar);
+
+          const pathCount = analyzer.countAllPaths();
+          console.log('Total paths:', pathCount);
+
+          expect(pathCount).toBe(24);
+        });
+
+        test('should generate all combinations correctly', () => {
+          const analyzer = new GrammarAnalyzer(linguisticGrammar);
+
+          const combinations = analyzer.generateAllCombinations();
+          console.log('Generated combinations:', combinations.length);
+          console.log('First few combinations:', combinations.slice(0, 3));
+
+          expect(combinations.length).toBe(24);
+        });
+
+        test('should visualize basic grammar tree', () => {
+          const basicGrammar = {
+            "S": ["A", "B", "C"],
+            "origin": ["#S# #S# #S#"]
+          };
+          const analyzer = new GrammarAnalyzer(basicGrammar);
+          
+          console.log('Basic grammar tree visualization:');
+          analyzer.printTree();
+          
+          console.log('\nBasic grammar tree structure:');
+          const treeStructure = analyzer.getTreeStructure();
+          console.log(JSON.stringify(treeStructure, null, 2));
+        });
+
+        test('should generate all combinations for basic grammar', () => {
+          const basicGrammar = {
+            "S": ["A", "B", "C"],
+            "origin": ["#S# #S# #S#"]
+          };
+          const analyzer = new GrammarAnalyzer(basicGrammar);
+          
+          const combinations = analyzer.generateAllCombinations();
+          console.log('Basic grammar combinations:', combinations.length);
+          console.log('First few combinations:', combinations.slice(0, 5));
+          
+          expect(combinations.length).toBe(27);
+        });
 
   });
 
