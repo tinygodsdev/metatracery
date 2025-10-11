@@ -18,6 +18,12 @@ interface GenerationPath {
   path: string[];           // Путь генерации: ["origin", "word_order", "SVO", ...]
 }
 
+interface GenerationTemplate {
+  template: string;          // Оригинальный шаблон: "#SP# #VP# #OP#"
+  parameters: Record<string, string>; // Значения параметров: {SP: "girl", VP: "loves", OP: "cat"}
+  path: string[];           // Путь генерации: ["origin", "word_order", "SVO", ...]
+}
+
 /**
  * Represents a path through the grammar tree
  */
@@ -359,10 +365,29 @@ export class GrammarAnalyzer {
   }
 
   /**
-   * Generates all possible combinations with full content and parameters
+   * Applies a template with parameters to generate the final content
+   */
+  private applyTemplate(template: string, parameters: Record<string, string>): string {
+    let result = template;
+    
+    // Replace all parameter references with their values
+    for (const [param, value] of Object.entries(parameters)) {
+      const regex = new RegExp(`#${param}#`, 'g');
+      result = result.replace(regex, value);
+    }
+    
+    // Handle missing symbols - replace any remaining #symbol# with ((missing:symbol))
+    const missingSymbolRegex = /#([^#]+)#/g;
+    result = result.replace(missingSymbolRegex, '((missing:$1))');
+    
+    return result;
+  }
+
+  /**
+   * Generates all possible template combinations (without applying templates)
    * @param constraints Optional parameter constraints to limit combinations
    */
-  public generateAllCombinations(constraints?: Record<string, string>): GenerationPath[] {
+  public generateAllTemplates(constraints?: Record<string, string>): GenerationTemplate[] {
     const originAlternatives = this.grammar.origin;
     if (!originAlternatives || originAlternatives.length === 0) {
       return [];
@@ -370,28 +395,39 @@ export class GrammarAnalyzer {
 
     // Check if there's a constraint on origin
     if (constraints && constraints.origin) {
-      // If constrained, only generate combinations for the specific origin alternative
       const constrainedOrigin = constraints.origin;
       if (originAlternatives.includes(constrainedOrigin)) {
-        // Build a temporary tree for this specific origin alternative
         const tempRootNode = this.buildNode('origin', constrainedOrigin);
-        return this.generateAllPathsWithContent(tempRootNode, '', [], {}, constraints);
+        return this.generateAllTemplatesWithContent(tempRootNode, '', ['origin'], {}, constraints);
       } else {
-        // Constrained origin value not found in alternatives
         return [];
       }
     }
 
-    // No constraint on origin, generate combinations for all origin alternatives
-    const allPaths: GenerationPath[] = [];
+    // No constraint on origin, generate templates for all origin alternatives
+    const allTemplates: GenerationTemplate[] = [];
     for (const originRule of originAlternatives) {
-      // Build a temporary tree for this origin alternative
       const tempRootNode = this.buildNode('origin', originRule);
-      const paths = this.generateAllPathsWithContent(tempRootNode, '', [], {}, constraints);
-      allPaths.push(...paths);
+      const templates = this.generateAllTemplatesWithContent(tempRootNode, '', ['origin'], {}, constraints);
+      allTemplates.push(...templates);
     }
+    return allTemplates;
+  }
 
-    return allPaths;
+  /**
+   * Generates all possible combinations with full content and parameters
+   * @param constraints Optional parameter constraints to limit combinations
+   */
+  public generateAllCombinations(constraints?: Record<string, string>): GenerationPath[] {
+    // Generate templates first
+    const templates = this.generateAllTemplates(constraints);
+    
+    // Apply templates to generate final content
+    return templates.map(template => ({
+      content: this.applyTemplate(template.template, template.parameters),
+      parameters: template.parameters,
+      path: template.path
+    }));
   }
 
   /**
@@ -494,6 +530,124 @@ export class GrammarAnalyzer {
     // to handle multiple symbols in one alternative
     const firstSymbol = symbolRefs[0].symbol;
     return node.children.find(child => child.symbol === firstSymbol) || null;
+  }
+
+  /**
+   * Recursively generates all possible templates with parameters
+   */
+  private generateAllTemplatesWithContent(
+    node: GrammarNode, 
+    currentTemplate: string, 
+    currentPath: string[], 
+    currentParameters: Record<string, string>,
+    constraints?: Record<string, string>
+  ): GenerationTemplate[] {
+    // If this is a parameter node (has multiple alternatives), create branches for each alternative
+    if (node.isParameter) {
+      const allTemplates: GenerationTemplate[] = [];
+      
+      // Check if this symbol has a constraint
+      if (constraints && constraints[node.symbol]) {
+        // If constrained, only consider the specific value
+        const constrainedValue = constraints[node.symbol];
+        if (node.alternatives.includes(constrainedValue)) {
+          // Create new parameters with this alternative choice
+          const newParameters = {
+            ...currentParameters,
+            [node.symbol]: constrainedValue
+          };
+          
+          // Add to path
+          const newPath = [...currentPath, node.symbol];
+          
+          // Find the child node that corresponds to this alternative
+          const childNode = this.findChildNodeForAlternative(node, constrainedValue);
+          
+          if (childNode) {
+            // Add the symbol to path and parameters before continuing
+            const extendedPath = [...newPath, childNode.symbol];
+            const extendedParameters = {
+              ...newParameters,
+              [childNode.symbol]: constrainedValue
+            };
+            // Continue the path with the child node
+            const childTemplates = this.generateAllTemplatesWithContent(childNode, currentTemplate, extendedPath, extendedParameters, constraints);
+            allTemplates.push(...childTemplates);
+          } else {
+            // No child node - this is a terminal path
+            // The alternative is the final template
+            allTemplates.push({
+              template: constrainedValue,
+              parameters: newParameters,
+              path: newPath
+            });
+          }
+        }
+        // If constrained value not found in alternatives, return empty array
+        return allTemplates;
+      } else {
+        // No constraint, consider all alternatives
+        for (let i = 0; i < node.alternatives.length; i++) {
+          const alternative = node.alternatives[i];
+          
+          // Create new parameters with this alternative choice
+          const newParameters = {
+            ...currentParameters,
+            [node.symbol]: alternative
+          };
+          
+          // Add to path
+          const newPath = [...currentPath, node.symbol];
+          
+          // Find the child node that corresponds to this alternative
+          const childNode = this.findChildNodeForAlternative(node, alternative);
+          
+          if (childNode) {
+            // Add the symbol to path and parameters before continuing
+            const extendedPath = [...newPath, childNode.symbol];
+            const extendedParameters = {
+              ...newParameters,
+              [childNode.symbol]: alternative
+            };
+            // Continue the path with the child node
+            const childTemplates = this.generateAllTemplatesWithContent(childNode, currentTemplate, extendedPath, extendedParameters, constraints);
+            allTemplates.push(...childTemplates);
+          } else {
+            // No child node - this is a terminal path
+            // The alternative is the final template
+            allTemplates.push({
+              template: alternative,
+              parameters: newParameters,
+              path: newPath
+            });
+          }
+        }
+      }
+      
+      return allTemplates;
+    }
+
+    // If this is a sequence node, process all children in sequence
+    if (node.isSequence) {
+      return this.generateSequenceTemplatesWithContent(node.children, currentTemplate, currentPath, currentParameters, constraints);
+    }
+
+    // If no children, this is a terminal node
+    if (node.children.length === 0) {
+      return [{
+        template: currentTemplate,
+        parameters: currentParameters,
+        path: currentPath
+      }];
+    }
+
+    // Process all children
+    const allTemplates: GenerationTemplate[] = [];
+    for (const child of node.children) {
+      const childTemplates = this.generateAllTemplatesWithContent(child, currentTemplate, currentPath, currentParameters, constraints);
+      allTemplates.push(...childTemplates);
+    }
+    return allTemplates;
   }
 
   /**
@@ -600,6 +754,65 @@ export class GrammarAnalyzer {
       allPaths.push(...childPaths);
     }
     return allPaths;
+  }
+
+  /**
+   * Generates templates for sequence nodes (all children used together)
+   */
+  private generateSequenceTemplatesWithContent(
+    children: GrammarNode[], 
+    currentTemplate: string, 
+    currentPath: string[], 
+    currentParameters: Record<string, string>,
+    constraints?: Record<string, string>
+  ): GenerationTemplate[] {
+    if (children.length === 0) {
+      return [{
+        template: currentTemplate,
+        parameters: currentParameters,
+        path: currentPath
+      }];
+    }
+
+    if (children.length === 1) {
+      return this.generateAllTemplatesWithContent(children[0], currentTemplate, currentPath, currentParameters, constraints);
+    }
+
+    // For sequences, we need to generate all combinations of all children
+    // This is a cartesian product approach
+    const allTemplates: GenerationTemplate[] = [];
+    
+    // Generate all possible combinations for each child
+    const childCombinations: GenerationTemplate[][] = [];
+    for (const child of children) {
+      const childTemplates = this.generateAllTemplatesWithContent(child, '', currentPath, currentParameters, constraints);
+      childCombinations.push(childTemplates);
+    }
+    
+    // Generate cartesian product of all child combinations
+    const cartesianProduct = this.generateCartesianProduct(childCombinations);
+    
+    // Combine the results
+    for (const combination of cartesianProduct) {
+      // For sequences, we need to combine templates and parameters
+      const combinedTemplate = combination.map(template => template.template).join(' ');
+      const combinedParameters = { ...currentParameters };
+      const combinedPath = [...currentPath];
+      
+      // Merge parameters and paths from all templates in the combination
+      for (const template of combination) {
+        Object.assign(combinedParameters, template.parameters);
+        combinedPath.push(...template.path);
+      }
+      
+      allTemplates.push({
+        template: combinedTemplate,
+        parameters: combinedParameters,
+        path: combinedPath
+      });
+    }
+    
+    return allTemplates;
   }
 
   /**

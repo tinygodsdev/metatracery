@@ -249,6 +249,11 @@ describe('GrammarEngine', () => {
       // Check that relevantParameters contains only used symbols
       const relevantParams = result.metadata.relevantParameters;
       
+      // Debug output
+      console.log('Generated content:', result.content);
+      console.log('Relevant parameters:', relevantParams);
+      console.log('Generation path:', result.metadata.generationPath);
+      
       // These should be present (used in generation)
       expect(relevantParams).toHaveProperty('NP');
       expect(relevantParams).toHaveProperty('VP');

@@ -47,14 +47,69 @@ export class GrammarEngine {
   ): GenerationResult {
     const startTime = Date.now();
     
-    // Set parameters
-    this.setParameters(parameterValues);
+    // Check if the rule contains missing symbols
+    const missingSymbols = this.findMissingSymbols(rule);
+    if (missingSymbols.length > 0) {
+      // Handle missing symbols by replacing them with ((missing:symbol))
+      let content = rule;
+      for (const symbol of missingSymbols) {
+        content = content.replace(new RegExp(`#${symbol}#`, 'g'), `((missing:${symbol}))`);
+      }
+      
+      return {
+        content,
+        metadata: {
+          parameters: parameterValues,
+          appliedRules: [],
+          generationPath: [],
+          relevantParameters: parameterValues
+        }
+      };
+    }
     
-    // Generate with tracking
-    const result = this.generateWithTracking(rule, parameterValues);
+    // Use GrammarAnalyzer to generate with constraints
+    const generationPaths = this.grammarAnalyzer.generateAllCombinations(parameterValues);
     
-    // Clear parameters after generation to avoid state pollution
-    this.clearParameters();
+    if (generationPaths.length === 0) {
+      return {
+        content: '',
+        metadata: {
+          parameters: parameterValues,
+          appliedRules: [],
+          generationPath: [],
+          relevantParameters: parameterValues
+        }
+      };
+    }
+    
+    // For single generation, pick a random result to maintain randomization
+    const randomIndex = Math.floor(Math.random() * generationPaths.length);
+    const selectedPath = generationPaths[randomIndex];
+    
+    // Convert GenerationPath to AppliedRule[]
+    const appliedRules: AppliedRule[] = [];
+    for (let i = 0; i < selectedPath.path.length; i++) {
+      const symbol = selectedPath.path[i];
+      const value = selectedPath.parameters[symbol] || symbol;
+      appliedRules.push({
+        symbol,
+        selectedRule: value,
+        result: value,
+        depth: i,
+        alternatives: [], // TODO: We could populate this if needed
+        timestamp: Date.now()
+      });
+    }
+
+    const result: GenerationResult = {
+      content: selectedPath.content,
+      metadata: {
+        parameters: parameterValues,
+        appliedRules,
+        generationPath: selectedPath.path,
+        relevantParameters: selectedPath.parameters
+      }
+    };
     
     if (this.config.enableStatistics) {
       result.metadata.generationTime = Date.now() - startTime;
@@ -66,7 +121,7 @@ export class GrammarEngine {
   /**
    * Generates all possible combinations
    */
-  generateAllCombinations(rule: string): GenerationResult[] {
+  generateAllCombinations(_rule: string): GenerationResult[] {
     // Get all generation paths from GrammarAnalyzer
     const generationPaths = this.grammarAnalyzer.generateAllCombinations();
     
@@ -90,6 +145,22 @@ export class GrammarEngine {
    */
   public getTotalCombinations(constraints?: Record<string, string>): number {
     return this.grammarAnalyzer.countAllPaths(constraints);
+  }
+
+  /**
+   * Finds symbols in a rule that are not defined in the grammar
+   */
+  private findMissingSymbols(rule: string): string[] {
+    const symbolRefs = this.extractAllSymbolReferences(rule);
+    const missingSymbols: string[] = [];
+    
+    for (const ref of symbolRefs) {
+      if (!this.grammar[ref.symbol]) {
+        missingSymbols.push(ref.symbol);
+      }
+    }
+    
+    return missingSymbols;
   }
 
 
