@@ -568,7 +568,7 @@ export class GrammarAnalyzer {
             const extendedPath = [...newPath, childNode.symbol];
             const extendedParameters = {
               ...newParameters,
-              [childNode.symbol]: constrainedValue
+              [childNode.symbol]: childNode.alternatives[0] // Use the actual rule content, not the reference
             };
             // Continue the path with the child node
             const childTemplates = this.generateAllTemplatesWithContent(childNode, currentTemplate, extendedPath, extendedParameters, constraints);
@@ -607,7 +607,7 @@ export class GrammarAnalyzer {
             const extendedPath = [...newPath, childNode.symbol];
             const extendedParameters = {
               ...newParameters,
-              [childNode.symbol]: alternative
+              [childNode.symbol]: childNode.alternatives[0] // Use the actual rule content, not the reference
             };
             // Continue the path with the child node
             const childTemplates = this.generateAllTemplatesWithContent(childNode, currentTemplate, extendedPath, extendedParameters, constraints);

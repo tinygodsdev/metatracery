@@ -8,6 +8,13 @@ export interface GrammarRule {
   [symbol: string]: string[];
 }
 
+// Template for generation before rendering
+export interface GenerationTemplate {
+  template: string;          // Original template: "#SP# #VP# #OP#"
+  parameters: Record<string, string>; // Parameter values: {SP: "girl", VP: "loves", OP: "cat"}
+  path: string[];           // Generation path: ["origin", "word_order", "SVO", ...]
+}
+
 // Generation result with full metadata
 export interface GenerationResult {
   content: string;
