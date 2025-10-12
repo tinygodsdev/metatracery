@@ -362,6 +362,15 @@ export class GrammarAnalyzer {
     };
   }
 
+  /**
+   * Discovers all templates
+   * Uses tree traversal to discover all templates with optional constraints
+   * @param constraints Optional parameter constraints to limit combinations
+   */
+  public discoverAllTemplates(constraints?: Record<string, string>) /** something */ {
+    // TODO: implement new logic
+    return;
+  }
 
   /**
    * Generates all possible template combinations (without applying templates)
