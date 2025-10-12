@@ -63,7 +63,7 @@ describe('GrammarAnalyzer Template Generation', () => {
 
       console.log('Ordered templates:', JSON.stringify(templates, null, 2));
 
-      expect(templates.length).toBe(2); // 2 A values
+      expect(templates.length).toBe(4); // 2 A values × 1 B value × 2 A values = 4 combinations
 
       // Check that parameters are in correct order
       const firstTemplate = templates[0];
