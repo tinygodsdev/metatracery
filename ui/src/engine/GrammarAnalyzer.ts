@@ -519,10 +519,10 @@ export class GrammarAnalyzer {
    * Recursively generates all possible templates with parameters
    */
   private generateAllTemplatesWithContent(
-    node: GrammarNode, 
-    currentTemplate: string, 
-    currentPath: string[], 
-    currentParameters: Record<string, string>,
+    node: GrammarNode,
+    currentTemplate: string,
+    currentPath: string[],
+    currentParameters: Array<{symbol: string, value: string}>,
     constraints?: Record<string, string>
   ): GenerationTemplate[] {
     // If this is a parameter node (has multiple alternatives), create branches for each alternative
