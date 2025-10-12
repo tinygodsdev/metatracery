@@ -15,6 +15,17 @@ export interface GenerationTemplate {
   path: string[];           // Generation path: ["origin", "word_order", "SVO", ...]
 }
 
+// Intermediate structure for path-based template generation
+export interface PathChoice {
+  symbol: string;           // "S", "origin", etc.
+  chosenAlternative: string; // "A", "#S# #S# #S#", etc.
+  childChoices?: PathChoice[]; // Рекурсивная структура для вложенных выборов
+}
+
+export interface TemplatePath {
+  path: PathChoice[];       // Выборы на каждом уровне
+}
+
 // Generation result with full metadata
 export interface GenerationResult {
   content: string;
