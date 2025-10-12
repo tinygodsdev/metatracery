@@ -21,13 +21,13 @@ export class TemplateRenderer {
     
     // Replace parameters in the exact order they appear in the array
     for (const param of template.parameters) {
-      const regex = new RegExp(`#${param.symbol}#`, 'g');
+      const regex = new RegExp(`#${param.symbol}#`); // No 'g' flag - replace only first occurrence
       const matches = content.match(regex);
       
       if (matches) {
         // Record that this parameter was applied
         appliedParameters[param.symbol] = param.value;
-        // Replace all occurrences
+        // Replace only the first occurrence
         content = content.replace(regex, param.value);
       }
     }
