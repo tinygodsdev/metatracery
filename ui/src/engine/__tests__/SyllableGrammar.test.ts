@@ -83,8 +83,25 @@ describe('Syllable Grammar', () => {
       const endTime = Date.now();
       
       // Should complete quickly (under 100ms for this size)
-      expect(endTime - startTime).toBeLessThan(100);
+      expect(endTime - startTime).toBeLessThan(10);
       expect(totalCombinations).toBeGreaterThan(1000000); // Should be over 1 million
+      expect(totalCombinations).toBe(9984815);
+    });
+
+    test('should generate random 1000 combinations efficiently', () => {
+      const startTime = Date.now();
+      const results = engine.generateMany(1000, 'origin');
+      const endTime = Date.now();
+      expect(endTime - startTime).toBeLessThan(100);
+      expect(results.length).toBe(1000);
+    });
+
+    test('should generate unique 1000 combinations efficiently', () => {
+      const startTime = Date.now();
+      const results = engine.generateMany(1000, 'origin', {}, true);
+      const endTime = Date.now();
+      expect(endTime - startTime).toBeLessThan(100);
+      expect(results.length).toBe(1000);
     });
   });
 });
