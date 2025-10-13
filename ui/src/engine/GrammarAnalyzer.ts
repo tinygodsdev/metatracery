@@ -1,4 +1,4 @@
-import type { GrammarRule, GenerationTemplate } from './types';
+import type { GrammarRule, GenerationTemplate, TemplatePath, PathChoice } from './types';
 import { TemplateRenderer } from './TemplateRenderer';
 
 /**
@@ -367,9 +367,227 @@ export class GrammarAnalyzer {
    * Uses tree traversal to discover all templates with optional constraints
    * @param constraints Optional parameter constraints to limit combinations
    */
-  public discoverAllTemplates(constraints?: Record<string, string>) /** something */ {
-    // TODO: implement new logic
-    return;
+  public discoverAllTemplates(constraints?: Record<string, string>): TemplatePath[] {
+    console.log('🔍 discoverAllTemplates called with constraints:', constraints);
+    
+    const results: TemplatePath[] = [];
+    
+    if (!this.rootNode) {
+      console.log('❌ No root node found');
+      return results;
+    }
+    
+    console.log('📍 Root node found:', this.rootNode);
+    
+    // Получить все альтернативы origin с учетом ограничений
+    const originAlternatives = this.applyConstraintsToNode(this.rootNode, constraints);
+    console.log('🎯 Origin alternatives after constraints:', originAlternatives);
+    
+    if (originAlternatives.length === 0) {
+      console.log('❌ No valid origin alternatives found');
+      return results;
+    }
+    
+    // Для каждой альтернативы origin создать TemplatePath
+    for (const alternative of originAlternatives) {
+      console.log(`🔄 Processing origin alternative: "${alternative}"`);
+      
+      // Создать PathChoice для этой конкретной альтернативы
+      const pathChoice: PathChoice = {
+        symbol: 'origin',
+        chosenAlternative: alternative,
+        childChoices: []
+      };
+      
+      // Если альтернатива содержит параметры, обработать их
+      if (this.containsParameters(alternative)) {
+        console.log(`🔗 Alternative contains parameters, processing...`);
+        const childChoices = this.processAlternative(alternative, constraints, new Set(['origin']), 1);
+        console.log(`👶 Child choices for "${alternative}":`, childChoices);
+        
+        if (childChoices.length > 0) {
+          pathChoice.childChoices = childChoices;
+          results.push({ path: [pathChoice] });
+          console.log(`✅ Added TemplatePath for "${alternative}"`);
+        } else {
+          console.log(`❌ Incomplete path for "${alternative}", skipping`);
+        }
+      } else {
+        // Терминальная альтернатива
+        results.push({ path: [pathChoice] });
+        console.log(`✅ Added terminal TemplatePath for "${alternative}"`);
+      }
+    }
+    
+    console.log(`🎉 Total TemplatePaths generated: ${results.length}`);
+    return results;
+  }
+
+  private applyConstraintsToNode(
+    node: GrammarNode,
+    constraints?: Record<string, string>
+  ): string[] {
+    if (!constraints || !constraints[node.symbol]) {
+      return node.alternatives;
+    }
+    
+    const constraintValue = constraints[node.symbol];
+    console.log(`🔒 Applying constraint ${node.symbol} = "${constraintValue}"`);
+    
+    // Проверить, что ограничение валидно
+    if (node.alternatives.includes(constraintValue)) {
+      console.log(`✅ Constraint valid, returning: ["${constraintValue}"]`);
+      return [constraintValue];
+    }
+    
+    // Если ограничение невалидно, выбросить ошибку
+    console.log(`❌ Invalid constraint: ${node.symbol} = "${constraintValue}"`);
+    console.log(`Available alternatives:`, node.alternatives);
+    throw new Error(`Invalid constraint: ${node.symbol} = "${constraintValue}". Available alternatives: ${node.alternatives.join(', ')}`);
+  }
+
+  private discoverPathsFromNode(
+    node: GrammarNode,
+    constraints?: Record<string, string>,
+    visitedNodes: Set<string> = new Set(),
+    depth: number = 0,
+    maxDepth: number = 100
+  ): PathChoice[] {
+    console.log(`🔍 discoverPathsFromNode: ${node.symbol} (depth: ${depth})`);
+    
+    // Проверить максимальную глубину
+    if (depth > maxDepth) {
+      console.warn(`⚠️ Maximum recursion depth (${maxDepth}) exceeded for node ${node.symbol}`);
+      return [];
+    }
+    
+    // Проверить циклические ссылки
+    if (this.isCircularReference(node.symbol, visitedNodes)) {
+      console.log(`🔄 Circular reference detected for ${node.symbol}, skipping`);
+      return [];
+    }
+    
+    // Добавить текущий узел в посещенные
+    const newVisitedNodes = new Set(visitedNodes);
+    newVisitedNodes.add(node.symbol);
+    console.log(`📍 Visited nodes:`, Array.from(newVisitedNodes));
+    
+    // Применить ограничения
+    const alternatives = this.applyConstraintsToNode(node, constraints);
+    console.log(`🎯 Alternatives for ${node.symbol}:`, alternatives);
+    
+    const results: PathChoice[] = [];
+    
+    for (const alternative of alternatives) {
+      console.log(`🔄 Processing alternative: "${alternative}" for ${node.symbol}`);
+      
+      const pathChoice: PathChoice = {
+        symbol: node.symbol,
+        chosenAlternative: alternative,
+        childChoices: []
+      };
+      
+      // Если альтернатива содержит параметры, обработать их
+      if (this.containsParameters(alternative)) {
+        console.log(`🔗 Alternative contains parameters, processing...`);
+        const childChoices = this.processAlternative(alternative, constraints, newVisitedNodes, depth + 1);
+        console.log(`👶 Child choices for "${alternative}":`, childChoices);
+        
+        // Если childChoices пустой - это означает, что путь неполный
+        if (childChoices.length > 0) {
+          pathChoice.childChoices = childChoices;
+          results.push(pathChoice);
+          console.log(`✅ Added complete path choice for "${alternative}"`);
+        } else {
+          console.log(`❌ Incomplete path for "${alternative}", skipping`);
+        }
+      } else {
+        // Терминальная альтернатива - путь полный
+        results.push(pathChoice);
+        console.log(`✅ Added terminal path choice for "${alternative}"`);
+      }
+    }
+    
+    console.log(`🎉 Total path choices for ${node.symbol}: ${results.length}`);
+    return results;
+  }
+
+  private processAlternative(
+    alternative: string,
+    constraints: Record<string, string> | undefined,
+    visitedNodes: Set<string>,
+    depth: number
+  ): PathChoice[] {
+    console.log(`🔧 Processing alternative: "${alternative}"`);
+    
+    const childChoices: PathChoice[] = [];
+    const parameters = this.extractParameters(alternative);
+    console.log(`📋 Extracted parameters:`, parameters);
+    
+    // Обрабатываем ВСЕ параметры в альтернативе
+    for (const param of parameters) {
+      console.log(`🔄 Processing parameter: ${param}`);
+      
+      const paramNode = this.findNodeBySymbol(param);
+      if (!paramNode) {
+        console.log(`❌ Parameter node not found: ${param}`);
+        return [];
+      }
+      
+      const paramChoices = this.discoverPathsFromNode(paramNode, constraints, visitedNodes, depth);
+      console.log(`👶 Parameter choices for ${param}:`, paramChoices);
+      
+      if (paramChoices.length === 0) {
+        console.log(`❌ No valid paths for parameter ${param}`);
+        return [];
+      }
+      
+      childChoices.push(...paramChoices);
+    }
+    
+    console.log(`🎉 Total child choices: ${childChoices.length}`);
+    return childChoices;
+  }
+
+  private isCircularReference(
+    nodeSymbol: string,
+    visitedNodes: Set<string>
+  ): boolean {
+    return visitedNodes.has(nodeSymbol);
+  }
+
+  private containsParameters(alternative: string): boolean {
+    return alternative.includes('#');
+  }
+
+  private extractParameters(alternative: string): string[] {
+    const matches = alternative.match(/#([^#]+)#/g);
+    if (!matches) return [];
+    
+    return matches.map(match => match.slice(1, -1)); // Убираем # с обеих сторон
+  }
+
+  private findNodeBySymbol(symbol: string): GrammarNode | null {
+    if (!this.rootNode) {
+      return null;
+    }
+    
+    return this.findNodeInTree(this.rootNode, symbol);
+  }
+
+  private findNodeInTree(node: GrammarNode, symbol: string): GrammarNode | null {
+    if (node.symbol === symbol) {
+      return node;
+    }
+    
+    for (const child of node.children) {
+      const found = this.findNodeInTree(child, symbol);
+      if (found) {
+        return found;
+      }
+    }
+    
+    return null;
   }
 
   /**
