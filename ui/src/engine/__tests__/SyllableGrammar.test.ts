@@ -1,10 +1,8 @@
-import { GrammarEngine } from '../GrammarEngine';
-import { GrammarAnalyzer } from '../GrammarAnalyzer';
+import { GrammarEngine } from '../Gen';
 import { GrammarRule } from '../types';
 
 describe('Syllable Grammar', () => {
   let engine: GrammarEngine;
-  let analyzer: GrammarAnalyzer;
   let syllableGrammar: GrammarRule;
 
   beforeEach(() => {
@@ -15,7 +13,6 @@ describe('Syllable Grammar', () => {
       "C": ["b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x", "y", "z"]
     };
     engine = new GrammarEngine(syllableGrammar);
-    analyzer = new GrammarAnalyzer(syllableGrammar);
   });
 
   describe('Manual calculation verification', () => {
@@ -36,7 +33,7 @@ describe('Syllable Grammar', () => {
       // - #S##S##S#: 215 × 215 × 215 = 9,938,375
       // Total: 215 + 46,225 + 9,938,375 = 9,984,815
       
-      const totalCombinations = analyzer.countAllPaths();
+      const totalCombinations = engine.countStrings('origin');
 
       // Expected: 9,984,815
       expect(totalCombinations).toBe(9984815);
@@ -44,28 +41,28 @@ describe('Syllable Grammar', () => {
 
     test('should generate sample combinations for each origin pattern', () => {
       // Test single syllable - should match one of the syllable patterns
-      const singleSyllable = engine.generateWithParameters('#origin#', { origin: '#S#' });
-      expect(singleSyllable.content).toMatch(/^([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])$/);
+      const singleSyllable = engine.generate('origin', { origin: '#S#' });
+      expect(singleSyllable.text).toMatch(/^([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])$/);
       
       // Test double syllable
-      const doubleSyllable = engine.generateWithParameters('#origin#', { origin: '#S##S#' });
-      expect(doubleSyllable.content).toMatch(/^([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])$/);
+      const doubleSyllable = engine.generate('origin', { origin: '#S##S#' });
+      expect(doubleSyllable.text).toMatch(/^([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])$/);
       
       // Test triple syllable
-      const tripleSyllable = engine.generateWithParameters('#origin#', { origin: '#S##S##S#' });
-      expect(tripleSyllable.content).toMatch(/^([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])$/);
+      const tripleSyllable = engine.generate('origin', { origin: '#S##S##S#' });
+      expect(tripleSyllable.text).toMatch(/^([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])([aeiou][bcdfghjklmnpqrstvwxyz]|[aeiou]|[bcdfghjklmnpqrstvwxyz][aeiou])$/);
     });
 
     test('should verify syllable structure patterns', () => {
       // Generate multiple samples to verify patterns
       const samples = [];
       for (let i = 0; i < 100; i++) {
-        samples.push(engine.generateWithParameters('#origin#', {}));
+        samples.push(engine.generate('origin', {}));
       }
       
       // Check that all samples match expected syllable patterns
       samples.forEach(sample => {
-        const content = sample.content;
+        const content = sample.text;
         
         // Should contain only vowels and consonants
         expect(content).toMatch(/^[aeioubcdfghjklmnpqrstvwxyz]+$/);
@@ -82,7 +79,7 @@ describe('Syllable Grammar', () => {
     test('should handle large combination count efficiently', () => {
       // This test verifies that our counting method can handle large numbers
       const startTime = Date.now();
-      const totalCombinations = analyzer.countAllPaths();
+      const totalCombinations = engine.countStrings('origin');
       const endTime = Date.now();
       
       // Should complete quickly (under 100ms for this size)

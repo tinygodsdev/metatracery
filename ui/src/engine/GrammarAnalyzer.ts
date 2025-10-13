@@ -1,4 +1,9 @@
-import type { GrammarRule, GenerationTemplate, TemplatePath, PathChoice } from './types';
+import type { 
+  GrammarRule, 
+  GenerationTemplate, 
+  // TemplatePath, 
+  PathChoice 
+} from './types';
 import { TemplateRenderer } from './TemplateRenderer';
 
 /**
@@ -13,6 +18,9 @@ interface GrammarNode {
   children: GrammarNode[];
 }
 
+type TemplatePathEntry = { symbol: string; value: string };
+type TemplatePath = TemplatePathEntry[];
+
 interface GenerationPath {
   content: string;           // Финальный результат: "girl loves cat"
   parameters: Record<string, string>; // Релевантные параметры: {word_order: "SVO", NP: "girl", VP: "loves", ...}
@@ -21,23 +29,12 @@ interface GenerationPath {
 
 
 /**
- * Represents a path through the grammar tree
- */
-// interface GrammarPath {
-//   nodes: Array<{
-//     symbol: string;
-//     value: string;
-//     occurrence: number; // which occurrence of this symbol in the path
-//   }>;
-// }
-
-/**
  * Grammar analyzer that builds a tree and counts all possible paths
  */
 export class GrammarAnalyzer {
   private grammar: GrammarRule;
   private rootNode: GrammarNode | null = null;
-  private templateRenderer: TemplateRenderer;
+  public templateRenderer: TemplateRenderer;
 
   constructor(grammar: GrammarRule) {
     this.grammar = grammar;
@@ -181,18 +178,18 @@ export class GrammarAnalyzer {
         }
       } else {
         // No constraint, count all alternatives
-        if (alternatives.length > 1) {
-          // Parameter with multiple alternatives - sum combinations from all alternatives
-          let alternativeCombinations = 0;
-          for (const alternative of alternatives) {
+      if (alternatives.length > 1) {
+        // Parameter with multiple alternatives - sum combinations from all alternatives
+        let alternativeCombinations = 0;
+        for (const alternative of alternatives) {
             const subCombinations = this.countRuleCombinations(alternative, constraints);
-            alternativeCombinations += subCombinations;
-          }
-          totalCombinations *= alternativeCombinations;
-        } else if (alternatives.length === 1) {
-          // Single alternative - recursively count its combinations
+          alternativeCombinations += subCombinations;
+        }
+        totalCombinations *= alternativeCombinations;
+      } else if (alternatives.length === 1) {
+        // Single alternative - recursively count its combinations
           const subCombinations = this.countRuleCombinations(alternatives[0], constraints);
-          totalCombinations *= subCombinations;
+        totalCombinations *= subCombinations;
         }
       }
     }
@@ -362,6 +359,8 @@ export class GrammarAnalyzer {
     };
   }
 
+
+
   /**
    * Discovers all templates
    * Uses tree traversal to discover all templates with optional constraints
@@ -369,227 +368,72 @@ export class GrammarAnalyzer {
    */
   public discoverAllTemplates(constraints?: Record<string, string>): TemplatePath[] {
     const results: TemplatePath[] = [];
-    
+
     if (!this.rootNode) {
-      console.log('❌ No root node found');
+      console.log('No tree to discover');
       return results;
     }
-    
-    const originAlternatives = this.applyConstraintsToNode(this.rootNode, constraints);
-    if (originAlternatives.length === 0) {
-      console.log('❌ No valid origin alternatives found');
-      return results;
-    }
-    
-    for (const alternative of originAlternatives) {
-      const pathChoice: PathChoice = {
-        symbol: 'origin',
-        chosenAlternative: alternative,
-        childChoices: []
-      };
-      
-      if (this.containsParameters(alternative)) {
-        const childChoices = this.processAlternative(alternative, constraints, new Set(['origin']), 1);
-        if (childChoices.length > 0) {
-          pathChoice.childChoices = childChoices;
-          results.push({ path: [pathChoice] });
-        } else {
-          console.log(`❌ Incomplete path for "${alternative}", skipping`);
-        }
-      } else {
-        results.push({ path: [pathChoice] });
-      }
-    }
-    
+  
+    // Use a single mutable array with push-pop backtracking
+    const currentPath: TemplatePath = [];
+    this.traverseNode(this.rootNode, 0, results, currentPath, constraints ?? {});
+    console.log('Traversed paths:', results);
+    console.log("Len", results.length);
     return results;
   }
 
-  private applyConstraintsToNode(
+  private traverseNode(
     node: GrammarNode,
-    constraints?: Record<string, string>
-  ): string[] {
-    if (!constraints || !constraints[node.symbol]) {
-      return node.alternatives;
+    depth: number,
+    results: TemplatePath[],
+    currentPath: TemplatePath,
+    constraints: Record<string, string>,
+  ): void {
+  // 1) Compute which alternatives are allowed for this node
+  //    - If constraint exists for this symbol, restrict to it
+  //    - If constraint value is not present in alternatives - prune branch
+  let allowedAlts = node.alternatives;
+  const constrainedValue = constraints[node.symbol];
+  if (constrainedValue !== undefined) {
+    if (!node.alternatives.includes(constrainedValue)) {
+      // Constraint conflicts with grammar - prune
+      return;
     }
-    
-    const constraintValue = constraints[node.symbol];
-    if (node.alternatives.includes(constraintValue)) {
-      return [constraintValue];
-    }
-    
-    console.log(`❌ Invalid constraint: ${node.symbol} = "${constraintValue}"`);
-    console.log(`Available alternatives:`, node.alternatives);
-    throw new Error(`Invalid constraint: ${node.symbol} = "${constraintValue}". Available alternatives: ${node.alternatives.join(', ')}`);
+    allowedAlts = [constrainedValue];
   }
 
-  private discoverPathsFromNode(
-    node: GrammarNode,
-    constraints?: Record<string, string>,
-    visitedNodes: Set<string> = new Set(),
-    depth: number = 0,
-    maxDepth: number = 100
-  ): PathChoice[] {
-    if (depth > maxDepth) {
-      console.warn(`⚠️ Maximum recursion depth (${maxDepth}) exceeded for node ${node.symbol}`);
-      return [];
-    }
-    
-    if (this.isCircularReference(node.symbol, visitedNodes)) {
-      console.log(`🔄 Circular reference detected for ${node.symbol}, skipping`);
-      return [];
-    }
-    
-    const newVisitedNodes = new Set(visitedNodes);
-    newVisitedNodes.add(node.symbol);
-    const alternatives = this.applyConstraintsToNode(node, constraints);
-    const results: PathChoice[] = [];
-    
-    for (const alternative of alternatives) {  
-      const pathChoice: PathChoice = {
-        symbol: node.symbol,
-        chosenAlternative: alternative,
-        childChoices: []
-      };
-      
-      if (this.containsParameters(alternative)) {
-        const childChoices = this.processAlternative(alternative, constraints, newVisitedNodes, depth + 1);
-        if (childChoices.length > 0) {
-          pathChoice.childChoices = childChoices;
-          results.push(pathChoice);
-        } else {
-          console.log(`❌ Incomplete path for "${alternative}", skipping`);
-        }
-      } else {
-        results.push(pathChoice);
+  // 2) Branch over each allowed alternative
+  for (const value of allowedAlts) {
+    // choose this node's value
+    currentPath.push({ symbol: node.symbol, value });
+
+    if (!node.children || node.children.length === 0) {
+      // Leaf - copy the path snapshot to results
+      results.push([...currentPath]);
+    } else {
+      // 3) Recurse into children
+      //    Note: this assumes a tree. If your structure may contain cycles,
+      //    add a visited set per path to guard against infinite loops.
+      for (const child of node.children) {
+        this.traverseNode(child, depth + 1, results, currentPath, constraints);
       }
     }
-    
-    return results;
+
+    // 4) Backtrack
+    currentPath.pop();
+  }
   }
 
-  private processAlternative(
-    alternative: string,
-    constraints: Record<string, string> | undefined,
-    visitedNodes: Set<string>,
-    depth: number
-  ): PathChoice[] {
-    const childChoices: PathChoice[] = [];
-    const parameters = this.extractParameters(alternative);
-    
-    for (const param of parameters) {
-      const paramNode = this.findNodeBySymbol(param);
-      if (!paramNode) {
-        console.log(`❌ Parameter node not found: ${param}`);
-        return [];
-      }
-      
-      const paramChoices = this.discoverPathsFromNode(paramNode, constraints, visitedNodes, depth);
-      if (paramChoices.length === 0) {
-        console.log(`❌ No valid paths for parameter ${param}`);
-        return [];
-      }
-      
-      childChoices.push(...paramChoices);
-    }
-    
-    return childChoices;
-  }
 
-  private isCircularReference(
-    nodeSymbol: string,
-    visitedNodes: Set<string>
-  ): boolean {
-    return visitedNodes.has(nodeSymbol);
-  }
-
-  private containsParameters(alternative: string): boolean {
-    return alternative.includes('#');
-  }
-
-  private extractParameters(alternative: string): string[] {
-    const matches = alternative.match(/#([^#]+)#/g);
-    if (!matches) return [];
-    
-    return matches.map(match => match.slice(1, -1));
-  }
-
-  private findNodeBySymbol(symbol: string): GrammarNode | null {
-    if (!this.rootNode) {
-      return null;
-    }
-    
-    return this.findNodeInTree(this.rootNode, symbol);
-  }
-
-  private findNodeInTree(node: GrammarNode, symbol: string): GrammarNode | null {
-    if (node.symbol === symbol) {
-      return node;
-    }
-    
-    for (const child of node.children) {
-      const found = this.findNodeInTree(child, symbol);
-      if (found) {
-        return found;
-      }
-    }
-    
-    return null;
-  }
-
-  /**
-   * Generates all possible template combinations (without applying templates)
-   * @param constraints Optional parameter constraints to limit combinations
-   */
   public generateAllTemplates(constraints?: Record<string, string>): GenerationTemplate[] {
-    // const originAlternatives = this.grammar.origin;
-    // if (!originAlternatives || originAlternatives.length === 0) {
-    //   return [];
-    // }
+    const results: GenerationTemplate[] = [];
 
-    // // Check if there's a constraint on origin
-    // if (constraints && constraints.origin) {
-    //   const constrainedOrigin = constraints.origin;
-    //   if (originAlternatives.includes(constrainedOrigin)) {
-    //     const tempRootNode = this.buildNode('origin', constrainedOrigin);
-    //     return this.generateAllTemplatesWithContent(tempRootNode, '', ['origin'], {}, constraints);
-    //   } else {
-    //     return [];
-    //   }
-    // }
-
-    // // No constraint on origin, generate templates for all origin alternatives
-    // const allTemplates: GenerationTemplate[] = [];
-    // for (const originRule of originAlternatives) {
-    //   const tempRootNode = this.buildNode('origin', originRule);
-    //   const templates = this.generateAllTemplatesWithContent(tempRootNode, '', ['origin'], {}, constraints);
-    //   allTemplates.push(...templates);
-    // }
-    // return allTemplates;
-
-    // TODO: implement new logic
-    return [];
+    return results;
   }
 
-  /**
-   * Generates all possible combinations with full content and parameters
-   * @param constraints Optional parameter constraints to limit combinations
-   */
   public generateAllCombinations(constraints?: Record<string, string>): GenerationPath[] {
-    // // Generate templates first
-    // const templates = this.generateAllTemplates(constraints);
-    
-    // // Apply templates to generate final content  
-    // return templates.map(template => {
-    //   const renderResult = this.templateRenderer.render(template);
-    //   return {
-    //     content: renderResult.content,
-    //     parameters: renderResult.appliedParameters,
-    //     path: template.path
-    //   };
-    // });
+    const results: GenerationPath[] = [];
 
-    // TODO: implement new logic
-    return [];
+    return results;
   }
-
 }
