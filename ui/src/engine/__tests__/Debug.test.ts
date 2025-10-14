@@ -1,4 +1,3 @@
-import { GrammarAnalyzer } from '../GrammarAnalyzer';
 import { GenerationResult, GenerationTemplate } from '../types';
 // import { GrammarTree } from '../GrammarTree';
 import { GrammarEngine, Grammar } from '../Engine';
@@ -29,30 +28,7 @@ describe('DEBUG: GrammarAnalyzer Template Generation', () => {
       // //   const templates = analyzer.generateAllTemplates();
       // const res = analyzer.discoverAllTemplates();
 
-      console.log("count =", G.countStrings("origin", { S: "A" }))
-      console.log("count =", G.countStrings("origin"))
-      console.log("res =", G.expandAll("origin", { S: "A" }));
-      console.log("res =", G.expandAll("origin", { S: "B" }));
-      console.log("res =", G.expandAll("origin", { origin: "string" }));
-      console.log("res =", G.expandAll("origin", { origin: "#S#" }));
-      console.log("res =", G.expandAll("origin"));
-
-      console.log('Generated templates:', JSON.stringify(G.expandAll("origin"), null, 2));
-
-      const generated = G.generate("origin", { origin: "#S# #S#" });
-
-      const results = rawToGenerationResult([generated]);
-
-      console.log("result =", JSON.stringify(results, null, 2));
-
-      console.log("result1 =", G.generate("origin"));
-      console.log("result2 =", G.generate("origin"));
-      console.log("result3 =", G.generate("origin"));
-      console.log("result4 =", G.generate("origin"));
-      console.log("result5 =", G.generate("origin"));
-      console.log("result6 =", G.generate("origin"));
-      console.log("result7 =", G.generate("origin"));
-
+      expect(engine.getTotalCombinations("origin")).toBe(7);
     });
   });
   

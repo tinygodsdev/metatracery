@@ -158,10 +158,13 @@ describe('ParameterExtractor', () => {
         "SP": ["#NP#"],
         "OP": ["#NP#"],
         "NP": ["girl", "cat"],
-        "SVO": ["#SP# #VP# #OP#"]
+        "SVO": ["#SP# #VP# #OP#"],
+        "origin": ["#SVO#"]
       };
 
       const contexts = extractor.extractContextualParameters(grammar);
+
+      console.log("contexts =", contexts);
 
       expect(contexts.NP).toBeDefined();
       expect(contexts.NP).toContain('SP');

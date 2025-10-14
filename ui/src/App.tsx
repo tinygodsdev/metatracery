@@ -80,7 +80,7 @@ function App() {
     
     setIsLoading(true);
     try {
-      const result = engine.generateWithParameters('#origin#', parameters);
+      const result = engine.generateWithParameters('origin', parameters);
       setResults([result]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
@@ -96,22 +96,11 @@ function App() {
     
     setIsLoading(true);
     try {
-      // Use the new generateAllCombinations method
-      const allResults = engine.generateAllCombinations('#origin#');
+      // Use the new generateAllCombinations method with constraints
+      const allResults = engine.generateAllCombinations('origin', selectedParameters);
       console.log('All results from generateAllCombinations:', allResults.length, allResults);
       
-      // Filter results that match selected parameters
-      const matchingResults = allResults.filter(result => {
-        for (const [paramName, selectedValue] of Object.entries(selectedParameters)) {
-          if (selectedValue && result.metadata.relevantParameters[paramName] !== selectedValue) {
-            return false;
-          }
-        }
-        return true;
-      });
-      
-      console.log('Matching results:', matchingResults.length, matchingResults);
-      setResults(matchingResults);
+      setResults(allResults);
     } catch (err) {
       console.error('Generation error:', err);
       setError(err instanceof Error ? err.message : 'Generation failed');

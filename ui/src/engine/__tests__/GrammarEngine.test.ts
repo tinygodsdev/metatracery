@@ -33,7 +33,7 @@ describe('GrammarEngine', () => {
       expect(parameters.VP.isParameter).toBe(true);
       
       expect(parameters.word_order).toBeDefined();
-      expect(parameters.word_order.values).toEqual(['#SVO#', '#VSO#']);
+      expect(parameters.word_order.values).toEqual(['SVO', 'VSO']);
       expect(parameters.word_order.isParameter).toBe(true);
     });
 
@@ -461,7 +461,6 @@ describe('GrammarEngine', () => {
         
         // Should have S parameter
         expect(relevantParams).toHaveProperty('S');
-        console.log("relevantParams =", relevantParams);
         expect(relevantParams.origin).toBe('#S# #S# #S#');
         expect(relevantParams.S).toMatch(/^[ABC],[ABC],[ABC]$/);
         

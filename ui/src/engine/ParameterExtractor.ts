@@ -37,14 +37,33 @@ export class ParameterExtractor {
     
     const isParameter = this.isParameterSymbol(symbol, rules, grammar);
     
+    // Normalize parameter values by stripping # symbols from simple references
+    const normalizedValues = rules.map(rule => this.normalizeValue(rule));
+    
     return {
       symbol,
-      values: rules,
+      values: normalizedValues,
       currentValue: undefined,
       isParameter
     };
   }
   
+  /**
+   * Normalizes parameter values by stripping # symbols from simple references
+   * Only normalizes simple patterns like #NAME# -> NAME
+   * Keeps complex patterns (with spaces or multiple refs) as-is
+   */
+  private normalizeValue(value: string): string {
+    // Check if it's a simple reference pattern like #NAME#
+    const simpleRefMatch = /^#([A-Za-z_][A-Za-z0-9_]*)#$/.exec(value);
+    if (simpleRefMatch) {
+      return simpleRefMatch[1]; // Return just the name without #
+    }
+    
+    // For complex patterns or literals, return as-is
+    return value;
+  }
+
   /**
    * Determines if symbol is a parameter
    */

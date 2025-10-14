@@ -49,7 +49,7 @@ export function ResultsPanel({
     
     try {
       // Use the unified method to count combinations with constraints
-      return engine.getTotalCombinations(selectedParameters);
+      return engine.getTotalCombinations('origin', selectedParameters);
     } catch (err) {
       console.error('Error calculating combination count:', err);
       return 0;
@@ -69,10 +69,19 @@ export function ResultsPanel({
   }, [engine]);
 
   const handleParameterChange = (paramName: string, value: string) => {
-    setSelectedParameters(prev => ({
-      ...prev,
-      [paramName]: value
-    }));
+    setSelectedParameters(prev => {
+      if (value === '') {
+        // Remove parameter when "Random" is selected
+        const { [paramName]: removed, ...rest } = prev;
+        return rest;
+      } else {
+        // Add or update parameter
+        return {
+          ...prev,
+          [paramName]: value
+        };
+      }
+    });
   };
 
   const handleGenerateWithParams = () => {
@@ -214,9 +223,9 @@ export function ResultsPanel({
         {stats && (
           <Stack gap={2} mt="sm">
             <Text size="xs" c="dimmed">
-              Total combinations: {engine ? engine.getTotalCombinations() : 0}
+              Total combinations: {engine ? engine.getTotalCombinations('origin') : 0}
             </Text>
-            <Text size="xs" c={actualCombinations !== (engine ? engine.getTotalCombinations() : 0) ? "blue" : "dimmed"}>
+            <Text size="xs" c={actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0) ? "blue" : "dimmed"}>
               With selected parameters: {actualCombinations}
             </Text>
             {actualCombinations > 100 && (

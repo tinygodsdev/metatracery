@@ -56,9 +56,9 @@ export class GrammarProcessor {
   /**
    * Generates all possible combinations
    */
-  generateAllCombinations(rule: string): GenerationResult[] {
-    // Get all generation paths from GrammarAnalyzer
-    const generated = this.engine.expandAll(rule);
+  generateAllCombinations(rule: string, constraints?: Record<string, string>): GenerationResult[] {
+    // Get all generation paths from GrammarAnalyzer with constraints
+    const generated = this.engine.expandAll(rule, constraints);
     
     // Convert GenerationPath to GenerationResult
     const results = rawToGenerationResult(generated);
