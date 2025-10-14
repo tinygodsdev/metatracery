@@ -1,29 +1,25 @@
 import type { 
-  GrammarRule, 
   GenerationResult, 
-  AppliedRule, 
   EngineConfig,
-  StructureExtractor,
   GenerationStatistics
 } from './types';
 import { ParameterExtractor } from './ParameterExtractor';
 import type { ExtractedParameters } from './ParameterExtractor';
-import { GenericStructureExtractor } from './GenericStructureExtractor';
-import { GrammarAnalyzer } from './GrammarAnalyzer';
+import { GrammarEngine, type Grammar, type Generated } from './Engine';
+import { rawToGenerationResult } from './helpers';
 
 /**
  * Scientific grammar generation engine
  * Generic engine that works with any domain
  */
-export class GrammarEngine {
-  private grammar: GrammarRule;
+export class GrammarProcessor {
+  private grammar: Grammar;
   private parameters: ExtractedParameters;
   public parameterExtractor: ParameterExtractor;
-  private structureExtractor: StructureExtractor;
-  private grammarAnalyzer: GrammarAnalyzer;
+  public engine: GrammarEngine;
   private config: EngineConfig;
   
-  constructor(grammar: GrammarRule, config: Partial<EngineConfig> = {}) {
+  constructor(grammar: Grammar, config: Partial<EngineConfig> = {}) {
     this.grammar = grammar;
     this.config = {
       maxDepth: 10,
@@ -34,8 +30,7 @@ export class GrammarEngine {
     
     this.parameterExtractor = new ParameterExtractor();
     this.parameters = this.parameterExtractor.extractParameters(grammar);
-    this.structureExtractor = new GenericStructureExtractor();
-    this.grammarAnalyzer = new GrammarAnalyzer(grammar);
+    this.engine = new GrammarEngine(grammar);
   }
   
   /**
@@ -47,94 +42,26 @@ export class GrammarEngine {
   ): GenerationResult {
     const startTime = Date.now();
     
-    // Check if the rule contains missing symbols
-    const missingSymbols = this.findMissingSymbols(rule);
-    if (missingSymbols.length > 0) {
-      // Handle missing symbols by replacing them with ((missing:symbol))
-      let content = rule;
-      for (const symbol of missingSymbols) {
-        content = content.replace(new RegExp(`#${symbol}#`, 'g'), `((missing:${symbol}))`);
-      }
-      
-      return {
-        content,
-        metadata: {
-          parameters: parameterValues,
-          appliedRules: [],
-          generationPath: [],
-          relevantParameters: parameterValues
-        }
-      };
-    }
-    
-    // Use GrammarAnalyzer to generate with constraints
-    const generationPaths = this.grammarAnalyzer.generateAllCombinations(parameterValues);
-    
-    if (generationPaths.length === 0) {
-      return {
-        content: '',
-        metadata: {
-          parameters: parameterValues,
-          appliedRules: [],
-          generationPath: [],
-          relevantParameters: parameterValues
-        }
-      };
-    }
-    
-    // For single generation, pick a random result to maintain randomization
-    const randomIndex = Math.floor(Math.random() * generationPaths.length);
-    const selectedPath = generationPaths[randomIndex];
-    
-    // Convert GenerationPath to AppliedRule[]
-    const appliedRules: AppliedRule[] = [];
-    for (let i = 0; i < selectedPath.path.length; i++) {
-      const symbol = selectedPath.path[i];
-      const value = selectedPath.parameters[symbol] || symbol;
-      appliedRules.push({
-        symbol,
-        selectedRule: value,
-        result: value,
-        depth: i,
-        alternatives: [], // TODO: We could populate this if needed
-        timestamp: Date.now()
-      });
-    }
+    const generated = this.engine.generate(rule, parameterValues);
 
-    const result: GenerationResult = {
-      content: selectedPath.content,
-      metadata: {
-        parameters: parameterValues,
-        appliedRules,
-        generationPath: selectedPath.path,
-        relevantParameters: selectedPath.parameters
-      }
-    };
+    const result = rawToGenerationResult([generated]);
     
     if (this.config.enableStatistics) {
-      result.metadata.generationTime = Date.now() - startTime;
+      result[0].metadata.generationTime = Date.now() - startTime;
     }
     
-    return result;
+    return result[0];
   }
   
   /**
    * Generates all possible combinations
    */
-  generateAllCombinations(_rule: string): GenerationResult[] {
+  generateAllCombinations(rule: string): GenerationResult[] {
     // Get all generation paths from GrammarAnalyzer
-    const generationPaths = this.grammarAnalyzer.generateAllCombinations();
+    const generated = this.engine.expandAll(rule);
     
     // Convert GenerationPath to GenerationResult
-    const results = generationPaths.map(path => ({
-      content: path.content,
-      metadata: {
-        parameters: {},
-        appliedRules: [], // TODO: We could track this if needed
-        generationPath: path.path,
-        relevantParameters: path.parameters
-      }
-    }));
+    const results = rawToGenerationResult(generated);
     
     return results;
   }
@@ -143,30 +70,11 @@ export class GrammarEngine {
    * Gets the total number of possible combinations using GrammarAnalyzer
    * @param constraints Optional parameter constraints to limit combinations
    */
-  public getTotalCombinations(constraints?: Record<string, string>): number {
-    return this.grammarAnalyzer.countAllPaths(constraints);
-  }
-
-  /**
-   * Finds symbols in a rule that are not defined in the grammar
-   */
-  private findMissingSymbols(rule: string): string[] {
-    const symbolRefs = this.extractAllSymbolReferences(rule);
-    const missingSymbols: string[] = [];
-    
-    for (const ref of symbolRefs) {
-      if (!this.grammar[ref.symbol]) {
-        missingSymbols.push(ref.symbol);
-      }
-    }
-    
-    return missingSymbols;
+  public getTotalCombinations(root: string, constraints?: Record<string, string>): number {
+    return this.engine.countStrings(root, constraints);
   }
 
 
-
-  
-  
   
   /**
    * Generates parameter matrix
@@ -206,196 +114,7 @@ export class GrammarEngine {
     return matrix;
   }
   
-  /**
-   * Generates with metadata tracking
-   */
-  private generateWithTracking(rule: string, parameterValues?: Record<string, string>): GenerationResult {
-    const appliedRules: AppliedRule[] = [];
-    const generationPath: string[] = [];
-    const usedSymbols = new Set<string>();
-    
-    // Fully expand the rule
-    const result = this.expandRule(rule, appliedRules, generationPath, usedSymbols, 0, parameterValues);
-    
-    // Extract relevant parameters based on used symbols
-    const relevantParameters: Record<string, any> = {};
-    const currentParams = this.getCurrentParameters();
-    
-    usedSymbols.forEach(symbol => {
-      // Include all used symbols in relevant parameters
-      // If the symbol has a value in currentParams, use it
-      // Otherwise, use the actual rule that was selected for this symbol
-      if (currentParams[symbol] !== undefined) {
-        relevantParameters[symbol] = currentParams[symbol];
-      } else {
-        // For symbols that were used but don't have explicit parameter values,
-        // we need to find what rule was actually selected for them
-        relevantParameters[symbol] = this.getSelectedRuleForSymbol(symbol, appliedRules);
-      }
-    });
-    
-    return {
-      content: result,
-      metadata: {
-        parameters: currentParams,
-        relevantParameters,
-        appliedRules,
-        generationPath,
-        structure: this.structureExtractor.extractStructure(appliedRules)
-      }
-    };
-  }
-  
-  /**
-   * Fully expands a rule
-   */
-  private expandRule(
-    rule: string, 
-    appliedRules: AppliedRule[], 
-    generationPath: string[],
-    usedSymbols: Set<string>,
-    depth: number,
-    parameterValues?: Record<string, string>,
-    symbolOccurrenceCounts?: Map<string, number>
-  ): string {
-    if (depth > this.config.maxDepth) {
-      return rule;
-    }
-    
-    // Initialize symbol occurrence counts if not provided
-    if (!symbolOccurrenceCounts) {
-      symbolOccurrenceCounts = new Map<string, number>();
-    }
-    
-    // Find symbol references in rule
-    const symbolReferences = this.extractAllSymbolReferences(rule);
-    
-    if (symbolReferences.length === 0) {
-      // This is a terminal rule
-      return rule;
-    }
-    
-    let result = rule;
-    
-    // Replace each symbol reference
-    for (let i = 0; i < symbolReferences.length; i++) {
-      const symbolRef = symbolReferences[i];
-      const symbol = symbolRef.symbol;
-      const placeholder = symbolRef.placeholder;
-      
-      // Track used symbol
-      usedSymbols.add(symbol);
-      
-      // Get global occurrence index for this symbol
-      const occurrenceIndex = symbolOccurrenceCounts.get(symbol) || 0;
-      symbolOccurrenceCounts.set(symbol, occurrenceIndex + 1);
-      
-      // Select rule for symbol with global occurrence index
-      const selectedRule = this.selectRule(symbol, parameterValues, occurrenceIndex);
-      
-      // Also track symbols that are referenced in the selected rule
-      const ruleSymbols = this.extractAllSymbolReferences(selectedRule);
-      ruleSymbols.forEach(ruleSymbol => {
-        usedSymbols.add(ruleSymbol.symbol);
-      });
-      
-      // Record applied rule
-      if (this.config.enableTracking) {
-        appliedRules.push({
-          symbol,
-          selectedRule,
-          result: '',
-          depth,
-          alternatives: this.grammar[symbol] || [],
-          timestamp: Date.now()
-        });
-      }
-      
-      generationPath.push(symbol);
-      
-      // Recursively expand selected rule
-      const expandedRule = this.expandRule(selectedRule, appliedRules, generationPath, usedSymbols, depth + 1, parameterValues, symbolOccurrenceCounts);
-      
-      // Replace reference with expanded rule
-      result = result.replace(placeholder, expandedRule);
-      
-      // Update result in appliedRules
-      if (this.config.enableTracking && appliedRules.length > 0) {
-        appliedRules[appliedRules.length - 1].result = expandedRule;
-      }
-    }
-    
-    return result;
-  }
-  
-  /**
-   * Extracts all symbol references from rule
-   */
-  private extractAllSymbolReferences(rule: string): Array<{symbol: string, placeholder: string}> {
-    const references: Array<{symbol: string, placeholder: string}> = [];
-    const regex = /#([^#]+)#/g;
-    let match;
-    
-    while ((match = regex.exec(rule)) !== null) {
-      references.push({
-        symbol: match[1],
-        placeholder: match[0]
-      });
-    }
-    
-    return references;
-  }
-  
-  /**
-   * Selects rule for symbol
-   */
-  private selectRule(symbol: string, parameterValues?: Record<string, string>, symbolIndex?: number): string {
-    const rules = this.grammar[symbol];
-    if (!rules || rules.length === 0) {
-      return `((missing:${symbol}))`;
-    }
-    
-    // If parameter is set in parameterValues, use it
-    if (parameterValues) {
-      // Try to find parameter by new nodeId format first
-      if (symbolIndex !== undefined) {
-        // Look for keys that match the pattern: *_{symbol}_{symbolIndex}_*
-        // This handles complex nodeId like: origin_word_order_0_SVO_0_SP_0_NP_0_0
-        for (const key in parameterValues) {
-          // Split by underscores and look for symbol at the right position
-          const parts = key.split('_');
-          for (let i = 0; i < parts.length - 1; i++) {
-            if (parts[i] === symbol && parts[i + 1] === symbolIndex.toString()) {
-              return parameterValues[key];
-            }
-          }
-        }
-      }
-      
-      // Try to find parameter by old index format (e.g., S_0, S_1, S_2)
-      if (symbolIndex !== undefined) {
-        const indexedKey = `${symbol}_${symbolIndex}`;
-        if (parameterValues[indexedKey]) {
-          return parameterValues[indexedKey];
-        }
-      }
-      
-      // Fallback to direct symbol name
-      if (parameterValues[symbol]) {
-        return parameterValues[symbol];
-      }
-    }
-    
-    // If parameter is set in this.parameters, use it
-    if (this.parameters[symbol]?.currentValue) {
-      return this.parameters[symbol].currentValue!;
-    }
-    
-    // Otherwise select randomly (for now)
-   const randomIndex = Math.floor(Math.random() * rules.length);
-    return rules[randomIndex];
-  }
-  
+
   /**
    * Sets parameters
    */
@@ -448,7 +167,7 @@ export class GrammarEngine {
     };
     
     // Use the correct method for counting combinations
-    stats.totalVariants = this.getTotalCombinations();
+    stats.totalVariants = this.getTotalCombinations('origin');
     
     // Count variants by parameters
     for (const [paramName, param] of Object.entries(this.parameters)) {
@@ -469,30 +188,9 @@ export class GrammarEngine {
   }
   
   /**
-   * Sets custom structure extractor
-   */
-  setStructureExtractor(extractor: StructureExtractor): void {
-    this.structureExtractor = extractor;
-  }
-  
-  /**
    * Gets contextual parameters (for symbols used in multiple contexts)
    */
   getContextualParameters(): Record<string, string[]> {
     return this.parameterExtractor.extractContextualParameters(this.grammar);
-  }
-  
-  /**
-   * Gets the selected rule for a symbol from applied rules
-   */
-  private getSelectedRuleForSymbol(symbol: string, appliedRules: AppliedRule[]): string {
-    // Find the last applied rule for this symbol
-    for (let i = appliedRules.length - 1; i >= 0; i--) {
-      if (appliedRules[i].symbol === symbol) {
-        return appliedRules[i].selectedRule;
-      }
-    }
-    // If not found in applied rules, return the first available rule
-    return this.grammar[symbol]?.[0] || `((missing:${symbol}))`;
   }
 }

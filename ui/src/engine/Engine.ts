@@ -10,7 +10,7 @@ interface AlternationNode { kind: "alternation"; options: AstNode[] }
 
 type Trace = Record<string, string[]>;
 
-interface Generated {
+export interface Generated {
   text: string;
   trace: Trace;                   // rule -> list of chosen alternatives
 }

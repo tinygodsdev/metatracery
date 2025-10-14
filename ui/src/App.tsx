@@ -20,12 +20,12 @@ import { Notifications } from '@mantine/notifications';
 import { GrammarEditor } from './components/GrammarEditor';
 import { ResultsPanel } from './components/ResultsPanel';
 import { Footer } from './components/Footer';
-import { GrammarEngine } from './engine/GrammarEngine';
+import { GrammarProcessor } from './engine/GrammarEngine';
 import type { GrammarRule, GenerationResult } from './engine/types';
 
 function App() {
   const [grammar, setGrammar] = useState<GrammarRule>({});
-  const [engine, setEngine] = useState<GrammarEngine | null>(null);
+  const [engine, setEngine] = useState<GrammarProcessor | null>(null);
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ function App() {
         const response = await fetch('/example.json');
         const exampleGrammar = await response.json();
         setGrammar(exampleGrammar);
-        setEngine(new GrammarEngine(exampleGrammar));
+        setEngine(new GrammarProcessor(exampleGrammar));
       } catch (err) {
         console.error('Failed to load example grammar:', err);
       }
@@ -50,7 +50,7 @@ function App() {
   useEffect(() => {
     if (Object.keys(grammar).length > 0) {
       try {
-        const newEngine = new GrammarEngine(grammar);
+        const newEngine = new GrammarProcessor(grammar);
         setEngine(newEngine);
         setError(null);
         // Clear results when grammar changes
@@ -68,7 +68,7 @@ function App() {
     setGrammar(newGrammar);
     setError(null);
     try {
-      const newEngine = new GrammarEngine(newGrammar);
+      const newEngine = new GrammarProcessor(newGrammar);
       setEngine(newEngine);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid grammar');

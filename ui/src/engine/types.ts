@@ -32,7 +32,7 @@ export interface GenerationResult {
   metadata: {
     parameters: Record<string, any>;
     relevantParameters: Record<string, any>; // Only parameters that were actually used
-    appliedRules: AppliedRule[];
+    appliedRules: Record<string, string[]>;
     generationPath: string[];
     structure?: Record<string, any>; // Generic structure, not hardcoded
     generationTime?: number;

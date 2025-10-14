@@ -1,4 +1,4 @@
-import { GrammarEngine } from '../Gen';
+import { GrammarEngine } from '../Engine';
 import { GrammarRule } from '../types';
 
 describe('Syllable Grammar', () => {

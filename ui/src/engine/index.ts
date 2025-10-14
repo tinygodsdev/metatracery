@@ -2,16 +2,16 @@
  * Main export for scientific grammar engine
  */
 
-export { GrammarEngine as ScientificGrammarEngine } from './GrammarEngine';
+export { GrammarProcessor as ScientificGrammarEngine } from './GrammarEngine';
 export { ParameterExtractor } from './ParameterExtractor';
 export { GenericStructureExtractor } from './GenericStructureExtractor';
 export type * from './types';
 
 // Convenience functions for quick start
-import { GrammarEngine } from './GrammarEngine';
+import { GrammarProcessor } from './GrammarEngine';
 
 export function createGrammar(grammar: any, config?: any) {
-  return new GrammarEngine(grammar, config);
+  return new GrammarProcessor(grammar, config);
 }
 
 export function loadGrammarFromFile(_filePath: string) {

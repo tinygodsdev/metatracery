@@ -13,7 +13,7 @@ import {
 // Icons removed temporarily to fix import issues
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
-import { GrammarEngine } from '../engine/GrammarEngine';
+import { GrammarProcessor } from '../engine/GrammarEngine';
 
 interface GrammarEditorProps {
   grammar: GrammarRule;
@@ -60,7 +60,7 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
 
   const getCombinationCount = (grammar: GrammarRule): number => {
     try {
-      const engine = new GrammarEngine(grammar);
+      const engine = new GrammarProcessor(grammar);
       return engine.getTotalCombinations();
     } catch {
       return 0;

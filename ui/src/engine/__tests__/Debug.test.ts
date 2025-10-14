@@ -1,7 +1,9 @@
 import { GrammarAnalyzer } from '../GrammarAnalyzer';
-import { GenerationTemplate } from '../types';
+import { GenerationResult, GenerationTemplate } from '../types';
 // import { GrammarTree } from '../GrammarTree';
-import { GrammarEngine, Grammar } from '../Gen';
+import { GrammarEngine, Grammar } from '../Engine';
+import { rawToGenerationResult } from '../helpers';
+import { GrammarProcessor } from '../GrammarEngine';
 
 describe('DEBUG: GrammarAnalyzer Template Generation', () => {
   describe('Basic template generation', () => {
@@ -23,51 +25,76 @@ describe('DEBUG: GrammarAnalyzer Template Generation', () => {
 
       // const tree = new GrammarTree(grammar);
       const G = new GrammarEngine(grammar);
+      const engine = new GrammarProcessor(grammar);
       // //   const templates = analyzer.generateAllTemplates();
       // const res = analyzer.discoverAllTemplates();
 
-      console.log("count =", G.countStrings("origin", { S: "A"}))
+      console.log("count =", G.countStrings("origin", { S: "A" }))
       console.log("count =", G.countStrings("origin"))
-      console.log("res =", G.expandAll("origin", { S: "A"}));
-      console.log("res =", G.expandAll("origin", { S: "B"}));
-      console.log("res =", G.expandAll("origin", { origin: "string"}));
-      console.log("res =", G.expandAll("origin", { origin: "#S#"}));
+      console.log("res =", G.expandAll("origin", { S: "A" }));
+      console.log("res =", G.expandAll("origin", { S: "B" }));
+      console.log("res =", G.expandAll("origin", { origin: "string" }));
+      console.log("res =", G.expandAll("origin", { origin: "#S#" }));
       console.log("res =", G.expandAll("origin"));
 
       console.log('Generated templates:', JSON.stringify(G.expandAll("origin"), null, 2));
+
+      const generated = G.generate("origin", { origin: "#S# #S#" });
+
+      const results = rawToGenerationResult([generated]);
+
+      console.log("result =", JSON.stringify(results, null, 2));
+
+      console.log("result1 =", G.generate("origin"));
+      console.log("result2 =", G.generate("origin"));
+      console.log("result3 =", G.generate("origin"));
+      console.log("result4 =", G.generate("origin"));
+      console.log("result5 =", G.generate("origin"));
+      console.log("result6 =", G.generate("origin"));
+      console.log("result7 =", G.generate("origin"));
+
     });
+  });
+  
+  describe('GenGrammar', () => {
+    test('should generate correct templates for linguistic grammar', () => {
+      const grammar: Grammar = {
+        SP: ["#NP#"],
+        OP: ["#NP#"],
+        NP: ["girl", "cat", "dog", "bird"],
+        VP: ["loves", "eats", "pets", "chases"],
+        SVO: ["#SP# #VP# #OP#"],
+        VSO: ["#VP# #SP# #OP#"],
+        SOV: ["#SP# #OP# #VP#"],
+        word_order: ["#SVO#", "#VSO#", "#SOV#"],
+        origin: ["#word_order#"]
+      };
 
-    // describe('GenGrammar', () => {
-    //   test('should generate correct templates for linguistic grammar', () => {
-    //     const grammar: Grammar = {
-    //       SP: ["#NP#"],
-    //       OP: ["#NP#"],
-    //       NP: ["girl", "cat", "dog", "bird"],
-    //       VP: ["loves", "eats", "pets", "chases"],
-    //       SVO: ["#SP# #VP# #OP#"],
-    //       VSO: ["#VP# #SP# #OP#"],
-    //       SOV: ["#SP# #OP# #VP#"],
-    //       word_order: ["#SVO#", "#VSO#", "#SOV#"],
-    //       origin: ["#word_order#"]
-    //     };
+      const engine = new GrammarProcessor(grammar);
 
-    //     const G = new GenGrammar(grammar);
+      const vsoResult = engine.generateWithParameters('origin', {
+        NP: 'dog',
+        VP: 'chases',
+        word_order: 'VSO'
+      });
 
-    //     // Count without constraints
-    //     console.log("count =", G.count("origin")); // 3 orders * 4*4*4 = 192
+      // console.log("vsoResult =", JSON.stringify(vsoResult, null, 2));
 
-    //     // Count with constraint word_order = SVO
-    //     console.log("count SVO =", G.count("origin", { word_order: "SVO" })); // 64
+      // // Count without constraints
+      // console.log("count =", G.count("origin")); // 3 orders * 4*4*4 = 192
 
-    //     // One random sample with constraint
-    //     console.log("sample =", G.sample("origin", { word_order: "SVO" }));
+      // // Count with constraint word_order = SVO
+      // console.log("count SVO =", G.count("origin", { word_order: "SVO" })); // 64
 
-    //     // N random unique samples
-    //     console.log("5 uniq samples =", G.sampleN(5, "origin", { word_order: ["SVO"] }, true));
+      // // One random sample with constraint
+      // console.log("sample =", G.sample("origin", { word_order: "SVO" }));
 
-    //     // Full expansion with constraint and cap
-    //     console.log("all SVO size =", G.expandAll("origin", { word_order: "SVO" }).length);
-    //   });
+      // // N random unique samples
+      // console.log("5 uniq samples =", G.sampleN(5, "origin", { word_order: ["SVO"] }, true));
+
+      // // Full expansion with constraint and cap
+      // console.log("all SVO size =", G.expandAll("origin", { word_order: "SVO" }).length);
+    });
   });
   //     test('should generate templates with correct parameter order', () => {
   //       const grammar = {

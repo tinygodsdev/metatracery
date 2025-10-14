@@ -16,11 +16,11 @@ import {
   Center
 } from '@mantine/core';
 // Icons removed temporarily to fix import issues
-import { GrammarEngine } from '../engine/GrammarEngine';
+import { GrammarProcessor } from '../engine/GrammarEngine';
 import type { GenerationResult } from '../engine/types';
 
 interface ResultsPanelProps {
-  engine: GrammarEngine | null;
+  engine: GrammarProcessor | null;
   results: GenerationResult[];
   isLoading: boolean;
   onGenerate: (parameters: Record<string, string>) => void;
