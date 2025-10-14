@@ -61,7 +61,7 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
   const getCombinationCount = (grammar: GrammarRule): number => {
     try {
       const engine = new GrammarProcessor(grammar);
-      return engine.getTotalCombinations();
+      return engine.getTotalCombinations('origin');
     } catch {
       return 0;
     }

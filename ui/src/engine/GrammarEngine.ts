@@ -5,7 +5,7 @@ import type {
 } from './types';
 import { ParameterExtractor } from './ParameterExtractor';
 import type { ExtractedParameters } from './ParameterExtractor';
-import { GrammarEngine, type Grammar, type Generated } from './Engine';
+import { GrammarEngine, type Grammar } from './Engine';
 import { rawToGenerationResult } from './helpers';
 
 /**
@@ -114,21 +114,6 @@ export class GrammarProcessor {
     return matrix;
   }
   
-
-  /**
-   * Sets parameters
-   */
-  private setParameters(parameterValues: Record<string, string>): void {
-    // First clear all current values
-    this.clearParameters();
-    
-    // Then set new values
-    for (const [paramName, value] of Object.entries(parameterValues)) {
-      if (this.parameters[paramName]) {
-        this.parameters[paramName].currentValue = value;
-      }
-    }
-  }
   
   /**
    * Clears all parameter current values
@@ -137,21 +122,6 @@ export class GrammarProcessor {
     for (const param of Object.values(this.parameters)) {
       param.currentValue = undefined;
     }
-  }
-  
-  /**
-   * Gets current parameters
-   */
-  private getCurrentParameters(): Record<string, any> {
-    const current: Record<string, any> = {};
-    
-    for (const [paramName, param] of Object.entries(this.parameters)) {
-      if (param.currentValue) {
-        current[paramName] = param.currentValue;
-      }
-    }
-    
-    return current;
   }
   
   /**

@@ -23,11 +23,11 @@ const Sequence = (parts: AstNode[]): AstNode => parts.length === 1 ? parts[0] : 
 const Alternation = (options: AstNode[]): AlternationNode => ({ kind: "alternation", options });
 
 export class GrammarEngine {
-  private readonly sourceRules: Grammar;
+  // private readonly sourceRules: Grammar;
   private readonly ruleAst: Record<string, AlternationNode>;
 
   constructor(rules: Grammar) {
-    this.sourceRules = rules;
+    // this.sourceRules = rules;
     this.ruleAst = Object.fromEntries(
       Object.entries(rules).map(([name, templates]) => [name, Alternation(templates.map(this.parseTemplate))])
     );
