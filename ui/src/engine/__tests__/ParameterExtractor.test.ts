@@ -164,8 +164,6 @@ describe('ParameterExtractor', () => {
 
       const contexts = extractor.extractContextualParameters(grammar);
 
-      console.log("contexts =", contexts);
-
       expect(contexts.NP).toBeDefined();
       expect(contexts.NP).toContain('SP');
       expect(contexts.NP).toContain('OP');

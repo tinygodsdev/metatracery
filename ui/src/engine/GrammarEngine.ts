@@ -5,7 +5,7 @@ import type {
 } from './types';
 import { ParameterExtractor } from './ParameterExtractor';
 import type { ExtractedParameters } from './ParameterExtractor';
-import { GrammarEngine, type Grammar } from './Engine';
+import { GrammarEngine, type Grammar, type GenerationStrategy } from './Engine';
 import { rawToGenerationResult } from './helpers';
 
 /**
@@ -38,11 +38,12 @@ export class GrammarProcessor {
    */
   generateWithParameters(
     rule: string, 
-    parameterValues: Record<string, string>
+    parameterValues: Record<string, string>,
+    strategy: GenerationStrategy = 'uniform'
   ): GenerationResult {
     const startTime = Date.now();
     
-    const generated = this.engine.generate(rule, parameterValues);
+    const generated = this.engine.generate(rule, parameterValues, undefined, Math.random, strategy);
 
     const result = rawToGenerationResult([generated]);
     

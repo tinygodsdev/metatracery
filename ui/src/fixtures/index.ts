@@ -5,6 +5,7 @@ import simple from './simple.json';
 import emoji from './emoji.json';
 import basic from './basic.json';
 import syllable from './syllable.json';
+import ipa from './ipa.json';
 
 export interface Fixture {
   name: string;
@@ -47,6 +48,11 @@ export const fixtures: Fixture[] = [
     name: 'Syllable',
     description: 'Syllable combinations with vowels and consonants',
     grammar: syllable
+  },
+  {
+    name: 'IPA',
+    description: 'IPA symbols with vowels and consonants',
+    grammar: ipa
   }
 ];
 

@@ -18,6 +18,7 @@ import {
 // Icons removed temporarily to fix import issues
 import { GrammarProcessor } from '../engine/GrammarEngine';
 import type { GenerationResult } from '../engine/types';
+import type { GenerationStrategy } from '../engine/Engine';
 
 interface ResultsPanelProps {
   engine: GrammarProcessor | null;
@@ -25,6 +26,8 @@ interface ResultsPanelProps {
   isLoading: boolean;
   onGenerate: (parameters: Record<string, string>) => void;
   onGenerateAll: (selectedParameters: Record<string, string>) => void;
+  strategy: GenerationStrategy;
+  onStrategyChange: (strategy: GenerationStrategy) => void;
 }
 
 export function ResultsPanel({ 
@@ -32,7 +35,9 @@ export function ResultsPanel({
   results, 
   isLoading, 
   onGenerate, 
-  onGenerateAll
+  onGenerateAll,
+  strategy,
+  onStrategyChange
 }: ResultsPanelProps) {
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
 
@@ -153,11 +158,35 @@ export function ResultsPanel({
       <Paper p="md" withBorder>
         <Group mb="md" justify="space-between">
           <Text size="sm" fw={500}>Parameter Controls</Text>
-          {singleValueParameters.length > 0 && (
-            <Text size="xs" c="dimmed" title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}>
-              {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
-            </Text>
-          )}
+          <Group>
+            {singleValueParameters.length > 0 && (
+              <Text size="xs" c="dimmed" title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}>
+                {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
+              </Text>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-end' }}>
+              <Text size="xs" c="dimmed" fw={500} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Strategy
+              </Text>
+              <select
+                value={strategy}
+                onChange={(e) => onStrategyChange(e.target.value as GenerationStrategy)}
+                style={{
+                  padding: '4px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  backgroundColor: 'var(--mantine-color-body)',
+                  color: 'var(--mantine-color-text)',
+                  fontSize: '11px',
+                  minWidth: '100px'
+                }}
+                title="Generation strategy: Uniform gives equal probability to each option, Weighted favors options that generate more strings"
+              >
+                <option value="uniform">Uniform</option>
+                <option value="weighted">Weighted</option>
+              </select>
+            </div>
+          </Group>
         </Group>
         
         {filterableParameters.length === 0 ? (

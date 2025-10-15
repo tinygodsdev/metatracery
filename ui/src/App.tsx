@@ -22,6 +22,7 @@ import { ResultsPanel } from './components/ResultsPanel';
 import { Footer } from './components/Footer';
 import { GrammarProcessor } from './engine/GrammarEngine';
 import type { GrammarRule, GenerationResult } from './engine/types';
+import type { GenerationStrategy } from './engine/Engine';
 
 function App() {
   const [grammar, setGrammar] = useState<GrammarRule>({});
@@ -29,6 +30,7 @@ function App() {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [strategy, setStrategy] = useState<GenerationStrategy>('uniform');
 
   // Load example grammar on startup
   useEffect(() => {
@@ -80,7 +82,7 @@ function App() {
     
     setIsLoading(true);
     try {
-      const result = engine.generateWithParameters('origin', parameters);
+      const result = engine.generateWithParameters('origin', parameters, strategy);
       setResults([result]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
@@ -161,6 +163,8 @@ function App() {
                       isLoading={isLoading}
                       onGenerate={handleGenerate}
                       onGenerateAll={handleGenerateAll}
+                      strategy={strategy}
+                      onStrategyChange={setStrategy}
                     />
                   </Paper>
                 </Stack>

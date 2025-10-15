@@ -20,34 +20,34 @@ help:
 	@echo ""
 
 # Install dependencies
-install:
+install: node
 	@echo "Installing UI dependencies..."
 	cd ui && npm install
 	@echo "Dependencies installed!"
 
 # Run all tests (UI engine tests)
-test:
+test: node
 	@echo "Running UI engine tests..."
 	cd ui && npm test
 
 # Run tests in watch mode
-test-watch:
+test-watch: node
 	@echo "Running tests in watch mode..."
 	cd ui && npm run test:watch
 
 # Run tests with coverage
-test-coverage:
+test-coverage: node
 	@echo "Running tests with coverage..."
 	cd ui && npm run test:coverage
 
 
 # UI Development
-ui-dev:
+ui-dev: node
 	@echo "Starting UI development server..."
 	cd ui && npm run dev
 
 # UI Build
-ui-build:
+ui-build: node
 	@echo "Building UI for production..."
 	cd ui && npm run build
 
@@ -60,7 +60,7 @@ clean:
 	@echo "Clean completed!"
 
 # Development mode - test and start UI
-dev: test ui-dev
+dev: node test ui-dev
 	@echo "Development mode started!"
 
 # CI mode - full pipeline
@@ -77,6 +77,9 @@ format:
 	@echo "Formatting code..."
 	@echo "Formatting not configured yet. Consider adding Prettier."
 
+.PHONY: node
+node:
+	# nvm use 22
 
 # Full clean and rebuild
 rebuild: clean install test

@@ -1,5 +1,6 @@
 export type Grammar = Record<string, string[]>;
 type Constraints = Record<string, string | string[]>;
+export type GenerationStrategy = 'uniform' | 'weighted';
 
 type AstNode = LiteralNode | ReferenceNode | SequenceNode | AlternationNode;
 
@@ -117,7 +118,7 @@ export class GrammarEngine {
   }
 
   // -------- Random generation with metadata --------
-  generate(start = "origin", constraints?: Constraints, maxDepth = Infinity, rng: () => number = Math.random): Generated {
+  generate(start = "origin", constraints?: Constraints, maxDepth = Infinity, rng: () => number = Math.random, strategy: GenerationStrategy = 'uniform'): Generated {
     const memo = new Map<string, number>();
     const key = (node: AstNode, depth: number) => `${depth}|${this.renderPattern(node)}`;
 
@@ -141,15 +142,25 @@ export class GrammarEngine {
 
     const buildFromRule = (ruleName: string, depth: number): string => {
       const alt = this.applyConstraints(ruleName, this.ruleAst[ruleName], constraints);
-      const weights = alt.options.map(o => count(o, depth));
-      const total = weights.reduce((a, b) => a + b, 0);
-      if (!total) return "";
-      let pick = Math.floor(rng() * total);
-      let chosen = alt.options[0];
-      for (let i = 0; i < alt.options.length; i++) {
-        if (pick < weights[i]) { chosen = alt.options[i]; break; }
-        pick -= weights[i];
+      
+      let chosen: AstNode;
+      if (strategy === 'uniform') {
+        // Equal probability for each option
+        const pick = Math.floor(rng() * alt.options.length);
+        chosen = alt.options[pick];
+      } else {
+        // Weighted by count of possible strings (original behavior)
+        const weights = alt.options.map(o => count(o, depth));
+        const total = weights.reduce((a, b) => a + b, 0);
+        if (!total) return "";
+        let pick = Math.floor(rng() * total);
+        chosen = alt.options[0];
+        for (let i = 0; i < alt.options.length; i++) {
+          if (pick < weights[i]) { chosen = alt.options[i]; break; }
+          pick -= weights[i];
+        }
       }
+      
       addTrace(ruleName, this.choiceLabel(chosen));
       return buildNode(chosen, depth);
     };
@@ -170,13 +181,13 @@ export class GrammarEngine {
   }
 
   // Generate n results - optionally unique by text
-  generateMany(n: number, start = "origin", constraints?: Constraints, unique = false, maxDepth = Infinity): Generated[] {
-    if (!unique) return Array.from({ length: n }, () => this.generate(start, constraints, maxDepth));
+  generateMany(n: number, start = "origin", constraints?: Constraints, unique = false, maxDepth = Infinity, strategy: GenerationStrategy = 'uniform'): Generated[] {
+    if (!unique) return Array.from({ length: n }, () => this.generate(start, constraints, maxDepth, Math.random, strategy));
     const seen = new Set<string>();
     const results: Generated[] = [];
     const limit = this.countStrings(start, constraints, maxDepth);
     while (results.length < Math.min(n, limit)) {
-      const g = this.generate(start, constraints, maxDepth);
+      const g = this.generate(start, constraints, maxDepth, Math.random, strategy);
       if (!seen.has(g.text)) {
         seen.add(g.text);
         results.push(g);
