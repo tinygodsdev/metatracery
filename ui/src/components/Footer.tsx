@@ -28,7 +28,7 @@ export function Footer() {
           View on GitHub
         </Anchor>
         <Text size="xs" c="dimmed">
-          Scientific Grammar Engine
+          Generative Grammar Engine
         </Text>
       </Stack>
     </Group>

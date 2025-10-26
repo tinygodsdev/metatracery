@@ -111,6 +111,27 @@ function App() {
     }
   };
 
+  const handleGenerateMany = async (parameters: Record<string, string>, count: number) => {
+    if (!engine) return;
+    
+    setIsLoading(true);
+    try {
+      const manyResults: GenerationResult[] = [];
+      
+      // Generate the specified number of results
+      for (let i = 0; i < count; i++) {
+        const result = engine.generateWithParameters('origin', parameters, strategy);
+        manyResults.push(result);
+      }
+      
+      setResults(manyResults);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <MantineProvider defaultColorScheme="dark">
@@ -121,7 +142,7 @@ function App() {
       >
         <AppShell.Header>
           <Group h="100%" px="md">
-            <Title order={2}>Scientific Grammar Engine</Title>
+            <Title order={2}>Generative Grammar Engine</Title>
             <Badge color="blue" variant="light">
               Research Tool
             </Badge>
@@ -163,6 +184,7 @@ function App() {
                       isLoading={isLoading}
                       onGenerate={handleGenerate}
                       onGenerateAll={handleGenerateAll}
+                      onGenerateMany={handleGenerateMany}
                       strategy={strategy}
                       onStrategyChange={setStrategy}
                     />

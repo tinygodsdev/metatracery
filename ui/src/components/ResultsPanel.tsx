@@ -13,7 +13,8 @@ import {
   Code,
   Alert,
   Loader,
-  Center
+  Center,
+  NumberInput
 } from '@mantine/core';
 // Icons removed temporarily to fix import issues
 import { GrammarProcessor } from '../engine/GrammarEngine';
@@ -26,6 +27,7 @@ interface ResultsPanelProps {
   isLoading: boolean;
   onGenerate: (parameters: Record<string, string>) => void;
   onGenerateAll: (selectedParameters: Record<string, string>) => void;
+  onGenerateMany: (parameters: Record<string, string>, count: number) => void;
   strategy: GenerationStrategy;
   onStrategyChange: (strategy: GenerationStrategy) => void;
 }
@@ -36,10 +38,12 @@ export function ResultsPanel({
   isLoading, 
   onGenerate, 
   onGenerateAll,
+  onGenerateMany,
   strategy,
   onStrategyChange
 }: ResultsPanelProps) {
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
+  const [generateCount, setGenerateCount] = useState<number>(10);
 
   const parameters = engine?.getParameters() || {};
   const stats = engine?.getParameterStatistics();
@@ -96,6 +100,15 @@ export function ResultsPanel({
       allParameters[name] = param.values[0];
     });
     onGenerate(allParameters);
+  };
+
+  const handleGenerateMany = () => {
+    // Include all parameters: selected ones + fixed ones with single values
+    const allParameters = { ...selectedParameters };
+    singleValueParameters.forEach(([name, param]) => {
+      allParameters[name] = param.values[0];
+    });
+    onGenerateMany(allParameters, generateCount);
   };
 
   const exportResults = () => {
@@ -238,6 +251,27 @@ export function ResultsPanel({
           >
             Generate
           </Button>
+          <Group gap="xs">
+            <NumberInput
+              size="sm"
+              value={generateCount}
+              onChange={(value) => setGenerateCount(typeof value === 'number' ? value : 10)}
+              min={1}
+              max={Math.min(100, actualCombinations)}
+              w={80}
+              placeholder="Count"
+              title={`Generate multiple results (1-${Math.min(100, actualCombinations)})`}
+            />
+            <Button
+              size="sm" 
+              variant="light"
+              onClick={handleGenerateMany}
+              disabled={isLoading || generateCount < 1 || generateCount > Math.min(100, actualCombinations)}
+              title={`Generate ${generateCount} results`}
+            >
+              Generate Many ({generateCount})
+            </Button>
+          </Group>
           <Button
             size="sm" 
             variant="outline"
@@ -320,13 +354,13 @@ export function ResultsPanel({
                       <Text size="sm" fw={500}>{result.content}</Text>
                     </Table.Td>
                     <Table.Td>
-                      <Stack gap={2}>
+                      <Group gap={4} wrap="wrap">
                         {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
                           <Badge key={key} size="xs" variant="light">
                             {key}: {value}
                           </Badge>
                         ))}
-                      </Stack>
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -354,13 +388,13 @@ export function ResultsPanel({
                         </div>
                         <div>
                           <Text size="xs" c="dimmed">Relevant Parameters:</Text>
-                          <Stack gap={2} mt={4}>
+                          <Group gap={4} wrap="wrap" mt={4}>
                             {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
                               <Badge key={key} size="xs" variant="light">
                                 {key}: {value}
                               </Badge>
                             ))}
-                          </Stack>
+                          </Group>
                         </div>
                         <div>
                           <Text size="xs" c="dimmed">Applied Rules:</Text>
