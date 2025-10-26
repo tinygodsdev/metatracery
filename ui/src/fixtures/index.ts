@@ -6,6 +6,7 @@ import emoji from './emoji.json';
 import basic from './basic.json';
 import syllable from './syllable.json';
 import ipa from './ipa.json';
+import ipa2 from './ipa2.json';
 
 export interface Fixture {
   name: string;
@@ -53,6 +54,11 @@ export const fixtures: Fixture[] = [
     name: 'IPA',
     description: 'IPA symbols with vowels and consonants',
     grammar: ipa
+  },
+  {
+    name: 'Lemu Legu',
+    description: 'IPA symbols with vowels and consonants for Lemu Legu language',
+    grammar: ipa2
   }
 ];
 
