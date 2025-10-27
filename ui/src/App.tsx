@@ -11,8 +11,7 @@ import {
   Stack,
   Paper,
   Group,
-  Alert,
-  Badge
+  Alert
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 // Icons removed temporarily to fix import issues
@@ -142,10 +141,7 @@ function App() {
       >
         <AppShell.Header>
           <Group h="100%" px="md">
-            <Title order={2}>Generative Grammar Engine</Title>
-            <Badge color="blue" variant="light">
-              Research Tool
-            </Badge>
+            <Title order={3}>Generative Grammar Engine</Title>
           </Group>
         </AppShell.Header>
 
@@ -158,7 +154,7 @@ function App() {
             )}
 
             <Grid>
-              <Grid.Col span={4}>
+              <Grid.Col span={{ base: 12, md: 4 }}>
                 <Stack>
                   <Paper p="md" withBorder>
                     <Group mb="md">
@@ -172,7 +168,7 @@ function App() {
                 </Stack>
               </Grid.Col>
 
-              <Grid.Col span={8}>
+              <Grid.Col span={{ base: 12, md: 8 }}>
                 <Stack>
                   <Paper p="md" withBorder>
                     <Group mb="md">
