@@ -21,6 +21,7 @@ import { GrammarEditor } from './components/GrammarEditor';
 import { ResultsPanel } from './components/ResultsPanel';
 import { Footer } from './components/Footer';
 import { GrammarProcessor } from './engine/GrammarEngine';
+import { ensureRulesForReferences } from './engine/grammarGraphModel';
 import type { GrammarRule, GenerationResult } from './engine/types';
 import type { GenerationStrategy } from './engine/Engine';
 
@@ -48,7 +49,8 @@ function App() {
     const loadExampleGrammar = async () => {
       try {
         const response = await fetch('/example.json');
-        const exampleGrammar = await response.json();
+        const raw = await response.json();
+        const exampleGrammar = ensureRulesForReferences(raw);
         setGrammar(exampleGrammar);
         setEngine(new GrammarProcessor(exampleGrammar));
       } catch (err) {
@@ -78,10 +80,11 @@ function App() {
   }, [grammar]);
 
   const handleGrammarChange = (newGrammar: GrammarRule) => {
-    setGrammar(newGrammar);
+    const ensured = ensureRulesForReferences(newGrammar);
+    setGrammar(ensured);
     setError(null);
     try {
-      const newEngine = new GrammarProcessor(newGrammar);
+      const newEngine = new GrammarProcessor(ensured);
       setEngine(newEngine);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid grammar');
@@ -163,7 +166,7 @@ function App() {
             )}
 
             <Grid>
-              <Grid.Col span={{ base: 12, md: 4 }}>
+              <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack>
                   <Paper p="md" shadow="sm" radius="md">
                     <Group mb="md">
@@ -177,7 +180,7 @@ function App() {
                 </Stack>
               </Grid.Col>
 
-              <Grid.Col span={{ base: 12, md: 8 }}>
+              <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack>
                   <Paper p="md" shadow="sm" radius="md">
                     <Group mb="md">

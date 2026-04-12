@@ -9,11 +9,13 @@ import {
   Alert,
   Code,
   Select,
+  SegmentedControl,
 } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
 import { GrammarProcessor } from '../engine/GrammarEngine';
+import { GrammarGraphView } from './grammarGraph';
 
 interface GrammarEditorProps {
   grammar: GrammarRule;
@@ -21,6 +23,7 @@ interface GrammarEditorProps {
 }
 
 export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
+  const [viewMode, setViewMode] = useState<'json' | 'graph'>('json');
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +114,15 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         </Group>
         
         <Group>
+          <SegmentedControl
+            size="xs"
+            value={viewMode}
+            onChange={(v) => setViewMode(v as 'json' | 'graph')}
+            data={[
+              { label: 'JSON', value: 'json' },
+              { label: 'Graph', value: 'graph' },
+            ]}
+          />
           <Select
             placeholder="Load fixture..."
             data={fixtures.map(f => ({ value: f.name, label: f.name }))}
@@ -119,12 +131,16 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
             size="xs"
             w={150}
           />
-          <Button size="xs" variant="light" onClick={handleFormat}>
-            Format JSON
-          </Button>
-          <Button size="xs" variant="outline" onClick={handleLoadExample}>
-            Load Example
-          </Button>
+          {viewMode === 'json' && (
+            <>
+              <Button size="xs" variant="light" onClick={handleFormat}>
+                Format JSON
+              </Button>
+              <Button size="xs" variant="outline" onClick={handleLoadExample}>
+                Load Example
+              </Button>
+            </>
+          )}
         </Group>
       </Group>
 
@@ -149,31 +165,36 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         return null;
       })()}
 
-      {error && (
+      {error && viewMode === 'json' && (
         <Alert color="red">
           <Text size="sm">{error}</Text>
         </Alert>
       )}
 
-        <Textarea
-          value={jsonText}
-          autosize
-          onChange={(e) => handleJsonChange(e.target.value)}
-          placeholder="Enter your grammar definition in JSON format..."
-          minRows={15}
-          maxRows={30}
-          ff="monospace"
-          styles={{
-            input: {
-              fontSize: '13px',
-              lineHeight: 1.5,
-            },
-          }}
-        />
-
-      <Text size="xs" c="dimmed">
-        <Code>#symbol#</Code> references other symbols. Use <Code>origin</Code> as the starting point.
-      </Text>
+      {viewMode === 'json' ? (
+        <>
+          <Textarea
+            value={jsonText}
+            autosize
+            onChange={(e) => handleJsonChange(e.target.value)}
+            placeholder="Enter your grammar definition in JSON format..."
+            minRows={15}
+            maxRows={30}
+            ff="monospace"
+            styles={{
+              input: {
+                fontSize: '13px',
+                lineHeight: 1.5,
+              },
+            }}
+          />
+          <Text size="xs" c="dimmed">
+            <Code>#symbol#</Code> references other symbols. Use <Code>origin</Code> as the starting point.
+          </Text>
+        </>
+      ) : (
+        <GrammarGraphView grammar={grammar} onChange={onChange} />
+      )}
     </Stack>
   );
 }

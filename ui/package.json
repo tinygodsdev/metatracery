@@ -57,6 +57,8 @@
     "@tiptap/pm": "^3.6.6",
     "@tiptap/react": "^3.6.6",
     "@tiptap/starter-kit": "^3.6.6",
+    "@xyflow/react": "^12.10.2",
+    "dagre": "^0.8.5",
     "dayjs": "^1.11.18",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
@@ -66,6 +68,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@types/dagre": "^0.7.54",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.16",

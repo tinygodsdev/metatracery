@@ -519,6 +519,15 @@ describe('GrammarEngine', () => {
   });
 
   describe('Error Handling', () => {
+    test('does not throw when a #ref# has no rule entry (counts 0)', () => {
+      const broken: GrammarRule = {
+        origin: ['#missingRule#'],
+      };
+      const g = new GrammarProcessor(broken);
+      expect(g.getTotalCombinations('origin')).toBe(0);
+      expect(() => g.getParameterStatistics()).not.toThrow();
+    });
+
     // test('should handle missing symbols gracefully', () => {
     //   const result = engine.generateWithParameters('#missingSymbol#', {});
       

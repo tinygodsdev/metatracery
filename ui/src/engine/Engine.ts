@@ -70,7 +70,8 @@ export class GrammarEngine {
   };
 
   // Apply constraints to an alternation under a rule name
-  private applyConstraints = (ruleName: string, alt: AlternationNode, constraints?: Constraints): AlternationNode => {
+  private applyConstraints = (ruleName: string, alt: AlternationNode | undefined, constraints?: Constraints): AlternationNode => {
+    if (!alt) return Alternation([]);
     if (!constraints || !(ruleName in constraints)) return alt;
     const required = constraints[ruleName];
     const allowed = new Set(Array.isArray(required) ? required : [required]);
@@ -99,9 +100,15 @@ export class GrammarEngine {
       let total: number;
       switch (node.kind) {
         case "literal": total = 1; break;
-        case "reference":
-          total = count(this.applyConstraints(node.name, this.ruleAst[node.name], constraints), depth - 1);
+        case "reference": {
+          const root = this.ruleAst[node.name];
+          if (!root) {
+            total = 0;
+            break;
+          }
+          total = count(this.applyConstraints(node.name, root, constraints), depth - 1);
           break;
+        }
         case "sequence":
           total = node.parts.reduce((prod, part) => prod * count(part, depth), 1);
           break;
@@ -128,7 +135,10 @@ export class GrammarEngine {
       if (memo.has(k)) return memo.get(k)!;
       let v = 0;
       if (node.kind === "literal") v = 1;
-      else if (node.kind === "reference") v = count(this.applyConstraints(node.name, this.ruleAst[node.name], constraints), depth - 1);
+      else if (node.kind === "reference") {
+        const root = this.ruleAst[node.name];
+        v = root ? count(this.applyConstraints(node.name, root, constraints), depth - 1) : 0;
+      }
       else if (node.kind === "sequence") v = node.parts.reduce((p, c) => p * count(c, depth), 1);
       else v = node.options.reduce((s, c) => s + count(c, depth), 0);
       memo.set(k, v);
@@ -142,7 +152,8 @@ export class GrammarEngine {
 
     const buildFromRule = (ruleName: string, depth: number): string => {
       const alt = this.applyConstraints(ruleName, this.ruleAst[ruleName], constraints);
-      
+      if (alt.options.length === 0) return "";
+
       let chosen: AstNode;
       if (strategy === 'uniform') {
         // Equal probability for each option
