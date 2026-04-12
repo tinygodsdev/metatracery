@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { 
-  Textarea, 
-  Button, 
-  Group, 
-  Stack, 
-  Text, 
+import {
+  Textarea,
+  Button,
+  Group,
+  Stack,
+  Text,
   Badge,
   Alert,
   Code,
-  Select
+  Select,
 } from '@mantine/core';
-// Icons removed temporarily to fix import issues
+import { IconAlertTriangle } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
 import { GrammarProcessor } from '../engine/GrammarEngine';
@@ -100,11 +100,11 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         <Group>
           <Text size="sm" fw={500}>Grammar Definition</Text>
           {isValid ? (
-            <Badge color="green" size="xs">
+            <Badge color="green" variant="light" size="xs">
               Valid
             </Badge>
           ) : (
-            <Badge color="red" size="xs">
+            <Badge color="red" variant="light" size="xs">
               Invalid
             </Badge>
           )}
@@ -138,9 +138,9 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         const combinationCount = getCombinationCount(grammar);
         if (combinationCount > 100) {
           return (
-            <Alert color="orange">
+            <Alert color="orange" icon={<IconAlertTriangle size={16} />}>
               <Text size="xs">
-                ⚠️ This grammar can generate {combinationCount} combinations, which exceeds the safe limit of 100. 
+                This grammar can generate {combinationCount} combinations, which exceeds the safe limit of 100.
                 Consider reducing the number of parameter values or using more specific parameters.
               </Text>
             </Alert>
@@ -162,12 +162,12 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
           placeholder="Enter your grammar definition in JSON format..."
           minRows={15}
           maxRows={30}
+          ff="monospace"
           styles={{
             input: {
-              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
               fontSize: '13px',
               lineHeight: 1.5,
-            }
+            },
           }}
         />
 

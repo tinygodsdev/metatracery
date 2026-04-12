@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react'
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
-import { 
-  MantineProvider, 
-  AppShell, 
-  Title, 
-  Container, 
+import {
+  MantineProvider,
+  createTheme,
+  AppShell,
+  Title,
+  Container,
   Grid,
   Stack,
   Paper,
   Group,
-  Alert
+  Alert,
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 // Icons removed temporarily to fix import issues
@@ -22,6 +23,17 @@ import { Footer } from './components/Footer';
 import { GrammarProcessor } from './engine/GrammarEngine';
 import type { GrammarRule, GenerationResult } from './engine/types';
 import type { GenerationStrategy } from './engine/Engine';
+
+const theme = createTheme({
+  primaryColor: 'violet',
+  breakpoints: {
+    xs: '36em',
+    sm: '48em',
+    md: '62em',
+    lg: '75em',
+    xl: '88em',
+  },
+});
 
 function App() {
   const [grammar, setGrammar] = useState<GrammarRule>({});
@@ -133,20 +145,17 @@ function App() {
 
 
   return (
-    <MantineProvider defaultColorScheme="dark">
+    <MantineProvider theme={theme} defaultColorScheme="light">
       <Notifications />
-      <AppShell
-        header={{ height: 60 }}
-        padding="md"
-      >
+      <AppShell padding={0} header={{ height: 60 }}>
         <AppShell.Header>
-          <Group h="100%" px="md">
+          <Group h="100%" px="md" justify="space-between">
             <Title order={3}>Generative Grammar Engine</Title>
           </Group>
         </AppShell.Header>
 
-        <AppShell.Main>
-          <Container fluid>
+        <AppShell.Main style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
+          <Container fluid py="xl" px="md">
             {error && (
               <Alert color="red" mb="md">
                 {error}
@@ -156,11 +165,11 @@ function App() {
             <Grid>
               <Grid.Col span={{ base: 12, md: 4 }}>
                 <Stack>
-                  <Paper p="md" withBorder>
+                  <Paper p="md" shadow="sm" radius="md">
                     <Group mb="md">
                       <Title order={3}>Grammar Editor</Title>
                     </Group>
-                    <GrammarEditor 
+                    <GrammarEditor
                       grammar={grammar}
                       onChange={handleGrammarChange}
                     />
@@ -170,11 +179,11 @@ function App() {
 
               <Grid.Col span={{ base: 12, md: 8 }}>
                 <Stack>
-                  <Paper p="md" withBorder>
+                  <Paper p="md" shadow="sm" radius="md">
                     <Group mb="md">
                       <Title order={3}>Results</Title>
                     </Group>
-                    <ResultsPanel 
+                    <ResultsPanel
                       engine={engine}
                       results={results}
                       isLoading={isLoading}
@@ -189,7 +198,7 @@ function App() {
               </Grid.Col>
             </Grid>
           </Container>
-          
+
           <Footer />
         </AppShell.Main>
       </AppShell>

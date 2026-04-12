@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
-import { 
-  Stack, 
-  Button, 
-  Group, 
-  Text, 
-  Badge, 
-  Table, 
+import {
+  Stack,
+  Button,
+  Group,
+  Text,
+  Badge,
+  Table,
   ScrollArea,
-  Paper,
   Divider,
   Accordion,
   Code,
   Alert,
   Loader,
   Center,
-  NumberInput
+  NumberInput,
+  NativeSelect,
 } from '@mantine/core';
-// Icons removed temporarily to fix import issues
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { GrammarProcessor } from '../engine/GrammarEngine';
 import type { GenerationResult } from '../engine/types';
 import type { GenerationStrategy } from '../engine/Engine';
@@ -166,9 +166,9 @@ export function ResultsPanel({
   }
 
   return (
-    <Stack>
+    <Stack gap="xl">
       {/* Parameter Controls */}
-      <Paper p="md" withBorder>
+      <Stack gap="md">
         <Group mb="md" justify="space-between">
           <Text size="sm" fw={500}>Parameter Controls</Text>
           <Group>
@@ -177,28 +177,22 @@ export function ResultsPanel({
                 {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
               </Text>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-end' }}>
+            <Stack gap={2} align="flex-end">
               <Text size="xs" c="dimmed" fw={500} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Strategy
               </Text>
-              <select
+              <NativeSelect
+                size="xs"
+                w={120}
                 value={strategy}
-                onChange={(e) => onStrategyChange(e.target.value as GenerationStrategy)}
-                style={{
-                  padding: '4px 6px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  backgroundColor: 'var(--mantine-color-body)',
-                  color: 'var(--mantine-color-text)',
-                  fontSize: '11px',
-                  minWidth: '100px'
-                }}
+                onChange={(e) => onStrategyChange(e.currentTarget.value as GenerationStrategy)}
                 title="Generation strategy: Uniform gives equal probability to each option, Weighted favors options that generate more strings"
-              >
-                <option value="uniform">Uniform</option>
-                <option value="weighted">Weighted</option>
-              </select>
-            </div>
+                data={[
+                  { value: 'uniform', label: 'Uniform' },
+                  { value: 'weighted', label: 'Weighted' },
+                ]}
+              />
+            </Stack>
           </Group>
         </Group>
         
@@ -214,29 +208,20 @@ export function ResultsPanel({
             alignItems: 'start'
           }}>
             {filterableParameters.map(([name, param]) => (
-              <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Stack key={name} gap={4}>
                 <Text size="xs" c="dimmed" fw={500} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {name}
                 </Text>
-                <select
-                  value={selectedParameters[name] || ''}
-                  onChange={(e) => handleParameterChange(name, e.target.value)}
-                  style={{
-                    padding: '6px 8px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc',
-                    backgroundColor: 'var(--mantine-color-body)',
-                    color: 'var(--mantine-color-text)',
-                    fontSize: '12px',
-                    minWidth: '100%'
-                  }}
-                >
-                  <option value="">Random</option>
-                  {param.values.map(value => (
-                    <option key={value} value={value}>{value}</option>
-                  ))}
-                </select>
-              </div>
+                <NativeSelect
+                  size="xs"
+                  value={selectedParameters[name] ?? ''}
+                  onChange={(e) => handleParameterChange(name, e.currentTarget.value)}
+                  data={[
+                    { value: '', label: 'Random' },
+                    ...param.values.map((value) => ({ value, label: value })),
+                  ]}
+                />
+              </Stack>
             ))}
           </div>
         )}
@@ -288,13 +273,19 @@ export function ResultsPanel({
             <Text size="xs" c="dimmed">
               Total combinations: {engine ? engine.getTotalCombinations('origin') : 0}
             </Text>
-            <Text size="xs" c={actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0) ? "blue" : "dimmed"}>
+            <Text
+              size="xs"
+              c={actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0) ? 'primary' : 'dimmed'}
+            >
               With selected parameters: {actualCombinations}
             </Text>
             {actualCombinations > 100 && (
-              <Text size="xs" c="orange">
-                ⚠️ Too many combinations ({actualCombinations}). Use more specific parameters to reduce results.
-              </Text>
+              <Group gap={6} align="flex-start" wrap="nowrap">
+                <IconAlertTriangle size={14} style={{ flexShrink: 0, color: 'var(--mantine-color-orange-6)' }} />
+                <Text size="xs" c="orange">
+                  Too many combinations ({actualCombinations}). Use more specific parameters to reduce results.
+                </Text>
+              </Group>
             )}
             {singleValueParameters.length > 0 && (
               <Text size="xs" c="dimmed">
@@ -303,16 +294,16 @@ export function ResultsPanel({
             )}
           </Stack>
         )}
-      </Paper>
+      </Stack>
+
+      <Divider />
 
       {/* Results */}
-      <Paper p="md" withBorder>
+      <Stack gap="md">
         <Group justify="space-between" mb="md">
           <Group>
             <Text size="sm" fw={500}>Results</Text>
-            <Badge color="blue" variant="light">
-              {results.length}
-            </Badge>
+            <Badge variant="light">{results.length}</Badge>
           </Group>
           
           {results.length > 0 && (
@@ -377,10 +368,12 @@ export function ResultsPanel({
                 <Text size="sm">Generation Details</Text>
               </Accordion.Control>
               <Accordion.Panel>
-                <Stack gap="sm">
+                <Stack gap="md">
                   {results.map((result, index) => (
-                    <Paper key={index} p="sm" withBorder>
-                      <Text size="sm" fw={500} mb="xs">Result {index + 1}</Text>
+                    <Stack key={index} gap="xs">
+                      <Text size="sm" fw={500} mb="xs">
+                        Result {index + 1}
+                      </Text>
                       <Stack gap="xs">
                         <div>
                           <Text size="xs" c="dimmed">Generation Path:</Text>
@@ -404,20 +397,21 @@ export function ResultsPanel({
                           <div>
                             <Text size="xs" c="dimmed">Structure:</Text>
                             <Text size="xs">
-                              Length: {result.metadata.structure.length}, 
-                              Words: {result.metadata.structure.wordCount}
+                              Length: {result.metadata.structure.length}, Words:{' '}
+                              {result.metadata.structure.wordCount}
                             </Text>
                           </div>
                         )}
                       </Stack>
-                    </Paper>
+                      {index < results.length - 1 && <Divider />}
+                    </Stack>
                   ))}
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>
           </Accordion>
         )}
-      </Paper>
+      </Stack>
     </Stack>
   );
 }
