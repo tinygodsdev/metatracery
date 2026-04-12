@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Textarea,
   Button,
@@ -11,10 +11,8 @@ import {
   Select,
   SegmentedControl,
 } from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
-import { GrammarProcessor } from '../engine/GrammarEngine';
 import { GrammarGraphView } from './grammarGraph';
 
 interface GrammarEditorProps {
@@ -23,7 +21,7 @@ interface GrammarEditorProps {
 }
 
 export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
-  const [viewMode, setViewMode] = useState<'json' | 'graph'>('json');
+  const [viewMode, setViewMode] = useState<'json' | 'graph'>('graph');
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,16 +58,6 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
       setError(err instanceof Error ? err.message : 'Invalid JSON');
     }
   };
-
-  const combinationCount = useMemo(() => {
-    if (!isValid) return 0;
-    try {
-      const engine = new GrammarProcessor(grammar);
-      return engine.getTotalCombinations('origin');
-    } catch {
-      return 0;
-    }
-  }, [grammar, isValid]);
 
   const loadFixture = (fixtureName: string) => {
     const fixture = fixtures.find(f => f.name === fixtureName);
@@ -149,15 +137,6 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         <Text size="xs" c="dimmed">
           {fixtures.find(f => f.name === selectedFixture)?.description}
         </Text>
-      )}
-
-      {isValid && combinationCount > 100 && (
-        <Alert color="orange" icon={<IconAlertTriangle size={16} />}>
-          <Text size="xs">
-            This grammar can generate {combinationCount} combinations, which exceeds the safe limit of 100.
-            Consider reducing the number of parameter values or using more specific parameters.
-          </Text>
-        </Alert>
       )}
 
       {error && viewMode === 'json' && (

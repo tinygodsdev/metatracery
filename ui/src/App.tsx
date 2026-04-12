@@ -10,14 +10,15 @@ import {
   Container,
   Grid,
   Stack,
-  Paper,
   Group,
   Alert,
+  ActionIcon,
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-// Icons removed temporarily to fix import issues
+import { IconHelp } from '@tabler/icons-react';
 
 import { GrammarEditor } from './components/GrammarEditor';
+import { HelpDocumentationModal } from './components/HelpDocumentationModal';
 import { ResultsPanel } from './components/ResultsPanel';
 import { Footer } from './components/Footer';
 import { GrammarProcessor } from './engine/GrammarEngine';
@@ -43,6 +44,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [strategy, setStrategy] = useState<GenerationStrategy>('uniform');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Load example grammar on startup
   useEffect(() => {
@@ -150,53 +152,55 @@ function App() {
   return (
     <MantineProvider theme={theme} defaultColorScheme="light">
       <Notifications />
-      <AppShell padding={0} header={{ height: 60 }}>
-        <AppShell.Header>
-          <Group h="100%" px="md" justify="space-between">
-            <Title order={3}>Generative Grammar Engine</Title>
-          </Group>
-        </AppShell.Header>
-
-        <AppShell.Main style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
-          <Container fluid py="xl" px="md">
+      <HelpDocumentationModal opened={helpOpen} onClose={() => setHelpOpen(false)} />
+      <AppShell padding={0}>
+        <AppShell.Main style={{ minHeight: '100vh', overflow: 'auto' }}>
+          <Container fluid pt="xs" pb="md" px="sm">
             {error && (
               <Alert color="red" mb="md">
                 {error}
               </Alert>
             )}
 
-            <Grid>
+            <Grid gutter={{ base: 'xs', md: 'sm' }}>
               <Grid.Col span={{ base: 12, md: 6 }}>
-                <Stack>
-                  <Paper p="md" shadow="sm" radius="md">
-                    <Group mb="md">
-                      <Title order={3}>Grammar Editor</Title>
-                    </Group>
-                    <GrammarEditor
-                      grammar={grammar}
-                      onChange={handleGrammarChange}
-                    />
-                  </Paper>
+                <Stack gap="md">
+                  <Group gap="xs" align="center">
+                    <Title order={3}>Generative Grammar Engine</Title>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="lg"
+                      radius="xl"
+                      aria-label="Open documentation"
+                      title="How to use"
+                      onClick={() => setHelpOpen(true)}
+                    >
+                      <IconHelp size={20} />
+                    </ActionIcon>
+                  </Group>
+                  <GrammarEditor
+                    grammar={grammar}
+                    onChange={handleGrammarChange}
+                  />
                 </Stack>
               </Grid.Col>
 
               <Grid.Col span={{ base: 12, md: 6 }}>
-                <Stack>
-                  <Paper p="md" shadow="sm" radius="md">
-                    <Group mb="md">
-                      <Title order={3}>Results</Title>
-                    </Group>
-                    <ResultsPanel
-                      engine={engine}
-                      results={results}
-                      isLoading={isLoading}
-                      onGenerate={handleGenerate}
-                      onGenerateAll={handleGenerateAll}
-                      onGenerateMany={handleGenerateMany}
-                      strategy={strategy}
-                      onStrategyChange={setStrategy}
-                    />
-                  </Paper>
+                <Stack gap="md">
+                  <Group>
+                    <Title order={3}>Results</Title>
+                  </Group>
+                  <ResultsPanel
+                    engine={engine}
+                    results={results}
+                    isLoading={isLoading}
+                    onGenerate={handleGenerate}
+                    onGenerateAll={handleGenerateAll}
+                    onGenerateMany={handleGenerateMany}
+                    strategy={strategy}
+                    onStrategyChange={setStrategy}
+                  />
                 </Stack>
               </Grid.Col>
             </Grid>

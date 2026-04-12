@@ -2,7 +2,7 @@ import { Container, Group, Text, Anchor, Stack } from '@mantine/core';
 
 export function Footer() {
   return (
-    <Container fluid px="md" py="md" mt="xl">
+    <Container fluid px="sm" py="md" mt="md">
       <Group justify="space-between">
         <Stack gap="xs">
           <Text size="sm" c="dimmed">
@@ -19,7 +19,7 @@ export function Footer() {
           </Text>
         </Stack>
 
-        <Stack gap="xs" align="flex-end">
+        <Stack gap="xs" align="flex-end" >
           <Anchor
             href="https://github.com/tinygodsdev/metatracery"
             target="_blank"

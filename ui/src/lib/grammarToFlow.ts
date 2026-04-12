@@ -12,6 +12,8 @@ export type GrammarSymbolNodeData = {
   onAddStaticAlternative: (symbol: string) => void;
   /** Returns false if rename was rejected (duplicate name, invalid identifier). */
   onRenameRule: (oldName: string, newName: string) => boolean;
+  /** Remove rule from grammar; must not be called for `origin`. */
+  onDeleteRule: (symbol: string) => void;
 };
 
 const DEFAULT_WIDTH = 300;
@@ -40,7 +42,10 @@ export function buildReactFlowEdges(grammar: GrammarRule): Edge[] {
  */
 export function createGrammarFlowNodes(
   grammar: GrammarRule,
-  callbacks: Pick<GrammarSymbolNodeData, 'onAlternativesChange' | 'onAddStaticAlternative' | 'onRenameRule'>,
+  callbacks: Pick<
+    GrammarSymbolNodeData,
+    'onAlternativesChange' | 'onAddStaticAlternative' | 'onRenameRule' | 'onDeleteRule'
+  >,
 ): Node<GrammarSymbolNodeData>[] {
   const symbols = Object.keys(grammar).sort((a, b) => {
     if (a === 'origin') return -1;
@@ -94,7 +99,10 @@ export function layoutWithDagre(nodes: Node<GrammarSymbolNodeData>[], edges: Edg
 
 export function buildLaidOutFlow(
   grammar: GrammarRule,
-  callbacks: Pick<GrammarSymbolNodeData, 'onAlternativesChange' | 'onAddStaticAlternative' | 'onRenameRule'>,
+  callbacks: Pick<
+    GrammarSymbolNodeData,
+    'onAlternativesChange' | 'onAddStaticAlternative' | 'onRenameRule' | 'onDeleteRule'
+  >,
 ): { nodes: Node<GrammarSymbolNodeData>[]; edges: Edge[] } {
   const nodes = createGrammarFlowNodes(grammar, callbacks);
   const edges = buildReactFlowEdges(grammar);

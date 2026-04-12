@@ -7,6 +7,7 @@ import {
   ensureRulesForReferences,
   renameRule,
   isValidSymbolName,
+  grammarLayoutFingerprint,
 } from '../grammarGraphModel';
 
 describe('grammarGraphModel', () => {
@@ -77,5 +78,21 @@ describe('grammarGraphModel', () => {
     expect(isValidSymbolName('rule_1')).toBe(true);
     expect(isValidSymbolName('1a')).toBe(false);
     expect(isValidSymbolName('a-b')).toBe(false);
+  });
+
+  test('grammarLayoutFingerprint ignores literal-only edits', () => {
+    const a = { origin: ['hello'], NP: ['x'] };
+    const b = { origin: ['hello world'], NP: ['x'] };
+    expect(grammarLayoutFingerprint(a)).toBe(grammarLayoutFingerprint(b));
+  });
+
+  test('grammarLayoutFingerprint changes when refs or structure change', () => {
+    const a = { origin: ['#NP#'], NP: ['a'] };
+    const b = { origin: ['#VP#'], NP: ['a'] };
+    expect(grammarLayoutFingerprint(a)).not.toBe(grammarLayoutFingerprint(b));
+
+    const oneAlt = { origin: ['x'], NP: ['a'] };
+    const twoAlts = { origin: ['x', 'y'], NP: ['a'] };
+    expect(grammarLayoutFingerprint(oneAlt)).not.toBe(grammarLayoutFingerprint(twoAlts));
   });
 });

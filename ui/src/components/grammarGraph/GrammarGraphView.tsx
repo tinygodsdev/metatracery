@@ -3,23 +3,30 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   Panel,
   useNodesState,
   useEdgesState,
   useReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
-import { useDebouncedCallback } from '@mantine/hooks';
-import { Alert, Button, Group, Select, Stack, Text } from '@mantine/core';
-import { IconLayout, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks';
+import { Alert, Button, Stack, Text } from '@mantine/core';
+import { IconLayout, IconPlus } from '@tabler/icons-react';
 import type { GrammarRule } from '../../engine/types';
-import { ensureRulesForReferences, findMissingRefs, renameRule } from '../../engine/grammarGraphModel';
+import {
+  ensureRulesForReferences,
+  findMissingRefs,
+  grammarLayoutFingerprint,
+  renameRule,
+} from '../../engine/grammarGraphModel';
 import { buildLaidOutFlow, GRAMMAR_SYMBOL_NODE_TYPE } from '../../lib/grammarToFlow';
 import { GrammarSymbolNode } from './GrammarSymbolNode';
 
 /** Delay before lifting graph edits to parent (engine, JSON sync, results). */
 const COMMIT_MS = 200;
+
+/** Debounce dagre + flow rebuild when layout fingerprint is unchanged (literal-only edits). */
+const LAYOUT_DEBOUNCE_MS = 100;
 
 const nodeTypes = { [GRAMMAR_SYMBOL_NODE_TYPE]: GrammarSymbolNode };
 
@@ -99,18 +106,57 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
     [debouncedCommit, onChange],
   );
 
+  const onDeleteRule = useCallback(
+    (symbol: string) => {
+      if (symbol === 'origin') return;
+      if (!window.confirm(`Delete rule "${symbol}"? References to it will break until you fix them.`)) return;
+      debouncedCommit.cancel();
+      let nextCommitted: GrammarRule | undefined;
+      setDraftGrammar((prev) => {
+        const next = { ...prev };
+        delete next[symbol];
+        nextCommitted = next;
+        return next;
+      });
+      if (nextCommitted) onChange(nextCommitted);
+    },
+    [debouncedCommit, onChange],
+  );
+
   const flowCallbacks = useMemo(
     () => ({
       onAlternativesChange,
       onAddStaticAlternative,
       onRenameRule,
+      onDeleteRule,
     }),
-    [onAlternativesChange, onAddStaticAlternative, onRenameRule],
+    [onAlternativesChange, onAddStaticAlternative, onRenameRule, onDeleteRule],
   );
 
-  const { nodes: laidOut, edges } = useMemo(
-    () => buildLaidOutFlow(draftGrammar, flowCallbacks),
-    [draftGrammar, flowCallbacks],
+  const [debouncedLayoutGrammar] = useDebouncedValue(draftGrammar, LAYOUT_DEBOUNCE_MS);
+
+  const layoutSource = useMemo(() => {
+    const fpDraft = grammarLayoutFingerprint(draftGrammar);
+    const fpDeb = grammarLayoutFingerprint(debouncedLayoutGrammar);
+    if (fpDraft === fpDeb) return debouncedLayoutGrammar;
+    return draftGrammar;
+  }, [draftGrammar, debouncedLayoutGrammar]);
+
+  const { nodes: laidOutBase, edges } = useMemo(
+    () => buildLaidOutFlow(layoutSource, flowCallbacks),
+    [layoutSource, flowCallbacks],
+  );
+
+  const laidOut = useMemo(
+    () =>
+      laidOutBase.map((n) => ({
+        ...n,
+        data: {
+          ...n.data,
+          alternatives: draftGrammar[n.id] ?? n.data.alternatives,
+        },
+      })),
+    [laidOutBase, draftGrammar],
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(laidOut);
@@ -122,25 +168,6 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
   }, [laidOut, edges, setNodes, setEdges]);
 
   const missing = useMemo(() => findMissingRefs(draftGrammar), [draftGrammar]);
-
-  const deletableKeys = useMemo(() => Object.keys(draftGrammar).filter((k) => k !== 'origin'), [draftGrammar]);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-
-  const deleteRule = () => {
-    if (!deleteTarget) return;
-    if (!window.confirm(`Delete rule "${deleteTarget}"? References to it will break until you fix them.`)) return;
-    debouncedCommit.cancel();
-    const key = deleteTarget;
-    let nextCommitted: GrammarRule | undefined;
-    setDraftGrammar((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      nextCommitted = next;
-      return next;
-    });
-    if (nextCommitted) onChange(nextCommitted);
-    setDeleteTarget(null);
-  };
 
   const keys = Object.keys(draftGrammar);
 
@@ -165,31 +192,17 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           <Text size="xs">These #symbols# have no rule: {missing.join(', ')}</Text>
         </Alert>
       )}
-      {deletableKeys.length > 0 && (
-        <Group align="flex-end" wrap="wrap">
-          <Select
-            size="xs"
-            placeholder="Rule to delete"
-            data={deletableKeys}
-            value={deleteTarget}
-            onChange={setDeleteTarget}
-            w={200}
-            clearable
-          />
-          <Button
-            size="xs"
-            color="red"
-            variant="light"
-            leftSection={<IconTrash size={14} />}
-            disabled={!deleteTarget}
-            onClick={deleteRule}
-          >
-            Delete rule
-          </Button>
-        </Group>
-      )}
-      <div style={{ height: 520, border: '1px solid var(--mantine-color-gray-3)', borderRadius: 8, overflow: 'hidden' }}>
+      <div
+        style={{
+          height: 520,
+          border: '1px solid var(--mantine-color-gray-3)',
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: 'var(--mantine-color-gray-1)',
+        }}
+      >
         <ReactFlow
+          style={{ background: 'var(--mantine-color-gray-1)' }}
           nodes={nodes}
           edges={edgesState}
           onNodesChange={onNodesChange}
@@ -205,9 +218,8 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           proOptions={{ hideAttribution: true }}
           onNodeClick={() => {}}
         >
-          <Background />
+          <Background color="var(--mantine-color-gray-4)" gap={14} size={1.25} />
           <Controls />
-          <MiniMap zoomable pannable />
           <Panel position="top-right">
             <FitViewButton />
           </Panel>

@@ -26,6 +26,24 @@ export function isStaticAlternative(template: string): boolean {
   return extractRefNamesFromTemplate(template).length === 0;
 }
 
+/**
+ * Stable signature for graph layout (dagre): rule keys, alternative counts, and #ref# sets per line.
+ * Editing literals only keeps the same fingerprint so layout can be debounced while typing.
+ */
+export function grammarLayoutFingerprint(grammar: GrammarRule): string {
+  const keys = Object.keys(grammar).sort();
+  const lines: string[] = [];
+  for (const k of keys) {
+    const alts = grammar[k] ?? [];
+    const altParts = alts.map((a) => {
+      const refs = extractRefNamesFromTemplate(a);
+      return [...refs].sort().join('\u001f');
+    });
+    lines.push(`${k}\u001e${alts.length}\u001e${altParts.join('\u001d')}`);
+  }
+  return lines.join('\u0001');
+}
+
 export type GrammarEdge = { source: string; target: string };
 
 /**
