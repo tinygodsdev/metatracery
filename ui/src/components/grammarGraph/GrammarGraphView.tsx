@@ -10,12 +10,16 @@ import {
   useReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
+import { useDebouncedCallback } from '@mantine/hooks';
 import { Alert, Button, Group, Select, Stack, Text } from '@mantine/core';
 import { IconLayout, IconPlus, IconTrash } from '@tabler/icons-react';
 import type { GrammarRule } from '../../engine/types';
-import { findMissingRefs, renameRule } from '../../engine/grammarGraphModel';
+import { ensureRulesForReferences, findMissingRefs, renameRule } from '../../engine/grammarGraphModel';
 import { buildLaidOutFlow, GRAMMAR_SYMBOL_NODE_TYPE } from '../../lib/grammarToFlow';
 import { GrammarSymbolNode } from './GrammarSymbolNode';
+
+/** Delay before lifting graph edits to parent (engine, JSON sync, results). */
+const COMMIT_MS = 200;
 
 const nodeTypes = { [GRAMMAR_SYMBOL_NODE_TYPE]: GrammarSymbolNode };
 
@@ -40,32 +44,59 @@ interface GrammarGraphViewProps {
 }
 
 function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
+  const [draftGrammar, setDraftGrammar] = useState(grammar);
+
+  useEffect(() => {
+    setDraftGrammar(grammar);
+  }, [grammar]);
+
+  const debouncedCommit = useDebouncedCallback(
+    (next: GrammarRule) => {
+      onChange(next);
+    },
+    { delay: COMMIT_MS, flushOnUnmount: true },
+  );
+
   const onAlternativesChange = useCallback(
     (symbol: string, alts: string[]) => {
-      onChange({ ...grammar, [symbol]: alts });
+      setDraftGrammar((prev) => {
+        const next = ensureRulesForReferences({ ...prev, [symbol]: alts });
+        debouncedCommit(next);
+        return next;
+      });
     },
-    [grammar, onChange],
+    [debouncedCommit],
   );
 
   const onAddStaticAlternative = useCallback(
     (symbol: string) => {
-      const prev = grammar[symbol] ?? [];
-      onChange({ ...grammar, [symbol]: [...prev, ''] });
+      setDraftGrammar((prev) => {
+        const prevAlts = prev[symbol] ?? [];
+        const next = ensureRulesForReferences({ ...prev, [symbol]: [...prevAlts, ''] });
+        debouncedCommit(next);
+        return next;
+      });
     },
-    [grammar, onChange],
+    [debouncedCommit],
   );
 
   const onRenameRule = useCallback(
     (oldName: string, newName: string): boolean => {
       try {
-        onChange(renameRule(grammar, oldName, newName));
+        debouncedCommit.cancel();
+        let nextCommitted: GrammarRule | undefined;
+        setDraftGrammar((prev) => {
+          nextCommitted = ensureRulesForReferences(renameRule(prev, oldName, newName));
+          return nextCommitted;
+        });
+        if (nextCommitted) onChange(nextCommitted);
         return true;
       } catch (err) {
         window.alert(err instanceof Error ? err.message : 'Rename failed');
         return false;
       }
     },
-    [grammar, onChange],
+    [debouncedCommit, onChange],
   );
 
   const flowCallbacks = useMemo(
@@ -78,8 +109,8 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
   );
 
   const { nodes: laidOut, edges } = useMemo(
-    () => buildLaidOutFlow(grammar, flowCallbacks),
-    [grammar, flowCallbacks],
+    () => buildLaidOutFlow(draftGrammar, flowCallbacks),
+    [draftGrammar, flowCallbacks],
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(laidOut);
@@ -90,21 +121,28 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
     setEdges(edges);
   }, [laidOut, edges, setNodes, setEdges]);
 
-  const missing = useMemo(() => findMissingRefs(grammar), [grammar]);
+  const missing = useMemo(() => findMissingRefs(draftGrammar), [draftGrammar]);
 
-  const deletableKeys = useMemo(() => Object.keys(grammar).filter((k) => k !== 'origin'), [grammar]);
+  const deletableKeys = useMemo(() => Object.keys(draftGrammar).filter((k) => k !== 'origin'), [draftGrammar]);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const deleteRule = () => {
     if (!deleteTarget) return;
     if (!window.confirm(`Delete rule "${deleteTarget}"? References to it will break until you fix them.`)) return;
-    const next = { ...grammar };
-    delete next[deleteTarget];
-    onChange(next);
+    debouncedCommit.cancel();
+    const key = deleteTarget;
+    let nextCommitted: GrammarRule | undefined;
+    setDraftGrammar((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      nextCommitted = next;
+      return next;
+    });
+    if (nextCommitted) onChange(nextCommitted);
     setDeleteTarget(null);
   };
 
-  const keys = Object.keys(grammar);
+  const keys = Object.keys(draftGrammar);
 
   if (keys.length === 0) {
     return (
@@ -161,6 +199,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           nodesConnectable={false}
           elementsSelectable={false}
           selectionOnDrag={false}
+          onlyRenderVisibleElements
           zoomOnScroll
           onInit={(instance) => instance.fitView({ padding: 0.2 })}
           proOptions={{ hideAttribution: true }}

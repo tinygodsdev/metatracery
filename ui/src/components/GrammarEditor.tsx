@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Textarea,
   Button,
@@ -61,14 +61,15 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
     }
   };
 
-  const getCombinationCount = (grammar: GrammarRule): number => {
+  const combinationCount = useMemo(() => {
+    if (!isValid) return 0;
     try {
       const engine = new GrammarProcessor(grammar);
       return engine.getTotalCombinations('origin');
     } catch {
       return 0;
     }
-  };
+  }, [grammar, isValid]);
 
   const loadFixture = (fixtureName: string) => {
     const fixture = fixtures.find(f => f.name === fixtureName);
@@ -150,20 +151,14 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         </Text>
       )}
 
-      {isValid && (() => {
-        const combinationCount = getCombinationCount(grammar);
-        if (combinationCount > 100) {
-          return (
-            <Alert color="orange" icon={<IconAlertTriangle size={16} />}>
-              <Text size="xs">
-                This grammar can generate {combinationCount} combinations, which exceeds the safe limit of 100.
-                Consider reducing the number of parameter values or using more specific parameters.
-              </Text>
-            </Alert>
-          );
-        }
-        return null;
-      })()}
+      {isValid && combinationCount > 100 && (
+        <Alert color="orange" icon={<IconAlertTriangle size={16} />}>
+          <Text size="xs">
+            This grammar can generate {combinationCount} combinations, which exceeds the safe limit of 100.
+            Consider reducing the number of parameter values or using more specific parameters.
+          </Text>
+        </Alert>
+      )}
 
       {error && viewMode === 'json' && (
         <Alert color="red">

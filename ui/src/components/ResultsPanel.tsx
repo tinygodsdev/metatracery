@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Stack,
   Button,
@@ -47,7 +47,18 @@ export function ResultsPanel({
 
   const parameters = engine?.getParameters() || {};
   const stats = engine?.getParameterStatistics();
-  
+
+  /** Drop selections that no longer match the current grammar (e.g. after renames). */
+  const validatedParameterConstraints = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(selectedParameters)) {
+      const param = parameters[k];
+      if (!param || !param.values.includes(v)) continue;
+      out[k] = v;
+    }
+    return out;
+  }, [parameters, selectedParameters]);
+
   // Separate parameters with multiple values from those with single values
   const filterableParameters = Object.entries(parameters).filter(([_, param]) => param.values.length > 1);
   const singleValueParameters = Object.entries(parameters).filter(([_, param]) => param.values.length === 1);
@@ -94,8 +105,7 @@ export function ResultsPanel({
   };
 
   const handleGenerateWithParams = () => {
-    // Include all parameters: selected ones + fixed ones with single values
-    const allParameters = { ...selectedParameters };
+    const allParameters = { ...validatedParameterConstraints };
     singleValueParameters.forEach(([name, param]) => {
       allParameters[name] = param.values[0];
     });
@@ -103,8 +113,7 @@ export function ResultsPanel({
   };
 
   const handleGenerateMany = () => {
-    // Include all parameters: selected ones + fixed ones with single values
-    const allParameters = { ...selectedParameters };
+    const allParameters = { ...validatedParameterConstraints };
     singleValueParameters.forEach(([name, param]) => {
       allParameters[name] = param.values[0];
     });
@@ -260,7 +269,7 @@ export function ResultsPanel({
           <Button
             size="sm" 
             variant="outline"
-            onClick={() => onGenerateAll(selectedParameters)}
+            onClick={() => onGenerateAll(validatedParameterConstraints)}
             disabled={isLoading || actualCombinations > 100}
             title={actualCombinations > 100 ? `Too many combinations (${actualCombinations}). Use more specific parameters.` : undefined}
           >
