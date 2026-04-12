@@ -13,6 +13,7 @@ import {
   Group,
   Alert,
   ActionIcon,
+  SegmentedControl,
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { IconHelp } from '@tabler/icons-react';
@@ -27,7 +28,7 @@ import type { GrammarRule, GenerationResult } from './engine/types';
 import type { GenerationStrategy } from './engine/Engine';
 
 const theme = createTheme({
-  primaryColor: 'violet',
+  primaryColor: 'teal',
   breakpoints: {
     xs: '36em',
     sm: '48em',
@@ -45,6 +46,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [strategy, setStrategy] = useState<GenerationStrategy>('uniform');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [grammarViewMode, setGrammarViewMode] = useState<'json' | 'graph'>('graph');
 
   // Load example grammar on startup
   useEffect(() => {
@@ -167,6 +169,15 @@ function App() {
                 <Stack gap="md">
                   <Group gap="xs" align="center">
                     <Title order={3}>Generative Grammar Engine</Title>
+                    <SegmentedControl
+                      size="xs"
+                      value={grammarViewMode}
+                      onChange={(v) => setGrammarViewMode(v as 'json' | 'graph')}
+                      data={[
+                        { label: 'JSON', value: 'json' },
+                        { label: 'Graph', value: 'graph' },
+                      ]}
+                    />
                     <ActionIcon
                       variant="subtle"
                       color="gray"
@@ -182,6 +193,7 @@ function App() {
                   <GrammarEditor
                     grammar={grammar}
                     onChange={handleGrammarChange}
+                    viewMode={grammarViewMode}
                   />
                 </Stack>
               </Grid.Col>

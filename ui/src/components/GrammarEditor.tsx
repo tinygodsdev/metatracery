@@ -9,7 +9,6 @@ import {
   Alert,
   Code,
   Select,
-  SegmentedControl,
 } from '@mantine/core';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
@@ -18,10 +17,14 @@ import { GrammarGraphView } from './grammarGraph';
 interface GrammarEditorProps {
   grammar: GrammarRule;
   onChange: (grammar: GrammarRule) => void;
+  viewMode: 'json' | 'graph';
 }
 
-export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
-  const [viewMode, setViewMode] = useState<'json' | 'graph'>('graph');
+export function GrammarEditor({
+  grammar,
+  onChange,
+  viewMode,
+}: GrammarEditorProps) {
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,15 +106,6 @@ export function GrammarEditor({ grammar, onChange }: GrammarEditorProps) {
         </Group>
         
         <Group>
-          <SegmentedControl
-            size="xs"
-            value={viewMode}
-            onChange={(v) => setViewMode(v as 'json' | 'graph')}
-            data={[
-              { label: 'JSON', value: 'json' },
-              { label: 'Graph', value: 'graph' },
-            ]}
-          />
           <Select
             placeholder="Load fixture..."
             data={fixtures.map(f => ({ value: f.name, label: f.name }))}

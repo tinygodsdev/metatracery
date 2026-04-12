@@ -99,7 +99,7 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
       <Stack gap={5}>
         {alternatives.map((alt, i) => (
           <Group key={i} gap={6} wrap="nowrap" align="flex-start">
-            <Badge size="xs" variant="light" color={isStaticAlternative(alt) ? 'gray' : 'violet'}>
+            <Badge size="xs" variant="light" color={isStaticAlternative(alt) ? 'gray' : 'teal'}>
               {isStaticAlternative(alt) ? 'static' : 'dynamic'}
             </Badge>
             <TextInput

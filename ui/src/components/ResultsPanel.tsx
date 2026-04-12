@@ -235,8 +235,6 @@ export function ResultsPanel({
           </div>
         )}
 
-        <Divider my="md" />
-
         <Group>
           <Button 
             size="sm" 
@@ -339,7 +337,7 @@ export function ResultsPanel({
             <Text size="sm">No results yet. Use the controls above to generate some.</Text>
           </Alert>
         ) : (
-          <ScrollArea h={400}>
+          <ScrollArea.Autosize mah={400} type="auto" offsetScrollbars>
             <Table striped highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
@@ -366,12 +364,12 @@ export function ResultsPanel({
                 ))}
               </Table.Tbody>
             </Table>
-          </ScrollArea>
+          </ScrollArea.Autosize>
         )}
 
         {/* Metadata Accordion */}
         {results.length > 0 && (
-          <Accordion mt="md">
+          <Accordion mt="xs">
             <Accordion.Item value="metadata">
               <Accordion.Control>
                 <Text size="sm">Generation Details</Text>
