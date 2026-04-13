@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import type { PointerEvent } from 'react';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
-import { Stack, TextInput, Button, Group, Badge, ActionIcon, Text } from '@mantine/core';
+import {
+  Stack,
+  TextInput,
+  Button,
+  Group,
+  Badge,
+  ActionIcon,
+  Text,
+  useComputedColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
 import { IconTrash, IconPlus, IconX } from '@tabler/icons-react';
 import { isStaticAlternative } from '../../engine/grammarGraphModel';
 import type { GrammarSymbolNodeData } from '../../lib/grammarToFlow';
@@ -14,6 +24,11 @@ const stopFlowPointer = (e: PointerEvent) => {
 export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData>>) {
   const { symbol, alternatives, onAlternativesChange, onAddStaticAlternative, onRenameRule, onDeleteRule } =
     data;
+
+  const theme = useMantineTheme();
+  const colorScheme = useComputedColorScheme('light');
+  const nodeBorder =
+    colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[4];
 
   const [nameDraft, setNameDraft] = useState(symbol);
 
@@ -49,7 +64,7 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
         maxWidth: 300,
         padding: 8,
         paddingRight: symbol !== 'origin' ? 30 : 8,
-        border: '1px solid var(--mantine-color-gray-4)',
+        border: `1px solid ${nodeBorder}`,
         borderRadius: 8,
         background: 'var(--mantine-color-body)',
       }}

@@ -9,7 +9,10 @@ import {
   Alert,
   Code,
   Select,
+  SegmentedControl,
+  ActionIcon,
 } from '@mantine/core';
+import { IconHelp } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
 import { GrammarGraphView } from './grammarGraph';
@@ -18,12 +21,16 @@ interface GrammarEditorProps {
   grammar: GrammarRule;
   onChange: (grammar: GrammarRule) => void;
   viewMode: 'json' | 'graph';
+  onViewModeChange: (mode: 'json' | 'graph') => void;
+  onOpenHelp: () => void;
 }
 
 export function GrammarEditor({
   grammar,
   onChange,
   viewMode,
+  onViewModeChange,
+  onOpenHelp,
 }: GrammarEditorProps) {
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
@@ -70,30 +77,13 @@ export function GrammarEditor({
     }
   };
 
-  const handleLoadExample = () => {
-    const exampleGrammar: GrammarRule = {
-      "SP": ["#NP#"],
-      "OP": ["#NP#"],
-      "NP": ["girl", "cat"],
-      "VP": ["loves", "eats", "pets"],
-      "SVO": ["#SP# #VP# #OP#"],
-      "VSO": ["#VP# #SP# #OP#"],
-      "word_order": ["#SVO#", "#VSO#"],
-      "origin": ["#word_order#"]
-    };
-    
-    setJsonText(JSON.stringify(exampleGrammar, null, 2));
-    onChange(exampleGrammar);
-    setIsValid(true);
-    setError(null);
-    setSelectedFixture(null);
-  };
-
   return (
-    <Stack>
-      <Group justify="space-between">
-        <Group>
-          <Text size="sm" fw={500}>Grammar Definition</Text>
+    <Stack gap="sm">
+      <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+        <Group gap="xs" align="center" wrap="nowrap">
+          <Text size="sm" fw={500}>
+            Grammar Definition
+          </Text>
           {isValid ? (
             <Badge color="green" variant="light" size="xs">
               Valid
@@ -104,8 +94,17 @@ export function GrammarEditor({
             </Badge>
           )}
         </Group>
-        
-        <Group>
+
+        <Group gap="xs" align="center" wrap="wrap" justify="flex-end">
+          <SegmentedControl
+            size="xs"
+            value={viewMode}
+            onChange={(v) => onViewModeChange(v as 'json' | 'graph')}
+            data={[
+              { label: 'JSON', value: 'json' },
+              { label: 'Graph', value: 'graph' },
+            ]}
+          />
           <Select
             placeholder="Load fixture..."
             data={fixtures.map(f => ({ value: f.name, label: f.name }))}
@@ -115,20 +114,26 @@ export function GrammarEditor({
             w={150}
           />
           {viewMode === 'json' && (
-            <>
-              <Button size="xs" variant="light" onClick={handleFormat}>
-                Format JSON
-              </Button>
-              <Button size="xs" variant="outline" onClick={handleLoadExample}>
-                Load Example
-              </Button>
-            </>
+            <Button size="xs" variant="light" onClick={handleFormat}>
+              Format JSON
+            </Button>
           )}
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="md"
+            radius="xl"
+            aria-label="Open documentation"
+            title="How to use"
+            onClick={onOpenHelp}
+          >
+            <IconHelp size={18} />
+          </ActionIcon>
         </Group>
       </Group>
 
       {selectedFixture && (
-        <Text size="xs" c="dimmed">
+        <Text size="xs" c="dimmed" lh={1.4}>
           {fixtures.find(f => f.name === selectedFixture)?.description}
         </Text>
       )}

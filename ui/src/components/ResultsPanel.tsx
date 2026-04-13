@@ -178,18 +178,22 @@ export function ResultsPanel({
     <Stack gap="xl">
       {/* Parameter Controls */}
       <Stack gap="md">
-        <Group mb="md" justify="space-between">
-          <Text size="sm" fw={500}>Parameter Controls</Text>
-          <Group>
+        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+          <Text size="sm" fw={500}>
+            Parameter Controls
+          </Text>
+          <Group gap="md" align="center" wrap="wrap" justify="flex-end">
             {singleValueParameters.length > 0 && (
-              <Text size="xs" c="dimmed" title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}>
+              <Text
+                size="xs"
+                c="dimmed"
+                lh={1.4}
+                title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}
+              >
                 {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
               </Text>
             )}
-            <Stack gap={2} align="flex-end">
-              <Text size="xs" c="dimmed" fw={500} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Strategy
-              </Text>
+            <Group gap={6} align="center" wrap="nowrap">
               <NativeSelect
                 size="xs"
                 w={120}
@@ -201,7 +205,7 @@ export function ResultsPanel({
                   { value: 'weighted', label: 'Weighted' },
                 ]}
               />
-            </Stack>
+            </Group>
           </Group>
         </Group>
         

@@ -10,7 +10,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks';
-import { Alert, Button, Stack, Text } from '@mantine/core';
+import { Alert, Button, Stack, Text, useComputedColorScheme, useMantineTheme } from '@mantine/core';
 import { IconLayout, IconPlus } from '@tabler/icons-react';
 import type { GrammarRule } from '../../engine/types';
 import {
@@ -51,6 +51,13 @@ interface GrammarGraphViewProps {
 }
 
 function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
+  const theme = useMantineTheme();
+  const colorScheme = useComputedColorScheme('light');
+  const isDark = colorScheme === 'dark';
+  const canvasSurface = isDark ? theme.colors.dark[7] : theme.colors.gray[0];
+  const canvasBorder = isDark ? theme.colors.dark[4] : theme.colors.gray[3];
+  const gridPattern = isDark ? theme.colors.dark[5] : theme.colors.gray[4];
+
   const [draftGrammar, setDraftGrammar] = useState(grammar);
 
   useEffect(() => {
@@ -194,15 +201,16 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
       )}
       <div
         style={{
-          height: 520,
-          border: '1px solid var(--mantine-color-gray-3)',
+          height: 620,
+          border: `1px solid ${canvasBorder}`,
           borderRadius: 8,
           overflow: 'hidden',
-          background: 'var(--mantine-color-gray-1)',
+          background: canvasSurface,
         }}
       >
         <ReactFlow
-          style={{ background: 'var(--mantine-color-gray-1)' }}
+          className={isDark ? 'dark' : undefined}
+          style={{ background: canvasSurface }}
           nodes={nodes}
           edges={edgesState}
           onNodesChange={onNodesChange}
@@ -218,7 +226,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           proOptions={{ hideAttribution: true }}
           onNodeClick={() => {}}
         >
-          <Background color="var(--mantine-color-gray-4)" gap={14} size={1.25} />
+          <Background color={gridPattern} gap={14} size={1.25} />
           <Controls />
           <Panel position="top-right">
             <FitViewButton />

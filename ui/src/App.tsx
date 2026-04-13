@@ -12,11 +12,11 @@ import {
   Stack,
   Group,
   Alert,
-  ActionIcon,
-  SegmentedControl,
+  ColorSchemeScript,
+  localStorageColorSchemeManager,
 } from '@mantine/core';
+import { COLOR_SCHEME_STORAGE_KEY } from './colorSchemeStorage';
 import { Notifications } from '@mantine/notifications';
-import { IconHelp } from '@tabler/icons-react';
 
 import { GrammarEditor } from './components/GrammarEditor';
 import { HelpDocumentationModal } from './components/HelpDocumentationModal';
@@ -152,7 +152,18 @@ function App() {
 
 
   return (
-    <MantineProvider theme={theme} defaultColorScheme="light">
+    <>
+      <ColorSchemeScript
+        defaultColorScheme="light"
+        localStorageKey={COLOR_SCHEME_STORAGE_KEY}
+      />
+      <MantineProvider
+        theme={theme}
+        defaultColorScheme="light"
+        colorSchemeManager={localStorageColorSchemeManager({
+          key: COLOR_SCHEME_STORAGE_KEY,
+        })}
+      >
       <Notifications />
       <HelpDocumentationModal opened={helpOpen} onClose={() => setHelpOpen(false)} />
       <AppShell padding={0}>
@@ -167,41 +178,27 @@ function App() {
             <Grid gutter={{ base: 'xs', md: 'sm' }}>
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack gap="md">
-                  <Group gap="xs" align="center">
-                    <Title order={3}>Generative Grammar Engine</Title>
-                    <SegmentedControl
-                      size="xs"
-                      value={grammarViewMode}
-                      onChange={(v) => setGrammarViewMode(v as 'json' | 'graph')}
-                      data={[
-                        { label: 'JSON', value: 'json' },
-                        { label: 'Graph', value: 'graph' },
-                      ]}
-                    />
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="lg"
-                      radius="xl"
-                      aria-label="Open documentation"
-                      title="How to use"
-                      onClick={() => setHelpOpen(true)}
-                    >
-                      <IconHelp size={20} />
-                    </ActionIcon>
+                  <Group align="center">
+                    <Title order={3} style={{ lineHeight: 1.2 }}>
+                      Generative Grammar Engine
+                    </Title>
                   </Group>
                   <GrammarEditor
                     grammar={grammar}
                     onChange={handleGrammarChange}
                     viewMode={grammarViewMode}
+                    onViewModeChange={setGrammarViewMode}
+                    onOpenHelp={() => setHelpOpen(true)}
                   />
                 </Stack>
               </Grid.Col>
 
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack gap="md">
-                  <Group>
-                    <Title order={3}>Results</Title>
+                  <Group align="center">
+                    <Title order={3} style={{ lineHeight: 1.2 }}>
+                      Results
+                    </Title>
                   </Group>
                   <ResultsPanel
                     engine={engine}
@@ -222,6 +219,7 @@ function App() {
         </AppShell.Main>
       </AppShell>
     </MantineProvider>
+    </>
   )
 }
 
