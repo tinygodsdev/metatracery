@@ -2,18 +2,17 @@ import { useState, useEffect } from 'react';
 import {
   Textarea,
   TextInput,
-  Button,
   Group,
   Stack,
   Text,
-  Badge,
   Alert,
   Code,
   Select,
   SegmentedControl,
   ActionIcon,
+  Tooltip,
 } from '@mantine/core';
-import { IconHelp } from '@tabler/icons-react';
+import { IconAlertCircle, IconCircleCheck, IconDeviceFloppy, IconHelp } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
 import type { GrammarLibraryState, GrammarLibrarySource } from '../grammarLibraryStorage';
@@ -74,19 +73,6 @@ export function GrammarEditor({
     }
   };
 
-  const handleFormat = () => {
-    try {
-      const parsed = JSON.parse(jsonText);
-      const formatted = JSON.stringify(parsed, null, 2);
-      setJsonText(formatted);
-      setIsValid(true);
-      setError(null);
-      onChange(parsed);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid JSON');
-    }
-  };
-
   const userGrammarData = [
     { value: NEW_GRAMMAR_VALUE, label: 'New grammar' },
     ...libraryState.items.map((it) => ({ value: it.id, label: it.name })),
@@ -107,30 +93,15 @@ export function GrammarEditor({
 
   return (
     <Stack gap="sm">
-      <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-        <Group gap="xs" align="center" wrap="nowrap">
-          <Text size="sm" fw={500}>
-            Grammar Definition
-          </Text>
-          {isValid ? (
-            <Badge color="green" variant="light" size="xs">
-              Valid
-            </Badge>
-          ) : (
-            <Badge color="red" variant="light" size="xs">
-              Invalid
-            </Badge>
-          )}
-        </Group>
-
-        <Group gap="xs" align="center" wrap="wrap" justify="flex-end">
+      <Group justify="space-between" align="center" wrap="wrap" gap="xs" w="100%">
+        <Group gap="xs" align="center" wrap="wrap">
           <SegmentedControl
             size="xs"
             value={viewMode}
             onChange={(v) => onViewModeChange(v as 'json' | 'graph')}
             data={[
-              { label: 'JSON', value: 'json' },
               { label: 'Graph', value: 'graph' },
+              { label: 'JSON', value: 'json' },
             ]}
           />
           <Select
@@ -159,22 +130,25 @@ export function GrammarEditor({
               }}
             />
           )}
-          <Button size="xs" variant="default" onClick={onSaveGrammar}>
-            Save
-          </Button>
+          <Tooltip label="Save grammar">
+            <ActionIcon
+              size="md"
+              variant="default"
+              radius="md"
+              aria-label="Save grammar"
+              onClick={onSaveGrammar}
+            >
+              <IconDeviceFloppy size={16} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
           <Select
-            placeholder="Load fixture..."
+            placeholder="Load example"
             data={fixtures.map((f) => ({ value: f.name, label: f.name }))}
             value={librarySource === 'fixture' ? selectedFixtureName : null}
             onChange={(value) => value && onFixtureLoad(value)}
             size="xs"
-            w={150}
+            w={128}
           />
-          {viewMode === 'json' && (
-            <Button size="xs" variant="light" onClick={handleFormat}>
-              Format JSON
-            </Button>
-          )}
           <ActionIcon
             variant="subtle"
             color="gray"
@@ -187,6 +161,30 @@ export function GrammarEditor({
             <IconHelp size={18} />
           </ActionIcon>
         </Group>
+
+        <Tooltip
+          label={
+            isValid
+              ? viewMode === 'json'
+                ? 'JSON is valid'
+                : 'Grammar is valid'
+              : 'Invalid JSON — switch to JSON to fix'
+          }
+        >
+          <ActionIcon
+            variant="subtle"
+            size="md"
+            radius="xl"
+            color={isValid ? 'teal' : 'red'}
+            aria-label={isValid ? 'Grammar valid' : 'Grammar invalid'}
+          >
+            {isValid ? (
+              <IconCircleCheck size={18} stroke={1.5} aria-hidden />
+            ) : (
+              <IconAlertCircle size={18} stroke={1.5} aria-hidden />
+            )}
+          </ActionIcon>
+        </Tooltip>
       </Group>
 
       {librarySource === 'fixture' && selectedFixtureName && (

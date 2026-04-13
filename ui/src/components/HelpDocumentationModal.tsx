@@ -84,11 +84,11 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
 
         <div>
           <Title order={5} mb="xs">
-            Fixtures
+            Examples
           </Title>
           <Text size="sm">
-            The fixture dropdown loads sample grammars so you can explore IPA, syllables, or other demos without
-            starting from scratch.
+            Use <strong>Load example</strong> in the toolbar to load sample grammars so you can explore IPA, syllables,
+            or other demos without starting from scratch.
           </Text>
         </div>
 
@@ -99,7 +99,8 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
           <Text size="sm" mb="xs">
             Use <strong>My grammars</strong> to open, create, or switch between grammars you keep in this browser. When a
             saved grammar is active, use the <strong>Name</strong> field next to the toolbar to rename it (or press Enter
-            to apply). The first time you <strong>Save</strong> while viewing a fixture or the default example, you choose
+            to apply). The first time you <strong>Save</strong> while viewing a grammar from <strong>Load example</strong>{' '}
+            or the initial default, you choose
             a name for a new saved copy. The first time you save in a tab, a reminder explains that storage is only on
             this device—not on our servers. For a durable backup, copy the JSON (from the save dialog or the JSON editor)
             into a file or note.
