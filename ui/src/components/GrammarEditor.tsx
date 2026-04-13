@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Textarea,
+  TextInput,
   Button,
   Group,
   Stack,
@@ -15,7 +16,10 @@ import {
 import { IconHelp } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
+import type { GrammarLibraryState, GrammarLibrarySource } from '../grammarLibraryStorage';
 import { GrammarGraphView } from './grammarGraph';
+
+const NEW_GRAMMAR_VALUE = '__new__';
 
 interface GrammarEditorProps {
   grammar: GrammarRule;
@@ -23,6 +27,14 @@ interface GrammarEditorProps {
   viewMode: 'json' | 'graph';
   onViewModeChange: (mode: 'json' | 'graph') => void;
   onOpenHelp: () => void;
+  libraryState: GrammarLibraryState;
+  librarySource: GrammarLibrarySource;
+  selectedFixtureName: string | null;
+  onFixtureLoad: (fixtureName: string) => void;
+  onSelectUserGrammar: (id: string) => void;
+  onNewUserGrammar: () => void;
+  onSaveGrammar: () => void;
+  onRenameUserGrammar: (name: string) => void;
 }
 
 export function GrammarEditor({
@@ -31,13 +43,19 @@ export function GrammarEditor({
   viewMode,
   onViewModeChange,
   onOpenHelp,
+  libraryState,
+  librarySource,
+  selectedFixtureName,
+  onFixtureLoad,
+  onSelectUserGrammar,
+  onNewUserGrammar,
+  onSaveGrammar,
+  onRenameUserGrammar,
 }: GrammarEditorProps) {
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFixture, setSelectedFixture] = useState<string | null>(null);
 
-  // Update JSON text when grammar changes
   useEffect(() => {
     setJsonText(JSON.stringify(grammar, null, 2));
   }, [grammar]);
@@ -45,7 +63,7 @@ export function GrammarEditor({
   const handleJsonChange = (value: string) => {
     setJsonText(value);
     setError(null);
-    
+
     try {
       const parsed = JSON.parse(value);
       setIsValid(true);
@@ -69,13 +87,23 @@ export function GrammarEditor({
     }
   };
 
-  const loadFixture = (fixtureName: string) => {
-    const fixture = fixtures.find(f => f.name === fixtureName);
-    if (fixture) {
-      onChange(fixture.grammar);
-      setSelectedFixture(fixtureName);
-    }
-  };
+  const userGrammarData = [
+    { value: NEW_GRAMMAR_VALUE, label: 'New grammar' },
+    ...libraryState.items.map((it) => ({ value: it.id, label: it.name })),
+  ];
+
+  const myGrammarValue =
+    librarySource === 'user' && libraryState.activeId ? libraryState.activeId : null;
+
+  const activeUserItem =
+    librarySource === 'user' && libraryState.activeId
+      ? libraryState.items.find((i) => i.id === libraryState.activeId)
+      : undefined;
+
+  const [grammarNameDraft, setGrammarNameDraft] = useState(activeUserItem?.name ?? '');
+  useEffect(() => {
+    setGrammarNameDraft(activeUserItem?.name ?? '');
+  }, [activeUserItem?.id, activeUserItem?.name]);
 
   return (
     <Stack gap="sm">
@@ -106,10 +134,39 @@ export function GrammarEditor({
             ]}
           />
           <Select
+            placeholder="My grammars"
+            data={userGrammarData}
+            value={myGrammarValue}
+            onChange={(value) => {
+              if (!value) return;
+              if (value === NEW_GRAMMAR_VALUE) onNewUserGrammar();
+              else onSelectUserGrammar(value);
+            }}
+            size="xs"
+            w={160}
+          />
+          {activeUserItem && (
+            <TextInput
+              size="xs"
+              w={150}
+              placeholder="Grammar name"
+              aria-label="Grammar display name"
+              value={grammarNameDraft}
+              onChange={(e) => setGrammarNameDraft(e.currentTarget.value)}
+              onBlur={() => onRenameUserGrammar(grammarNameDraft)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+              }}
+            />
+          )}
+          <Button size="xs" variant="default" onClick={onSaveGrammar}>
+            Save
+          </Button>
+          <Select
             placeholder="Load fixture..."
-            data={fixtures.map(f => ({ value: f.name, label: f.name }))}
-            value={selectedFixture}
-            onChange={(value) => value && loadFixture(value)}
+            data={fixtures.map((f) => ({ value: f.name, label: f.name }))}
+            value={librarySource === 'fixture' ? selectedFixtureName : null}
+            onChange={(value) => value && onFixtureLoad(value)}
             size="xs"
             w={150}
           />
@@ -132,9 +189,9 @@ export function GrammarEditor({
         </Group>
       </Group>
 
-      {selectedFixture && (
+      {librarySource === 'fixture' && selectedFixtureName && (
         <Text size="xs" c="dimmed" lh={1.4}>
-          {fixtures.find(f => f.name === selectedFixture)?.description}
+          {fixtures.find((f) => f.name === selectedFixtureName)?.description}
         </Text>
       )}
 

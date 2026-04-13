@@ -10,7 +10,16 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import { useDebouncedCallback, useDebouncedValue } from '@mantine/hooks';
-import { Alert, Button, Stack, Text, useComputedColorScheme, useMantineTheme } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  useComputedColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
 import { IconLayout, IconPlus } from '@tabler/icons-react';
 import type { GrammarRule } from '../../engine/types';
 import {
@@ -59,6 +68,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
   const gridPattern = isDark ? theme.colors.dark[5] : theme.colors.gray[4];
 
   const [draftGrammar, setDraftGrammar] = useState(grammar);
+  const [deleteModalSymbol, setDeleteModalSymbol] = useState<string | null>(null);
 
   useEffect(() => {
     setDraftGrammar(grammar);
@@ -113,22 +123,28 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
     [debouncedCommit, onChange],
   );
 
-  const onDeleteRule = useCallback(
-    (symbol: string) => {
-      if (symbol === 'origin') return;
-      if (!window.confirm(`Delete rule "${symbol}"? References to it will break until you fix them.`)) return;
-      debouncedCommit.cancel();
-      let nextCommitted: GrammarRule | undefined;
-      setDraftGrammar((prev) => {
-        const next = { ...prev };
-        delete next[symbol];
-        nextCommitted = next;
-        return next;
-      });
-      if (nextCommitted) onChange(nextCommitted);
-    },
-    [debouncedCommit, onChange],
-  );
+  const onDeleteRule = useCallback((symbol: string) => {
+    if (symbol === 'origin') return;
+    setDeleteModalSymbol(symbol);
+  }, []);
+
+  const confirmDeleteRule = useCallback(() => {
+    const symbol = deleteModalSymbol;
+    if (!symbol || symbol === 'origin') {
+      setDeleteModalSymbol(null);
+      return;
+    }
+    debouncedCommit.cancel();
+    let nextCommitted: GrammarRule | undefined;
+    setDraftGrammar((prev) => {
+      const next = { ...prev };
+      delete next[symbol];
+      nextCommitted = next;
+      return next;
+    });
+    if (nextCommitted) onChange(nextCommitted);
+    setDeleteModalSymbol(null);
+  }, [deleteModalSymbol, debouncedCommit, onChange]);
 
   const flowCallbacks = useMemo(
     () => ({
@@ -194,6 +210,27 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
 
   return (
     <Stack gap="sm">
+      <Modal
+        opened={deleteModalSymbol !== null}
+        onClose={() => setDeleteModalSymbol(null)}
+        title="Delete rule"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            Delete rule <strong>{deleteModalSymbol ?? ''}</strong>? References to it will break until you fix them.
+          </Text>
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={() => setDeleteModalSymbol(null)}>
+              Cancel
+            </Button>
+            <Button color="red" onClick={confirmDeleteRule}>
+              Delete
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
       {missing.length > 0 && (
         <Alert color="yellow" title="Unknown references">
           <Text size="xs">These #symbols# have no rule: {missing.join(', ')}</Text>

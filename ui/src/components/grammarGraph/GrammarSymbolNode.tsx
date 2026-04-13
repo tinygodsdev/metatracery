@@ -113,8 +113,13 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
       )}
       <Stack gap={5}>
         {alternatives.map((alt, i) => (
-          <Group key={i} gap={6} wrap="nowrap" align="flex-start">
-            <Badge size="xs" variant="light" color={isStaticAlternative(alt) ? 'gray' : 'teal'}>
+          <Group key={i} gap={6} wrap="nowrap" align="center" justify="flex-start">
+            <Badge
+              size="xs"
+              variant="light"
+              color={isStaticAlternative(alt) ? 'gray' : 'teal'}
+              style={{ flexShrink: 0 }}
+            >
               {isStaticAlternative(alt) ? 'static' : 'dynamic'}
             </Badge>
             <TextInput
@@ -129,12 +134,13 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
             />
             <ActionIcon
               className="nodrag nopan"
-              size="sm"
+              size="input-xs"
               variant="subtle"
               color="red"
               onPointerDown={stopFlowPointer}
               onClick={() => removeAlt(i)}
               aria-label="Remove alternative"
+              style={{ flexShrink: 0 }}
             >
               <IconTrash size={14} />
             </ActionIcon>

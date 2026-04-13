@@ -8,10 +8,15 @@ import {
   useMantineColorScheme,
   useComputedColorScheme,
   Center,
+  ActionIcon,
 } from '@mantine/core';
-import { IconMoon, IconSun } from '@tabler/icons-react';
+import { IconDatabase, IconMoon, IconSun } from '@tabler/icons-react';
 
-export function Footer() {
+interface FooterProps {
+  onOpenStoredData: () => void;
+}
+
+export function Footer({ onOpenStoredData }: FooterProps) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedScheme = useComputedColorScheme('light');
   const themeMode =
@@ -36,34 +41,47 @@ export function Footer() {
         </Stack>
 
         <Stack gap="xs" align="flex-end">
-          <SegmentedControl
-            size="xs"
-            value={themeMode}
-            onChange={(value) =>
-              setColorScheme(value as 'light' | 'dark')
-            }
-            data={[
-              {
-                value: 'light',
-                label: (
-                  <Center>
-                    <IconSun size={14} stroke={1.5} aria-hidden />
-                  </Center>
-                ),
-              },
-              {
-                value: 'dark',
-                label: (
-                  <Center>
-                    <IconMoon size={14} stroke={1.5} aria-hidden />
-                  </Center>
-                ),
-              },
-            ]}
-            aria-label="Color scheme"
-          />
+          <Group gap="xs" wrap="nowrap">
+            <SegmentedControl
+              size="xs"
+              value={themeMode}
+              onChange={(value) =>
+                setColorScheme(value as 'light' | 'dark')
+              }
+              data={[
+                {
+                  value: 'light',
+                  label: (
+                    <Center>
+                      <IconSun size={14} stroke={1.5} aria-hidden />
+                    </Center>
+                  ),
+                },
+                {
+                  value: 'dark',
+                  label: (
+                    <Center>
+                      <IconMoon size={14} stroke={1.5} aria-hidden />
+                    </Center>
+                  ),
+                },
+              ]}
+              aria-label="Color scheme"
+            />
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="lg"
+              radius="xl"
+              aria-label="Data stored in this browser"
+              title="Data stored in this browser"
+              onClick={onOpenStoredData}
+            >
+              <IconDatabase size={18} stroke={1.5} />
+            </ActionIcon>
+          </Group>
           <Anchor
-            href="https://github.com/tinygodsdev/metatracery"
+            href="https://github.com/tinygodsdev"
             target="_blank"
             rel="noopener noreferrer"
             size="sm"
