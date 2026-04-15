@@ -27,7 +27,17 @@ export function Footer({ onOpenStoredData }: FooterProps) {
       <Group justify="space-between" align="flex-end" wrap="wrap">
         <Stack gap="xs">
           <Text size="sm" c="dimmed">
-            Created by <Text component="span" fw={500}>Dani Polani</Text> from{' '}
+            Created by{' '}
+            <Anchor
+              href="https://danipolani.github.io/en/"
+              target="_blank"
+              rel="noopener noreferrer"
+              fw={500}
+            >
+              Dani Polani
+            </Anchor>
+            {' '}
+            from{' '}
             <Anchor href="https://tinygods.dev" target="_blank" rel="noopener noreferrer">
               TinyGods.Dev
             </Anchor>
