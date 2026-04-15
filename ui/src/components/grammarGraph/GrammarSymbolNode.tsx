@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import {
@@ -48,6 +48,28 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
     next[index] = value;
     onAlternativesChange(symbol, next);
   };
+
+  const altInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const pendingFocusAltIndexRef = useRef<number | null>(null);
+
+  const insertAlternativeAfter = (afterIndex: number) => {
+    const next = [...alternatives];
+    next.splice(afterIndex + 1, 0, '');
+    pendingFocusAltIndexRef.current = afterIndex + 1;
+    onAlternativesChange(symbol, next);
+  };
+
+  useEffect(() => {
+    const idx = pendingFocusAltIndexRef.current;
+    if (idx === null) return;
+    if (idx < 0 || idx >= alternatives.length) return;
+    pendingFocusAltIndexRef.current = null;
+    const t = window.setTimeout(() => {
+      const el = altInputRefs.current[idx];
+      el?.focus();
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [alternatives]);
 
   const removeAlt = (index: number) => {
     const next = alternatives.filter((_, i) => i !== index);
@@ -131,6 +153,16 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
               onPointerDown={stopFlowPointer}
               ff="monospace"
               placeholder='e.g. hello or #OtherRule#'
+              ref={(el) => {
+                altInputRefs.current[i] = el;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  insertAlternativeAfter(i);
+                }
+              }}
             />
             <ActionIcon
               className="nodrag nopan"

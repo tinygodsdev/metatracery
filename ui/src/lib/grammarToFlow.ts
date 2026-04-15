@@ -16,13 +16,16 @@ export type GrammarSymbolNodeData = {
   onDeleteRule: (symbol: string) => void;
 };
 
-const DEFAULT_WIDTH = 300;
 const HEADER = 40;
 const ROW = 38;
 const PADDING = 24;
 
-function estimateNodeHeight(alternatives: number): number {
-  return PADDING + HEADER + Math.max(1, alternatives) * ROW;
+/** Matches dagre node width in `layoutWithDagre`. */
+export const GRAMMAR_FLOW_NODE_WIDTH = 300;
+
+/** Matches dagre node height for a given number of alternatives. */
+export function estimateGrammarNodeLayoutHeight(alternativesCount: number): number {
+  return PADDING + HEADER + Math.max(1, alternativesCount) * ROW;
 }
 
 /**
@@ -73,8 +76,8 @@ export function layoutWithDagre(nodes: Node<GrammarSymbolNodeData>[], edges: Edg
   g.setGraph({ rankdir: 'TB', nodesep: 48, ranksep: 72, marginx: 20, marginy: 20 });
 
   nodes.forEach((node) => {
-    const h = estimateNodeHeight(node.data.alternatives.length);
-    g.setNode(node.id, { width: DEFAULT_WIDTH, height: h });
+    const h = estimateGrammarNodeLayoutHeight(node.data.alternatives.length);
+    g.setNode(node.id, { width: GRAMMAR_FLOW_NODE_WIDTH, height: h });
   });
 
   edges.forEach((e) => {
@@ -85,8 +88,8 @@ export function layoutWithDagre(nodes: Node<GrammarSymbolNodeData>[], edges: Edg
 
   return nodes.map((node) => {
     const dagreNode = g.node(node.id);
-    const w = dagreNode.width ?? DEFAULT_WIDTH;
-    const h = dagreNode.height ?? estimateNodeHeight(node.data.alternatives.length);
+    const w = dagreNode.width ?? GRAMMAR_FLOW_NODE_WIDTH;
+    const h = dagreNode.height ?? estimateGrammarNodeLayoutHeight(node.data.alternatives.length);
     return {
       ...node,
       position: {
@@ -108,4 +111,17 @@ export function buildLaidOutFlow(
   const edges = buildReactFlowEdges(grammar);
   const layouted = layoutWithDagre(nodes, edges);
   return { nodes: layouted, edges };
+}
+
+/** Center of a laid-out grammar node in flow coordinates (top-left position + layout size). */
+export function getGrammarFlowNodeCenter(
+  node: Pick<Node<GrammarSymbolNodeData>, 'position' | 'id'>,
+  grammar: GrammarRule,
+): { x: number; y: number } {
+  const alts = grammar[node.id]?.length ?? 1;
+  const h = estimateGrammarNodeLayoutHeight(alts);
+  return {
+    x: node.position.x + GRAMMAR_FLOW_NODE_WIDTH / 2,
+    y: node.position.y + h / 2,
+  };
 }

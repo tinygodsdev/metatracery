@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Node } from '@xyflow/react';
 import {
   ReactFlow,
   Background,
@@ -28,7 +29,12 @@ import {
   grammarLayoutFingerprint,
   renameRule,
 } from '../../engine/grammarGraphModel';
-import { buildLaidOutFlow, GRAMMAR_SYMBOL_NODE_TYPE } from '../../lib/grammarToFlow';
+import {
+  buildLaidOutFlow,
+  getGrammarFlowNodeCenter,
+  GRAMMAR_SYMBOL_NODE_TYPE,
+  type GrammarSymbolNodeData,
+} from '../../lib/grammarToFlow';
 import { GrammarSymbolNode } from './GrammarSymbolNode';
 
 /** Delay before lifting graph edits to parent (engine, JSON sync, results). */
@@ -38,6 +44,52 @@ const COMMIT_MS = 200;
 const LAYOUT_DEBOUNCE_MS = 100;
 
 const nodeTypes = { [GRAMMAR_SYMBOL_NODE_TYPE]: GrammarSymbolNode };
+
+/** Slight zoom-out factor when refocusing after new nodes; clamps keep the view readable. */
+const FOCUS_ZOOM_FACTOR = 0.94;
+const FOCUS_ZOOM_MIN = 0.42;
+const FOCUS_ZOOM_MAX = 1.4;
+
+function GraphViewportFocus({
+  laidOut,
+  grammar,
+  focus,
+  onFocusComplete,
+}: {
+  laidOut: Node<GrammarSymbolNodeData>[];
+  grammar: GrammarRule;
+  focus: { id: string; token: number } | null;
+  onFocusComplete: () => void;
+}) {
+  const { setCenter, getViewport } = useReactFlow();
+
+  useEffect(() => {
+    if (focus == null) return;
+    const node = laidOut.find((n) => n.id === focus.id);
+    if (!node) {
+      onFocusComplete();
+      return;
+    }
+    const { x, y } = getGrammarFlowNodeCenter(node, grammar);
+    let cancelled = false;
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        const { zoom } = getViewport();
+        const z = Math.min(Math.max(zoom * FOCUS_ZOOM_FACTOR, FOCUS_ZOOM_MIN), FOCUS_ZOOM_MAX);
+        void setCenter(x, y, { zoom: z, duration: 220 }).finally(() => {
+          if (!cancelled) onFocusComplete();
+        });
+      });
+    });
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [focus?.id, focus?.token, laidOut, grammar, setCenter, getViewport, onFocusComplete]);
+
+  return null;
+}
 
 function FitViewButton() {
   const { fitView } = useReactFlow();
@@ -69,9 +121,19 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
 
   const [draftGrammar, setDraftGrammar] = useState(grammar);
   const [deleteModalSymbol, setDeleteModalSymbol] = useState<string | null>(null);
+  const [viewportFocus, setViewportFocus] = useState<{ id: string; token: number } | null>(null);
+
+  const lastInteractedSymbolRef = useRef<string | null>(null);
+  const prevRuleKeysRef = useRef<Set<string>>(new Set());
+  const focusSeqRef = useRef(0);
+
+  const clearViewportFocus = useCallback(() => {
+    setViewportFocus(null);
+  }, []);
 
   useEffect(() => {
     setDraftGrammar(grammar);
+    prevRuleKeysRef.current = new Set();
   }, [grammar]);
 
   const debouncedCommit = useDebouncedCallback(
@@ -83,6 +145,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
 
   const onAlternativesChange = useCallback(
     (symbol: string, alts: string[]) => {
+      lastInteractedSymbolRef.current = symbol;
       setDraftGrammar((prev) => {
         const next = ensureRulesForReferences({ ...prev, [symbol]: alts });
         debouncedCommit(next);
@@ -94,6 +157,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
 
   const onAddStaticAlternative = useCallback(
     (symbol: string) => {
+      lastInteractedSymbolRef.current = symbol;
       setDraftGrammar((prev) => {
         const prevAlts = prev[symbol] ?? [];
         const next = ensureRulesForReferences({ ...prev, [symbol]: [...prevAlts, ''] });
@@ -190,6 +254,22 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
     setEdges(edges);
   }, [laidOut, edges, setNodes, setEdges]);
 
+  useEffect(() => {
+    const ids = new Set(Object.keys(layoutSource));
+    if (prevRuleKeysRef.current.size === 0) {
+      prevRuleKeysRef.current = new Set(ids);
+      return;
+    }
+    const added = [...ids].filter((id) => !prevRuleKeysRef.current.has(id));
+    prevRuleKeysRef.current = new Set(ids);
+    if (added.length === 0) return;
+    const sym = lastInteractedSymbolRef.current;
+    if (sym && ids.has(sym)) {
+      focusSeqRef.current += 1;
+      setViewportFocus({ id: sym, token: focusSeqRef.current });
+    }
+  }, [layoutSource]);
+
   const missing = useMemo(() => findMissingRefs(draftGrammar), [draftGrammar]);
 
   const keys = Object.keys(draftGrammar);
@@ -263,6 +343,12 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           proOptions={{ hideAttribution: true }}
           onNodeClick={() => {}}
         >
+          <GraphViewportFocus
+            laidOut={laidOut}
+            grammar={draftGrammar}
+            focus={viewportFocus}
+            onFocusComplete={clearViewportFocus}
+          />
           <Background color={gridPattern} gap={14} size={1.25} />
           <Controls />
           <Panel position="top-right">
