@@ -3,18 +3,22 @@
  */
 
 import type { GrammarRule } from './types';
+import { FULL_PLACEHOLDER, parsePlaceholderInner } from './placeholderParse';
 
-/** Same pattern as Engine.ts PLACEHOLDER — keep in sync */
-export const GRAMMAR_PLACEHOLDER = /#([A-Za-z_][A-Za-z0-9_]*)#/g;
+/** Same pattern as Engine.ts — keep in sync */
+export { FULL_PLACEHOLDER as GRAMMAR_PLACEHOLDER };
 
 /**
- * All symbol names referenced by #name# in a template string (order of first occurrence).
+ * All rule names referenced by #name# or #name.mod# in a template (order of first occurrence).
  */
 export function extractRefNamesFromTemplate(template: string): string[] {
   const names: string[] = [];
-  const re = new RegExp(GRAMMAR_PLACEHOLDER.source, 'g');
-  for (const m of template.matchAll(re)) {
-    names.push(m[1]!);
+  for (const m of template.matchAll(FULL_PLACEHOLDER)) {
+    try {
+      names.push(parsePlaceholderInner(m[1]!).ruleName);
+    } catch {
+      // skip invalid tags
+    }
   }
   return names;
 }
@@ -94,7 +98,7 @@ export function generateUniqueRuleName(grammar: GrammarRule, base = 'rule'): str
   return `${base}_${i}`;
 }
 
-/** Same identifier rule as Engine.ts PLACEHOLDER group 1 */
+/** Same identifier rule as placeholderParse rule name */
 export function isValidSymbolName(name: string): boolean {
   return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name);
 }
@@ -148,13 +152,17 @@ export function renameRule(grammar: GrammarRule, oldName: string, newName: strin
     throw new Error(`A rule named "${trimmed}" already exists`);
   }
 
-  const re = new RegExp(`#${escapeRegExp(oldName)}#`, 'g');
+  const reExact = new RegExp(`#${escapeRegExp(oldName)}#`, 'g');
+  const reDotted = new RegExp(`#${escapeRegExp(oldName)}\\.`, 'g');
   const next: GrammarRule = {};
+
+  const rewrite = (s: string) =>
+    s.replace(reDotted, `#${trimmed}.`).replace(reExact, `#${trimmed}#`);
 
   for (const [k, v] of Object.entries(grammar)) {
     if (k === oldName) continue;
-    next[k] = v.map((s) => s.replace(re, `#${trimmed}#`));
+    next[k] = v.map(rewrite);
   }
-  next[trimmed] = grammar[oldName]!.map((s) => s.replace(re, `#${trimmed}#`));
+  next[trimmed] = grammar[oldName]!.map(rewrite);
   return next;
 }

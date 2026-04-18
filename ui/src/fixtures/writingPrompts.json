@@ -1,0 +1,50 @@
+{
+  "origin": ["#story#"],
+  "story": [
+    "#opening.capitalize# #middle# #ending#",
+    "Scene: #place.a#. #protagonist.capitalize# must #goal# before #timeframe#.",
+    "Letter: Dear #reader_title#, #confession#. Yours, #signature#.",
+    "Twist: everyone assumed #assumption#. Then #reveal#."
+  ],
+  "opening": [
+    "a whisper in the dark",
+    "the last train had left",
+    "rain wrote patterns on the glass"
+  ],
+  "middle": [
+    "a stranger offered #object.a#",
+    "old maps disagreed about the coast",
+    "silence grew heavier than words"
+  ],
+  "ending": [
+    "and the city forgot the reason",
+    "but the echo remained",
+    "so the story rewrote itself"
+  ],
+  "place": ["warehouse", "orchard", "archive", "harbor"],
+  "protagonist": ["librarian", "pilot", "botanist", "student"],
+  "goal": ["find the missing page", "decode the signal", "cross the bridge"],
+  "timeframe": ["midnight", "the next storm", "anyone notices"],
+  "reader_title": ["friend", "editor", "traveler", "future self"],
+  "confession": [
+    "I borrowed a memory I cannot return",
+    "the draft is honest; I am not",
+    "every ending I write becomes a door"
+  ],
+  "signature": [
+    "the pen",
+    "a name you almost remember",
+    "chapter one"
+  ],
+  "assumption": [
+    "the lighthouse was empty",
+    "the recipe was harmless",
+    "the map was literal"
+  ],
+  "reveal": [
+    "the light spelled a name",
+    "the margins filled with warnings",
+    "the coastline moved overnight"
+  ],
+  "object": ["key", "compass", "seed", "ticket"]
+}

@@ -17,6 +17,11 @@ describe('grammarGraphModel', () => {
     expect(extractRefNamesFromTemplate('#word_order#')).toEqual(['word_order']);
   });
 
+  test('extractRefNamesFromTemplate uses rule name only when modifiers present', () => {
+    expect(extractRefNamesFromTemplate('#NP.capitalize#')).toEqual(['NP']);
+    expect(extractRefNamesFromTemplate('#a# #b.s#')).toEqual(['a', 'b']);
+  });
+
   test('isStaticAlternative', () => {
     expect(isStaticAlternative('girl')).toBe(true);
     expect(isStaticAlternative('hello world')).toBe(true);
@@ -71,6 +76,16 @@ describe('grammarGraphModel', () => {
     expect(out.origin).toEqual(['#NounPhrase#']);
     expect(out.NounPhrase).toEqual(['girl']);
     expect(out.NP).toBeUndefined();
+  });
+
+  test('renameRule updates dotted placeholders', () => {
+    const g = {
+      origin: ['#NP.a#'],
+      NP: ['x'],
+    };
+    const out = renameRule(g, 'NP', 'NounPhrase');
+    expect(out.origin).toEqual(['#NounPhrase.a#']);
+    expect(out.NounPhrase).toEqual(['x']);
   });
 
   test('isValidSymbolName', () => {

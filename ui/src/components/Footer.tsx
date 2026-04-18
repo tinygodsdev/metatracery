@@ -10,7 +10,9 @@ import {
   Center,
   ActionIcon,
 } from '@mantine/core';
+import { Link } from 'react-router-dom';
 import { IconDatabase, IconMoon, IconSun } from '@tabler/icons-react';
+import { USE_CASES } from '../seo/useCases';
 
 interface FooterProps {
   onOpenStoredData: () => void;
@@ -48,6 +50,16 @@ export function Footer({ onOpenStoredData }: FooterProps) {
               Tracery.js
             </Anchor>
           </Text>
+          <Group gap="xs" wrap="wrap">
+            <Text size="xs" c="dimmed" component="span">
+              Use cases:
+            </Text>
+            {USE_CASES.map((uc) => (
+              <Anchor key={uc.path} component={Link} to={uc.path} size="xs">
+                {uc.h1}
+              </Anchor>
+            ))}
+          </Group>
         </Stack>
 
         <Stack gap="xs" align="flex-end">

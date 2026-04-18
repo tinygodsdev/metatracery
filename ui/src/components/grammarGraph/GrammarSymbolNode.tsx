@@ -139,7 +139,7 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
             <Badge
               size="xs"
               variant="light"
-              color={isStaticAlternative(alt) ? 'gray' : 'teal'}
+              color={isStaticAlternative(alt) ? 'gray' : theme.primaryColor}
               style={{ flexShrink: 0 }}
             >
               {isStaticAlternative(alt) ? 'static' : 'dynamic'}

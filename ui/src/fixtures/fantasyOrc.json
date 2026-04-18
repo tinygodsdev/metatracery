@@ -1,0 +1,6 @@
+{
+  "origin": ["#onset##nucleus##coda#", "#onset##nucleus#"],
+  "onset": ["gro", "zug", "ruk", "nag", "ur", "gha", "skar", "thok", "mog", "krag"],
+  "nucleus": ["a", "u", "o", "ar", "ur", "og", "uk", "az"],
+  "coda": ["nash", "duk", "gash", "nak", "rim", "zog", "thak", "bur"]
+}

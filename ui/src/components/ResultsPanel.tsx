@@ -15,6 +15,10 @@ import {
   Center,
   NumberInput,
   NativeSelect,
+  Switch,
+  Textarea,
+  Paper,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { GrammarProcessor } from '../engine/GrammarEngine';
@@ -30,6 +34,14 @@ interface ResultsPanelProps {
   onGenerateMany: (parameters: Record<string, string>, count: number) => void;
   strategy: GenerationStrategy;
   onStrategyChange: (strategy: GenerationStrategy) => void;
+  processModifiers: boolean;
+  onProcessModifiersChange: (value: boolean) => void;
+  /** Default `line` — single-line text cells. */
+  contentVariant?: 'line' | 'multiline';
+  /** When set, caps "Generate many" (1–5 in strict use cases). */
+  maxGenerateMany?: number;
+  /** When false, hides "Generate all". Default true. */
+  showGenerateAll?: boolean;
 }
 
 export function ResultsPanel({ 
@@ -40,8 +52,14 @@ export function ResultsPanel({
   onGenerateAll,
   onGenerateMany,
   strategy,
-  onStrategyChange
+  onStrategyChange,
+  processModifiers,
+  onProcessModifiersChange,
+  contentVariant = 'line',
+  maxGenerateMany,
+  showGenerateAll = true,
 }: ResultsPanelProps) {
+  const theme = useMantineTheme();
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
   const [generateCount, setGenerateCount] = useState<number>(10);
 
@@ -78,15 +96,26 @@ export function ResultsPanel({
 
   const actualCombinations = getActualCombinationCount();
 
+  const generateManyHardMax =
+    maxGenerateMany !== undefined ? Math.min(maxGenerateMany, 100) : 100;
+  const generateManyMax = Math.min(generateManyHardMax, Math.max(1, actualCombinations));
+
   // Get relevant parameters from the engine (now provided by the engine itself)
   const getRelevantParameters = (result: GenerationResult): Record<string, any> => {
     return result.metadata.relevantParameters || {};
   };
 
+  const getModifierApplications = (result: GenerationResult) =>
+    result.metadata.modifierApplications ?? [];
+
   // Reset selected parameters when grammar changes
   useEffect(() => {
     setSelectedParameters({});
   }, [engine]);
+
+  useEffect(() => {
+    setGenerateCount((c) => Math.min(Math.max(1, c), generateManyMax));
+  }, [generateManyMax, engine]);
 
   const handleParameterChange = (paramName: string, value: string) => {
     setSelectedParameters(prev => {
@@ -117,7 +146,8 @@ export function ResultsPanel({
     singleValueParameters.forEach(([name, param]) => {
       allParameters[name] = param.values[0];
     });
-    onGenerateMany(allParameters, generateCount);
+    const n = Math.min(Math.max(1, generateCount), generateManyMax);
+    onGenerateMany(allParameters, n);
   };
 
   const exportResults = () => {
@@ -205,6 +235,13 @@ export function ResultsPanel({
                   { value: 'weighted', label: 'Weighted' },
                 ]}
               />
+              <Switch
+                size="xs"
+                checked={processModifiers}
+                onChange={(e) => onProcessModifiersChange(e.currentTarget.checked)}
+                label="Modifiers"
+                title="Apply Tracery-style #rule.mod# modifiers (a, s, capitalize, …)"
+              />
             </Group>
           </Group>
         </Group>
@@ -240,8 +277,9 @@ export function ResultsPanel({
         )}
 
         <Group>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
+            variant="filled"
             onClick={handleGenerateWithParams}
             disabled={isLoading}
           >
@@ -251,32 +289,38 @@ export function ResultsPanel({
             <NumberInput
               size="sm"
               value={generateCount}
-              onChange={(value) => setGenerateCount(typeof value === 'number' ? value : 10)}
+              onChange={(value) =>
+                setGenerateCount(
+                  typeof value === 'number' ? value : generateManyMax,
+                )
+              }
               min={1}
-              max={Math.min(100, actualCombinations)}
+              max={generateManyMax}
               w={80}
               placeholder="Count"
-              title={`Generate multiple results (1-${Math.min(100, actualCombinations)})`}
+              title={`Generate multiple results (1–${generateManyMax})`}
             />
             <Button
               size="sm" 
               variant="light"
               onClick={handleGenerateMany}
-              disabled={isLoading || generateCount < 1 || generateCount > Math.min(100, actualCombinations)}
-              title={`Generate ${generateCount} results`}
+              disabled={isLoading || generateCount < 1 || generateCount > generateManyMax}
+              title={`Generate ${Math.min(generateCount, generateManyMax)} results`}
             >
-              Generate Many ({generateCount})
+              Generate Many ({Math.min(generateCount, generateManyMax)})
             </Button>
           </Group>
-          <Button
-            size="sm" 
-            variant="outline"
-            onClick={() => onGenerateAll(validatedParameterConstraints)}
-            disabled={isLoading || actualCombinations > 100}
-            title={actualCombinations > 100 ? `Too many combinations (${actualCombinations}). Use more specific parameters.` : undefined}
-          >
-            Generate All ({actualCombinations})
-          </Button>
+          {showGenerateAll && (
+            <Button
+              size="sm" 
+              variant="outline"
+              onClick={() => onGenerateAll(validatedParameterConstraints)}
+              disabled={isLoading || actualCombinations > 100}
+              title={actualCombinations > 100 ? `Too many combinations (${actualCombinations}). Use more specific parameters.` : undefined}
+            >
+              Generate All ({actualCombinations})
+            </Button>
+          )}
         </Group>
 
         {stats && (
@@ -332,7 +376,7 @@ export function ResultsPanel({
         {isLoading ? (
           <Center h={200}>
             <Stack align="center">
-              <Loader size="md" />
+              <Loader size="md" color={theme.primaryColor} />
               <Text size="sm" c="dimmed">Generating results...</Text>
             </Stack>
           </Center>
@@ -340,6 +384,56 @@ export function ResultsPanel({
           <Alert color="gray">
             <Text size="sm">No results yet. Use the controls above to generate some.</Text>
           </Alert>
+        ) : contentVariant === 'multiline' ? (
+          <ScrollArea.Autosize mah={520} type="auto" offsetScrollbars>
+            <Stack gap="md">
+              {results.map((result, index) => (
+                <Paper key={index} withBorder p="md" radius="sm">
+                  <Stack gap="sm">
+                    <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
+                      Content
+                    </Text>
+                    <Textarea
+                      value={result.content}
+                      readOnly
+                      autosize
+                      minRows={3}
+                      maxRows={18}
+                      size="sm"
+                      styles={{
+                        input: {
+                          fontWeight: 500,
+                          cursor: 'default',
+                          width: '100%',
+                        },
+                      }}
+                    />
+                    <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
+                      Parameters
+                    </Text>
+                    <Group gap={4} wrap="wrap">
+                      {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
+                        <Badge key={key} size="xs" variant="light">
+                          {key}: {value}
+                        </Badge>
+                      ))}
+                      {getModifierApplications(result).map((app, i) => (
+                        <Badge
+                          key={`mod-${i}`}
+                          size="xs"
+                          variant="outline"
+                          color={theme.primaryColor}
+                          title={`${app.expandedText} → ${app.resultText}`}
+                        >
+                          {app.rule}: {app.modifiers.join('.')}
+                        </Badge>
+                      ))}
+                    </Group>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </ScrollArea.Autosize>
         ) : (
           <ScrollArea.Autosize mah={400} type="auto" offsetScrollbars>
             <Table striped highlightOnHover>
@@ -360,6 +454,17 @@ export function ResultsPanel({
                         {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
                           <Badge key={key} size="xs" variant="light">
                             {key}: {value}
+                          </Badge>
+                        ))}
+                        {getModifierApplications(result).map((app, i) => (
+                          <Badge
+                            key={`mod-${i}`}
+                            size="xs"
+                            variant="outline"
+                            color={theme.primaryColor}
+                            title={`${app.expandedText} → ${app.resultText}`}
+                          >
+                            {app.rule}: {app.modifiers.join('.')}
                           </Badge>
                         ))}
                       </Group>
@@ -400,6 +505,24 @@ export function ResultsPanel({
                             ))}
                           </Group>
                         </div>
+                        {getModifierApplications(result).length > 0 && (
+                          <div>
+                            <Text size="xs" c="dimmed">Modifiers applied:</Text>
+                            <Stack gap={6} mt={4}>
+                              {getModifierApplications(result).map((app, i) => (
+                                <Text key={i} size="xs">
+                                  <Text component="span" fw={600}>
+                                    #{app.rule}.{app.modifiers.join('.')}#
+                                  </Text>
+                                  {' — '}
+                                  <Code>{app.expandedText}</Code>
+                                  {' → '}
+                                  <Code>{app.resultText}</Code>
+                                </Text>
+                              ))}
+                            </Stack>
+                          </div>
+                        )}
                         <div>
                           <Text size="xs" c="dimmed">Applied Rules:</Text>
                           <Text size="xs">{result.metadata.appliedRules.length} rules</Text>

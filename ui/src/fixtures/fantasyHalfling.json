@@ -1,0 +1,6 @@
+{
+  "origin": ["#soft##mid##end#", "#soft##mid#"],
+  "soft": ["bil", "pip", "mer", "sam", "ros", "odo", "per", "mil", "tob", "wil"],
+  "mid": ["bo", "do", "lo", "ro", "go", "mi", "ni", "ri"],
+  "end": ["berry", "bun", "foot", "toes", "banks", "leaf", "garden", "chubb", "brandy"]
+}

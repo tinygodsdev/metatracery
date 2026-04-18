@@ -26,6 +26,14 @@ export interface TemplatePath {
   path: PathChoice[];       // Выборы на каждом уровне
 }
 
+/** One #rule.mod1.mod2# application: expanded text, then after modifier pipeline */
+export interface ModifierApplication {
+  rule: string;
+  expandedText: string;
+  modifiers: string[];
+  resultText: string;
+}
+
 // Generation result with full metadata
 export interface GenerationResult {
   content: string;
@@ -36,6 +44,8 @@ export interface GenerationResult {
     generationPath: string[];
     structure?: Record<string, any>; // Generic structure, not hardcoded
     generationTime?: number;
+    /** Filled when processModifiers is on: each modifier chain applied to a reference */
+    modifierApplications?: ModifierApplication[];
   };
 }
 
@@ -94,6 +104,8 @@ export interface EngineConfig {
   enableTracking: boolean;
   enableStatistics: boolean;
   randomSeed?: number;
+  /** Apply Tracery-style #rule.mod# pipelines to expanded text */
+  processModifiers?: boolean;
 }
 
 // Generation statistics

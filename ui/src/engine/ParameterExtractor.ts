@@ -1,4 +1,5 @@
 import type { GrammarRule, ExtractedParameters, ExtractedParameter } from './types';
+import { FULL_PLACEHOLDER, parsePlaceholderInner } from './placeholderParse';
 
 export type { ExtractedParameters, ExtractedParameter };
 
@@ -106,13 +107,13 @@ export class ParameterExtractor {
    */
   private extractSymbolReferences(rule: string): string[] {
     const references: string[] = [];
-    const regex = /#([^#]+)#/g;
-    let match;
-    
-    while ((match = regex.exec(rule)) !== null) {
-      references.push(match[1]);
+    for (const m of rule.matchAll(FULL_PLACEHOLDER)) {
+      try {
+        references.push(parsePlaceholderInner(m[1]!).ruleName);
+      } catch {
+        // invalid placeholder — ignore
+      }
     }
-    
     return references;
   }
   
