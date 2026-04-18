@@ -16,6 +16,11 @@ import fantasyDragon from './fantasyDragon.json';
 import fantasyHuman from './fantasyHuman.json';
 import fantasyHalfling from './fantasyHalfling.json';
 import fantasyTiefling from './fantasyTiefling.json';
+import placeNames from './placeNames.json';
+import randomSentences from './randomSentences.json';
+import sigilSimple from './sigilSimple.json';
+import svgPattern from './svgPattern.json';
+import npcCharacterSheet from './npcCharacterSheet.json';
 
 export interface Fixture {
   name: string;
@@ -117,6 +122,33 @@ export const fixtures: Fixture[] = [
     description:
       'Infernal-style syllables (D&D-inspired): endings like -os/-on vs -a/-eis, harsh and melodic mixes — plain a–z only.',
     grammar: fantasyTiefling
+  },
+  {
+    name: 'Fantasy places',
+    description:
+      'Settlement and realm names: prefixes, cores, and suffixes for maps and fiction (town, kingdom, duchy).',
+    grammar: placeNames
+  },
+  {
+    name: 'Random sentences',
+    description: 'Short lines and tiny two-line paragraphs from subject / verb / object style rules.',
+    grammar: randomSentences
+  },
+  {
+    name: 'Simple sigil',
+    description:
+      'Self-contained SVG strings: background tile plus a random glyph (circle, polygon, path) and palette.',
+    grammar: sigilSimple
+  },
+  {
+    name: 'SVG pattern',
+    description: 'Small SVG with dotted or grid fill for backgrounds and design experiments.',
+    grammar: svgPattern
+  },
+  {
+    name: 'NPC character sheet',
+    description: 'Markdown block: heading with name, race, class, quirk, and a quoted story hook.',
+    grammar: npcCharacterSheet
   }
 ];
 

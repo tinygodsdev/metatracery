@@ -1,5 +1,9 @@
 import { applyModifierPipeline, DEFAULT_ENGLISH_MODIFIERS } from "./baseEngModifiers";
-import { FULL_PLACEHOLDER, parsePlaceholderInner } from "./placeholderParse";
+import {
+  decodePlaceholderInner,
+  parsePlaceholderInner,
+  splitTemplateSegments,
+} from "./placeholderParse";
 import type { ModifierApplication } from "./types";
 
 export type Grammar = Record<string, string[]>;
@@ -48,13 +52,11 @@ const Alternation = (options: AstNode[]): AlternationNode => ({
   options,
 });
 
-const WRAPPED_PLACEHOLDER = new RegExp("^#([^#]+)#$");
-
 function ruleNameFromPattern(pat: string): string | undefined {
-  const m = WRAPPED_PLACEHOLDER.exec(pat);
-  if (!m) return undefined;
   try {
-    return parsePlaceholderInner(m[1]!).ruleName;
+    const segs = splitTemplateSegments(pat);
+    if (segs.length !== 1 || segs[0]!.kind !== "placeholder") return undefined;
+    return parsePlaceholderInner(decodePlaceholderInner(segs[0].innerRaw)).ruleName;
   } catch {
     return undefined;
   }
@@ -72,22 +74,18 @@ export class GrammarEngine {
     );
   }
 
-  // Parse a template like "#NP# eats #OP#" or "#noun.a#"
+  // Parse a template like "#NP# eats #OP#" or "#noun.a#"; `\#` / `\\` for literal # and \
   private parseTemplate = (template: string): AstNode => {
     const parts: AstNode[] = [];
-    let last = 0;
-    for (const match of template.matchAll(FULL_PLACEHOLDER)) {
-      const idx = match.index ?? 0;
-      if (idx > last) {
-        const text = template.slice(last, idx);
-        if (text) parts.push(Literal(text));
+    for (const seg of splitTemplateSegments(template)) {
+      if (seg.kind === "literal") {
+        if (seg.text) parts.push(Literal(seg.text));
+        continue;
       }
-      const inner = match[1]!;
-      const { ruleName, modifierSegments } = parsePlaceholderInner(inner);
+      const decoded = decodePlaceholderInner(seg.innerRaw);
+      const { ruleName, modifierSegments } = parsePlaceholderInner(decoded);
       parts.push(Ref(ruleName, modifierSegments));
-      last = idx + match[0].length;
     }
-    if (last < template.length) parts.push(Literal(template.slice(last)));
     return Sequence(parts);
   };
 

@@ -43,7 +43,14 @@ import {
   clearGrammarLibraryFromLocalStorage,
 } from './grammarLibraryStorage';
 import { SeoHead } from './seo/SeoHead';
-import { getLegacyUseCaseRedirect, getUseCaseByPath, isAllowedPath } from './seo/useCases';
+import type { UseCasePreviewConfig, UseCaseResultsContentVariant } from './seo/useCases';
+import { getUseCaseByPath, isAllowedPath } from './seo/useCases';
+
+const HOME_RICH_RESULT_PREVIEW: UseCasePreviewConfig = {
+  aspectRatio: 1,
+  minHeight: 160,
+  background: 'checker',
+};
 
 const DEBOUNCE_MS = 450;
 
@@ -52,31 +59,12 @@ function draftStorageKey(pathname: string): string {
   return `gge-usecase-draft-${pathname}`;
 }
 
-/** Draft key from before `/writing-prompts` rename. */
-const LEGACY_WRITING_PROMPTS_DRAFT_PATH = '/usecase1';
-
-/** Draft key from before `/fantasy-names` rename. */
-const LEGACY_FANTASY_NAMES_DRAFT_PATH = '/usecase2';
-
-function draftStorageKeysForRoute(pathname: string): string[] {
-  const keys = [draftStorageKey(pathname)];
-  if (pathname === '/writing-prompts') keys.push(draftStorageKey(LEGACY_WRITING_PROMPTS_DRAFT_PATH));
-  if (pathname === '/fantasy-names') keys.push(draftStorageKey(LEGACY_FANTASY_NAMES_DRAFT_PATH));
-  return keys;
-}
-
 function readDraftForRoute(pathname: string): string | null {
-  for (const k of draftStorageKeysForRoute(pathname)) {
-    const v = localStorage.getItem(k);
-    if (v) return v;
-  }
-  return null;
+  return localStorage.getItem(draftStorageKey(pathname));
 }
 
 function removeDraftsForRoute(pathname: string) {
-  for (const k of draftStorageKeysForRoute(pathname)) {
-    localStorage.removeItem(k);
-  }
+  localStorage.removeItem(draftStorageKey(pathname));
 }
 
 function grammarSignature(g: GrammarRule): string {
@@ -111,10 +99,6 @@ function getInitialClientGrammarState(): {
 
 export default function GrammarApp() {
   const { pathname } = useLocation();
-  const legacyRedirect = getLegacyUseCaseRedirect(pathname);
-  if (legacyRedirect) {
-    return <Navigate to={legacyRedirect} replace />;
-  }
   if (!isAllowedPath(pathname)) {
     return <Navigate to="/" replace />;
   }
@@ -139,6 +123,8 @@ export default function GrammarApp() {
   const [error, setError] = useState<string | null>(null);
   const [strategy, setStrategy] = useState<GenerationStrategy>('uniform');
   const [processModifiers, setProcessModifiers] = useState(false);
+  const [homeResultsContentVariant, setHomeResultsContentVariant] =
+    useState<UseCaseResultsContentVariant>('line');
   const [helpOpen, setHelpOpen] = useState(false);
   const [grammarViewMode, setGrammarViewMode] = useState<'json' | 'graph'>('graph');
 
@@ -193,6 +179,8 @@ export default function GrammarApp() {
   useEffect(() => {
     setDraftDialog(null);
     const uc = getUseCaseByPath(pathname);
+
+    setGrammarViewMode(uc?.ui?.defaultGrammarViewMode ?? 'graph');
 
     if (uc?.ui?.defaultProcessModifiers !== undefined) {
       setProcessModifiers(uc.ui.defaultProcessModifiers);
@@ -530,10 +518,32 @@ export default function GrammarApp() {
 
   const routePrimary = useCase?.ui?.primaryColor;
 
+  const resultsContentVariant: UseCaseResultsContentVariant = isHome
+    ? homeResultsContentVariant
+    : (useCase?.ui?.resultsContentVariant ?? 'line');
+
+  const resultsPreview: UseCasePreviewConfig | undefined =
+    useCase?.ui?.preview ??
+    (isHome &&
+    (homeResultsContentVariant === 'svg' ||
+      homeResultsContentVariant === 'html' ||
+      homeResultsContentVariant === 'markdown')
+      ? HOME_RICH_RESULT_PREVIEW
+      : undefined);
+
   const shellBody = (
     <>
       <Container fluid pt="xs" pb="md" px="sm">
-        {useCase && <UsecaseHero h1={useCase.h1} intro={useCase.intro} />}
+        {isHome && <UsecaseDiscoveryCards placement="top" />}
+
+        {useCase && (
+          <UsecaseHero
+            path={useCase.path}
+            primaryColor={useCase.ui?.primaryColor ?? 'blue'}
+            h1={useCase.h1}
+            intro={useCase.intro}
+          />
+        )}
 
         {error && (
           <Alert color="red" mb="md">
@@ -575,12 +585,8 @@ export default function GrammarApp() {
 
           <Grid.Col span={{ base: 12, md: 6 }}>
             <Stack gap="md">
-              <Group align="center">
-                <Title order={isHome ? 2 : 2} size="h3" component="h2" style={{ lineHeight: 1.2 }}>
-                  Results
-                </Title>
-              </Group>
               <ResultsPanel
+                key={pathname}
                 engine={engine}
                 results={results}
                 isLoading={isLoading}
@@ -591,9 +597,14 @@ export default function GrammarApp() {
                 onStrategyChange={setStrategy}
                 processModifiers={processModifiers}
                 onProcessModifiersChange={setProcessModifiers}
-                contentVariant={useCase?.ui?.resultsContentVariant ?? 'line'}
+                contentVariant={resultsContentVariant}
+                preview={resultsPreview}
                 maxGenerateMany={useCase?.ui?.maxGenerateMany}
                 showGenerateAll={useCase?.ui?.showGenerateAll ?? true}
+                parameterControlsDefaultExpanded={isHome}
+                showResultDisplayModeControl={isHome}
+                homeResultDisplayMode={homeResultsContentVariant}
+                onHomeResultDisplayModeChange={setHomeResultsContentVariant}
               />
             </Stack>
           </Grid.Col>
@@ -605,7 +616,7 @@ export default function GrammarApp() {
           </Text>
         )}
 
-        <UsecaseDiscoveryCards />
+        {!isHome && <UsecaseDiscoveryCards placement="bottom" />}
       </Container>
 
       <Footer onOpenStoredData={() => setStoredDataModalOpen(true)} />
@@ -677,12 +688,6 @@ export default function GrammarApp() {
               onClick={() => {
                 try {
                   localStorage.setItem(draftStorageKey(pathname), JSON.stringify(grammarRef.current));
-                  if (pathname === '/writing-prompts') {
-                    localStorage.removeItem(draftStorageKey(LEGACY_WRITING_PROMPTS_DRAFT_PATH));
-                  }
-                  if (pathname === '/fantasy-names') {
-                    localStorage.removeItem(draftStorageKey(LEGACY_FANTASY_NAMES_DRAFT_PATH));
-                  }
                 } catch (e) {
                   console.warn(e);
                 }

@@ -22,6 +22,15 @@ describe('grammarGraphModel', () => {
     expect(extractRefNamesFromTemplate('#a# #b.s#')).toEqual(['a', 'b']);
   });
 
+  test('extractRefNamesFromTemplate ignores escaped hashes (no false refs)', () => {
+    expect(extractRefNamesFromTemplate(String.raw`use \#np\# not a ref`)).toEqual([]);
+    expect(extractRefNamesFromTemplate(String.raw`#A# and \#B\#`)).toEqual(['A']);
+  });
+
+  test('extractRefNamesFromTemplate treats unclosed # as literal', () => {
+    expect(extractRefNamesFromTemplate('#only')).toEqual([]);
+  });
+
   test('isStaticAlternative', () => {
     expect(isStaticAlternative('girl')).toBe(true);
     expect(isStaticAlternative('hello world')).toBe(true);

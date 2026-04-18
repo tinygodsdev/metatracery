@@ -1,0 +1,20 @@
+/* Hero banner: fill fixed-height slot; ornament scales up to full box (keeps 48:40 via viewBox). */
+.heroBanner {
+  position: relative;
+}
+
+.heroBannerInner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mantine-spacing-xs);
+}
+
+.heroOrnament {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+}

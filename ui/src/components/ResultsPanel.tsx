@@ -4,9 +4,8 @@ import {
   Button,
   Group,
   Text,
+  Title,
   Badge,
-  Table,
-  ScrollArea,
   Divider,
   Accordion,
   Code,
@@ -16,14 +15,30 @@ import {
   NumberInput,
   NativeSelect,
   Switch,
-  Textarea,
-  Paper,
   useMantineTheme,
+  Collapse,
+  ActionIcon,
+  Tooltip,
+  Box,
 } from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { GrammarProcessor } from '../engine/GrammarEngine';
 import type { GenerationResult } from '../engine/types';
 import type { GenerationStrategy } from '../engine/Engine';
+import type { UseCasePreviewConfig, UseCaseResultsContentVariant } from '../seo/useCases';
+import { ResultsRenderer } from './ResultsRenderer';
+
+const RESULT_DISPLAY_MODE_OPTIONS: { value: UseCaseResultsContentVariant; label: string }[] = [
+  { value: 'line', label: 'Line' },
+  { value: 'multiline', label: 'Multiline' },
+  { value: 'code', label: 'Code' },
+  { value: 'svg', label: 'SVG' },
+  { value: 'html', label: 'HTML' },
+  { value: 'markdown', label: 'Markdown' },
+];
+
+const MODIFIERS_TOOLTIP =
+  'When on, the engine runs Tracery-style modifier chains in placeholders like #noun.a# or #phrase.capitalize# (English helpers: a/an, plural -s, capitalization, ed/ing, and more). Turn off for plain expansion without post-processing.';
 
 interface ResultsPanelProps {
   engine: GrammarProcessor | null;
@@ -37,11 +52,19 @@ interface ResultsPanelProps {
   processModifiers: boolean;
   onProcessModifiersChange: (value: boolean) => void;
   /** Default `line` — single-line text cells. */
-  contentVariant?: 'line' | 'multiline';
+  contentVariant?: UseCaseResultsContentVariant;
+  /** Preview layout for svg/html/markdown. */
+  preview?: UseCasePreviewConfig;
   /** When set, caps "Generate many" (1–5 in strict use cases). */
   maxGenerateMany?: number;
   /** When false, hides "Generate all". Default true. */
   showGenerateAll?: boolean;
+  /** Home page: expanded; use-case routes: collapsed by default. */
+  parameterControlsDefaultExpanded?: boolean;
+  /** Home only: show display mode control wired to parent state. */
+  showResultDisplayModeControl?: boolean;
+  homeResultDisplayMode?: UseCaseResultsContentVariant;
+  onHomeResultDisplayModeChange?: (value: UseCaseResultsContentVariant) => void;
 }
 
 export function ResultsPanel({ 
@@ -56,12 +79,18 @@ export function ResultsPanel({
   processModifiers,
   onProcessModifiersChange,
   contentVariant = 'line',
+  preview,
   maxGenerateMany,
   showGenerateAll = true,
+  parameterControlsDefaultExpanded = true,
+  showResultDisplayModeControl = false,
+  homeResultDisplayMode = 'line',
+  onHomeResultDisplayModeChange,
 }: ResultsPanelProps) {
   const theme = useMantineTheme();
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
   const [generateCount, setGenerateCount] = useState<number>(10);
+  const [parameterControlsOpen, setParameterControlsOpen] = useState(parameterControlsDefaultExpanded);
 
   const parameters = engine?.getParameters() || {};
   const stats = engine?.getParameterStatistics();
@@ -206,77 +235,116 @@ export function ResultsPanel({
 
   return (
     <Stack gap="xl">
-      {/* Parameter Controls */}
-      <Stack gap="md">
-        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-          <Text size="sm" fw={500}>
-            Parameter Controls
-          </Text>
-          <Group gap="md" align="center" wrap="wrap" justify="flex-end">
-            {singleValueParameters.length > 0 && (
-              <Text
-                size="xs"
-                c="dimmed"
-                lh={1.4}
-                title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}
-              >
-                {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
-              </Text>
-            )}
-            <Group gap={6} align="center" wrap="nowrap">
-              <NativeSelect
-                size="xs"
-                w={120}
-                value={strategy}
-                onChange={(e) => onStrategyChange(e.currentTarget.value as GenerationStrategy)}
-                title="Generation strategy: Uniform gives equal probability to each option, Weighted favors options that generate more strings"
-                data={[
-                  { value: 'uniform', label: 'Uniform' },
-                  { value: 'weighted', label: 'Weighted' },
-                ]}
-              />
-              <Switch
-                size="xs"
-                checked={processModifiers}
-                onChange={(e) => onProcessModifiersChange(e.currentTarget.checked)}
-                label="Modifiers"
-                title="Apply Tracery-style #rule.mod# modifiers (a, s, capitalize, …)"
-              />
-            </Group>
+      <Box>
+        <Group
+          justify="space-between"
+          align="center"
+          wrap="nowrap"
+          gap="xs"
+          mb={parameterControlsOpen ? 'sm' : 0}
+        >
+          <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              aria-expanded={parameterControlsOpen}
+              aria-label={parameterControlsOpen ? 'Collapse parameter controls' : 'Expand parameter controls'}
+              onClick={() => setParameterControlsOpen((o) => !o)}
+            >
+              {parameterControlsOpen ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
+            </ActionIcon>
+            <Text
+              size="sm"
+              fw={500}
+              style={{ cursor: 'pointer' }}
+              onClick={() => setParameterControlsOpen((o) => !o)}
+            >
+              Parameter Controls
+            </Text>
           </Group>
         </Group>
-        
-        {filterableParameters.length === 0 ? (
-          <Text size="sm" c="dimmed" ta="center" py="md">
-            No variable parameters found. All parameters have fixed values.
-          </Text>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-            gap: '12px',
-            alignItems: 'start'
-          }}>
-            {filterableParameters.map(([name, param]) => (
-              <Stack key={name} gap={4}>
-                <Text size="xs" c="dimmed" fw={500} style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {name}
-                </Text>
-                <NativeSelect
-                  size="xs"
-                  value={selectedParameters[name] ?? ''}
-                  onChange={(e) => handleParameterChange(name, e.currentTarget.value)}
-                  data={[
-                    { value: '', label: 'Random' },
-                    ...param.values.map((value) => ({ value, label: value })),
-                  ]}
-                />
-              </Stack>
-            ))}
-          </div>
-        )}
 
-        <Group>
+        <Collapse in={parameterControlsOpen}>
+          <Stack gap="md" pt="xs">
+            <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+              <div />
+              <Group gap="md" align="center" wrap="wrap" justify="flex-end">
+                {singleValueParameters.length > 0 && (
+                  <Text
+                    size="xs"
+                    c="dimmed"
+                    lh={1.4}
+                    title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}
+                  >
+                    {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
+                  </Text>
+                )}
+                <Group gap={6} align="center" wrap="nowrap">
+                  <NativeSelect
+                    size="xs"
+                    w={120}
+                    value={strategy}
+                    onChange={(e) => onStrategyChange(e.currentTarget.value as GenerationStrategy)}
+                    title="Generation strategy: Uniform gives equal probability to each option, Weighted favors options that generate more strings"
+                    data={[
+                      { value: 'uniform', label: 'Uniform' },
+                      { value: 'weighted', label: 'Weighted' },
+                    ]}
+                  />
+                  <Tooltip label={MODIFIERS_TOOLTIP} multiline w={280} position="bottom" withArrow>
+                    <Switch
+                      size="xs"
+                      checked={processModifiers}
+                      onChange={(e) => onProcessModifiersChange(e.currentTarget.checked)}
+                      label="Modifiers"
+                    />
+                  </Tooltip>
+                </Group>
+              </Group>
+            </Group>
+
+            {filterableParameters.length === 0 ? (
+              <Text size="sm" c="dimmed" ta="center" py="md">
+                No variable parameters found. All parameters have fixed values.
+              </Text>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: '12px',
+                  alignItems: 'start',
+                }}
+              >
+                {filterableParameters.map(([name, param]) => (
+                  <Stack key={name} gap={4}>
+                    <Text
+                      size="xs"
+                      c="dimmed"
+                      fw={500}
+                      style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                    >
+                      {name}
+                    </Text>
+                    <NativeSelect
+                      size="xs"
+                      value={selectedParameters[name] ?? ''}
+                      onChange={(e) => handleParameterChange(name, e.currentTarget.value)}
+                      data={[
+                        { value: '', label: 'Random' },
+                        ...param.values.map((value) => ({ value, label: value })),
+                      ]}
+                    />
+                  </Stack>
+                ))}
+              </div>
+            )}
+          </Stack>
+        </Collapse>
+      </Box>
+
+      <Stack gap="sm">
+        <Group gap="xs" align="flex-start" wrap="wrap">
           <Button
             size="sm"
             variant="filled"
@@ -285,14 +353,12 @@ export function ResultsPanel({
           >
             Generate
           </Button>
-          <Group gap="xs">
+          <Group gap="xs" wrap="nowrap">
             <NumberInput
               size="sm"
               value={generateCount}
               onChange={(value) =>
-                setGenerateCount(
-                  typeof value === 'number' ? value : generateManyMax,
-                )
+                setGenerateCount(typeof value === 'number' ? value : generateManyMax)
               }
               min={1}
               max={generateManyMax}
@@ -301,7 +367,7 @@ export function ResultsPanel({
               title={`Generate multiple results (1–${generateManyMax})`}
             />
             <Button
-              size="sm" 
+              size="sm"
               variant="light"
               onClick={handleGenerateMany}
               disabled={isLoading || generateCount < 1 || generateCount > generateManyMax}
@@ -312,11 +378,15 @@ export function ResultsPanel({
           </Group>
           {showGenerateAll && (
             <Button
-              size="sm" 
+              size="sm"
               variant="outline"
               onClick={() => onGenerateAll(validatedParameterConstraints)}
               disabled={isLoading || actualCombinations > 100}
-              title={actualCombinations > 100 ? `Too many combinations (${actualCombinations}). Use more specific parameters.` : undefined}
+              title={
+                actualCombinations > 100
+                  ? `Too many combinations (${actualCombinations}). Use more specific parameters.`
+                  : undefined
+              }
             >
               Generate All ({actualCombinations})
             </Button>
@@ -324,19 +394,26 @@ export function ResultsPanel({
         </Group>
 
         {stats && (
-          <Stack gap={2} mt="sm">
+          <Stack gap={2}>
             <Text size="xs" c="dimmed">
               Total combinations: {engine ? engine.getTotalCombinations('origin') : 0}
             </Text>
             <Text
               size="xs"
-              c={actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0) ? 'primary' : 'dimmed'}
+              c={
+                actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0)
+                  ? 'primary'
+                  : 'dimmed'
+              }
             >
               With selected parameters: {actualCombinations}
             </Text>
             {actualCombinations > 100 && (
               <Group gap={6} align="flex-start" wrap="nowrap">
-                <IconAlertTriangle size={14} style={{ flexShrink: 0, color: 'var(--mantine-color-orange-6)' }} />
+                <IconAlertTriangle
+                  size={14}
+                  style={{ flexShrink: 0, color: 'var(--mantine-color-orange-6)' }}
+                />
                 <Text size="xs" c="orange">
                   Too many combinations ({actualCombinations}). Use more specific parameters to reduce results.
                 </Text>
@@ -355,15 +432,30 @@ export function ResultsPanel({
 
       {/* Results */}
       <Stack gap="md">
-        <Group justify="space-between" mb="md">
-          <Group>
-            <Text size="sm" fw={500}>Results</Text>
+        <Group justify="space-between" align="flex-start" gap="xs" wrap="wrap" mb="md">
+          <Group gap="xs" align="center" wrap="wrap">
+            <Title order={2} size="h3" fz="sm" fw={600} style={{ lineHeight: 1.2 }}>
+              Results
+            </Title>
             <Badge variant="light">{results.length}</Badge>
+            {showResultDisplayModeControl && onHomeResultDisplayModeChange && (
+              <NativeSelect
+                size="xs"
+                w={160}
+                aria-label="Result display mode"
+                title="How each generated cell is shown (home page only)"
+                value={homeResultDisplayMode}
+                onChange={(e) =>
+                  onHomeResultDisplayModeChange(e.currentTarget.value as UseCaseResultsContentVariant)
+                }
+                data={RESULT_DISPLAY_MODE_OPTIONS}
+              />
+            )}
           </Group>
-          
+
           {results.length > 0 && (
-            <Button 
-              size="xs" 
+            <Button
+              size="xs"
               variant="light"
               onClick={exportResults}
               disabled={results.length === 0}
@@ -384,96 +476,15 @@ export function ResultsPanel({
           <Alert color="gray">
             <Text size="sm">No results yet. Use the controls above to generate some.</Text>
           </Alert>
-        ) : contentVariant === 'multiline' ? (
-          <ScrollArea.Autosize mah={520} type="auto" offsetScrollbars>
-            <Stack gap="md">
-              {results.map((result, index) => (
-                <Paper key={index} withBorder p="md" radius="sm">
-                  <Stack gap="sm">
-                    <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                      Content
-                    </Text>
-                    <Textarea
-                      value={result.content}
-                      readOnly
-                      autosize
-                      minRows={3}
-                      maxRows={18}
-                      size="sm"
-                      styles={{
-                        input: {
-                          fontWeight: 500,
-                          cursor: 'default',
-                          width: '100%',
-                        },
-                      }}
-                    />
-                    <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                      Parameters
-                    </Text>
-                    <Group gap={4} wrap="wrap">
-                      {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
-                        <Badge key={key} size="xs" variant="light">
-                          {key}: {value}
-                        </Badge>
-                      ))}
-                      {getModifierApplications(result).map((app, i) => (
-                        <Badge
-                          key={`mod-${i}`}
-                          size="xs"
-                          variant="outline"
-                          color={theme.primaryColor}
-                          title={`${app.expandedText} → ${app.resultText}`}
-                        >
-                          {app.rule}: {app.modifiers.join('.')}
-                        </Badge>
-                      ))}
-                    </Group>
-                  </Stack>
-                </Paper>
-              ))}
-            </Stack>
-          </ScrollArea.Autosize>
         ) : (
-          <ScrollArea.Autosize mah={400} type="auto" offsetScrollbars>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Content</Table.Th>
-                  <Table.Th>Parameters</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {results.map((result, index) => (
-                  <Table.Tr key={index}>
-                    <Table.Td>
-                      <Text size="sm" fw={500}>{result.content}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Group gap={4} wrap="wrap">
-                        {Object.entries(getRelevantParameters(result)).map(([key, value]) => (
-                          <Badge key={key} size="xs" variant="light">
-                            {key}: {value}
-                          </Badge>
-                        ))}
-                        {getModifierApplications(result).map((app, i) => (
-                          <Badge
-                            key={`mod-${i}`}
-                            size="xs"
-                            variant="outline"
-                            color={theme.primaryColor}
-                            title={`${app.expandedText} → ${app.resultText}`}
-                          >
-                            {app.rule}: {app.modifiers.join('.')}
-                          </Badge>
-                        ))}
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </ScrollArea.Autosize>
+          <ResultsRenderer
+            contentVariant={contentVariant}
+            results={results}
+            theme={theme}
+            preview={preview}
+            getRelevantParameters={getRelevantParameters}
+            getModifierApplications={(r) => getModifierApplications(r) ?? []}
+          />
         )}
 
         {/* Metadata Accordion */}

@@ -1,6 +1,20 @@
 import type { MantineColor } from '@mantine/core';
 
-export type UseCaseResultsContentVariant = 'line' | 'multiline';
+export type UseCaseResultsContentVariant =
+  | 'line'
+  | 'multiline'
+  | 'code'
+  | 'svg'
+  | 'html'
+  | 'markdown';
+
+export type UseCasePreviewBackground = 'default' | 'checker' | 'dark';
+
+export interface UseCasePreviewConfig {
+  aspectRatio?: number;
+  minHeight?: number;
+  background?: UseCasePreviewBackground;
+}
 
 /** Optional UI behavior for a use case route (home `/` has no use case entry). */
 export interface UseCaseUiConfig {
@@ -11,16 +25,20 @@ export interface UseCaseUiConfig {
   primaryColor?: MantineColor;
   /** When set, sync the Results "Modifiers" switch and engine on enter. */
   defaultProcessModifiers?: boolean;
-  /** Render result cells as multiline read-only text areas. */
+  /** Render result cells as multiline read-only text areas, code, SVG, HTML, or rendered markdown. */
   resultsContentVariant?: UseCaseResultsContentVariant;
   /** Upper bound (1–5) for "Generate many" count. */
   maxGenerateMany?: number;
-  /** When false, hide "Generate all" to avoid huge combination tables. */
+  /** When false, hide "Generate all". Default true. */
   showGenerateAll?: boolean;
   /** If set, "Load example" lists only these fixture names (registry `name` values). */
   exampleFixtureNames?: string[];
   /** Optional fixture `name` to load as the default grammar for this page. */
   defaultFixtureName?: string;
+  /** Preview layout for svg/html/markdown rich results. */
+  preview?: UseCasePreviewConfig;
+  /** Default tab in the grammar editor for routes heavy on XML/markdown in JSON. */
+  defaultGrammarViewMode?: 'json' | 'graph';
 }
 
 export interface UseCaseDefinition {
@@ -42,19 +60,28 @@ export const WRITING_PROMPTS_FIXTURE_NAME = 'Writing prompts';
 /** Default example on `/fantasy-names` — elf-flavored syllable grammar. */
 export const FANTASY_NAMES_DEFAULT_FIXTURE_NAME = 'Elf names';
 
+export const PLACE_NAMES_DEFAULT_FIXTURE_NAME = 'Fantasy places';
+export const RANDOM_SENTENCES_DEFAULT_FIXTURE_NAME = 'Random sentences';
+/** Registry name for the sigil / emblem SVG example */
+export const SIMPLE_SIGIL_FIXTURE_NAME = 'Simple sigil';
+/** Registry name for the tiled pattern SVG example */
+export const SVG_PATTERN_FIXTURE_NAME = 'SVG pattern';
+/** Default grammar on `/svg-generator` */
+export const SVG_GENERATOR_DEFAULT_FIXTURE_NAME = SIMPLE_SIGIL_FIXTURE_NAME;
+export const CHARACTER_SHEET_DEFAULT_FIXTURE_NAME = 'NPC character sheet';
+
 export const USE_CASES: UseCaseDefinition[] = [
   {
     path: '/writing-prompts',
     pageTitle: 'Writing prompt generator — Generative Grammar Engine',
     metaDescription:
-      'Spin up short writing prompts and mini-scenes with Tracery-style rules and modifiers. Browser-based grammar engine for creative warm-ups and story seeds.',
+      'Free writing prompt generator and random prompt ideas: short scenes, story seeds, and warm-ups with Tracery-style rules and modifiers. Browser-based grammar engine.',
     h1: 'Writing prompt generator',
     intro:
-      'Draft quick prompts and tiny narrative hooks using generative rules. Turn on modifiers in Results to apply chains like #noun.a# or #phrase.capitalize#. Generate a handful of variants at a time and read multiline output in the table.',
+      'Draft quick prompts, random writing prompts, and tiny narrative hooks using generative rules. Turn on modifiers in Results to apply chains like #noun.a# or #phrase.capitalize#. Generate a handful of variants at a time and read multiline output in the table.',
     outro:
       'Edit the grammar or load bundled examples tuned for this page. Your draft for this route can be saved when you leave; the next visit may offer to restore it.',
-    cardSummary:
-      'Rule-based writing prompts with modifiers, filtered examples, and multiline results.',
+    cardSummary: 'Prompts & random prompt ideas — multiline results, modifiers optional.',
     ui: {
       primaryColor: 'lime',
       defaultProcessModifiers: true,
@@ -69,14 +96,13 @@ export const USE_CASES: UseCaseDefinition[] = [
     path: '/fantasy-names',
     pageTitle: 'Fantasy name generator — Generative Grammar Engine',
     metaDescription:
-      'Fantasy name generator for D&D-style characters: tiefling, elf, orc, dwarf, dragon, human, halfling. Tiefling names use infernal-flavored syllables; each race has its own simple a–z grammar — in your browser.',
+      'Fantasy name generator and character name ideas for D&D-style games: tiefling, elf, orc, dwarf, dragon, human, halfling. Rule-based syllable grammars in your browser.',
     h1: 'Fantasy name generator',
     intro:
-      'Roll names for player or NPC characters using small grammars tuned per fantasy type — including tiefling names (a common search for D&D-style infernal-flavored syllables, loosely inspired by Player’s Handbook patterns). Also pick elf, orc, dwarf, dragon, human, or halfling. Everything uses plain a–z syllable chunks (no IPA symbols). Adjust rules to match your setting, then generate variants in Results.',
+      'Roll character names for players or NPCs using small grammars tuned per fantasy type — including tiefling names and elf name generator-style syllables (plain a–z). Pick a race preset, adjust rules, then generate variants in Results.',
     outro:
       'Combine or fork the bundled examples to add surnames, clans, or honorifics. Modifiers stay optional here; names are meant to read cleanly as plain text.',
-    cardSummary:
-      'Tiefling, elf, orc, dwarf, dragon, human, halfling — character names from simple syllable grammars.',
+    cardSummary: 'Character & fantasy names — races presets, line output.',
     ui: {
       primaryColor: 'violet',
       defaultProcessModifiers: false,
@@ -96,40 +122,94 @@ export const USE_CASES: UseCaseDefinition[] = [
     },
   },
   {
-    path: '/usecase3',
-    pageTitle: 'Use case 3 — Generative Grammar Engine',
+    path: '/place-names',
+    pageTitle: 'Place name generator — fantasy towns & kingdoms',
     metaDescription:
-      'Generative grammar use case: compose rules, run the engine, export or iterate. English UI; Tracery-inspired rule syntax where applicable.',
-    h1: 'Use case 3',
+      'Place name generator for fantasy maps and fiction: random town names, city names, kingdoms, and realm titles. Old-English and elvish-flavored syllable rules — browser-based.',
+    h1: 'Place name generator',
     intro:
-      'Neutral SEO copy for a third scenario. Mentioning Tracery only as a familiar reference point — not a competitive claim.',
+      'Name cities, towns, hamlets, and kingdoms for maps and stories. Mix prefixes, cores, and suffixes into settlement names, or roll realm-style titles. Output is one place per line — tweak the JSON to match your world.',
     outro:
-      'All use case routes share one implementation; differentiation is content, defaults, and metadata.',
-    cardSummary: 'Placeholder workflow C — extend with your own keywords and sample grammar.',
+      'Duplicate a preset to build regional styles (coastal vs mountain) or add rivers and roads in the grammar. Export CSV when you need a batch for a map key.',
+    cardSummary: 'Towns, cities, kingdoms — line results.',
+    ui: {
+      primaryColor: 'cyan',
+      defaultProcessModifiers: false,
+      resultsContentVariant: 'line',
+      maxGenerateMany: 20,
+      showGenerateAll: false,
+      exampleFixtureNames: [PLACE_NAMES_DEFAULT_FIXTURE_NAME, 'Simple'],
+      defaultFixtureName: PLACE_NAMES_DEFAULT_FIXTURE_NAME,
+    },
   },
   {
-    path: '/usecase4',
-    pageTitle: 'Use case 4 — Generative Grammar Engine',
+    path: '/random-sentences',
+    pageTitle: 'Random sentence generator — lines & mini paragraphs',
     metaDescription:
-      'Rule-based text generation in the browser: define nonterminals, alternatives, and modifiers. Suitable for writers, researchers, and tooling experiments.',
-    h1: 'Use case 4',
+      'Random sentence generator for writers: short lines and tiny scenes from composable grammar rules. Optional Tracery modifiers. Runs entirely in the browser.',
+    h1: 'Random sentence generator',
     intro:
-      'Fourth abstract landing. Ideal for long-tail pages once you map queries from your SEO research.',
+      'Generate random sentences and bite-sized paragraphs by composing subjects, verbs, and tails. Use multiline results to scan several variants; enable Modifiers for #word.a#-style chains on compatible grammars.',
     outro:
-      'Bottom copy can hold FAQs or links to docs later; keep the main tool unchanged.',
-    cardSummary: 'Placeholder workflow D — reserved for a future vertical.',
+      'Swap in your own word lists for genre (noir, cozy, sci-fi) or chain multiple rules into longer passages in the JSON view.',
+    cardSummary: 'Sentences & micro-scenes — multiline.',
+    ui: {
+      primaryColor: 'indigo',
+      defaultProcessModifiers: false,
+      resultsContentVariant: 'multiline',
+      maxGenerateMany: 10,
+      showGenerateAll: false,
+      exampleFixtureNames: [RANDOM_SENTENCES_DEFAULT_FIXTURE_NAME, 'Modifiers (Tracery)', 'Simple'],
+      defaultFixtureName: RANDOM_SENTENCES_DEFAULT_FIXTURE_NAME,
+    },
   },
   {
-    path: '/usecase5',
-    pageTitle: 'Use case 5 — Generative Grammar Engine',
+    path: '/svg-generator',
+    pageTitle: 'SVG generator — sigils, patterns & vector snippets',
     metaDescription:
-      'Fifth use case route for the Generative Grammar Engine — same core tool, tailored page title and description for search.',
-    h1: 'Use case 5',
+      'Generate SVG in the browser from grammar rules: heraldry-style sigils and emblems, or tiled dot/grid patterns for CSS backgrounds. Copy or download each SVG; JSON editor with graph mode.',
+    h1: 'SVG generator',
     intro:
-      'Fifth placeholder. Pair with analytics and Search Console to see which use cases merit richer examples.',
+      'Use this page for vector output from your rules: single emblem-style sigils (circles, polygons, palettes) and repeatable tiled patterns (dots, grids) for CSS backgrounds or design tools. Load the bundled examples to switch between styles; edit JSON to change geometry, colors, or repeat size. Each card supports Copy / Download; previews are sanitized.',
     outro:
-      'Sitemap and robots.txt list these URLs for crawlers; prerender may be added later if needed.',
-    cardSummary: 'Placeholder workflow E — swap copy when semantics are decided.',
+      'Pair with place or character pages for factions and houses, or export patterns for UI mockups — keep viewBox and defs consistent when you scale or tile.',
+    cardSummary: 'Sigils, emblems & tiled patterns — SVG copy & download.',
+    ui: {
+      primaryColor: 'grape',
+      defaultProcessModifiers: false,
+      resultsContentVariant: 'svg',
+      maxGenerateMany: 6,
+      showGenerateAll: false,
+      defaultGrammarViewMode: 'json',
+      exampleFixtureNames: [
+        SIMPLE_SIGIL_FIXTURE_NAME,
+        SVG_PATTERN_FIXTURE_NAME,
+        'Simple',
+      ],
+      defaultFixtureName: SVG_GENERATOR_DEFAULT_FIXTURE_NAME,
+      preview: { aspectRatio: 1, minHeight: 160, background: 'checker' },
+    },
+  },
+  {
+    path: '/character-sheet',
+    pageTitle: 'NPC character sheet — markdown stat block generator',
+    metaDescription:
+      'Generate lightweight NPC character sheets in Markdown: name, race, class, traits, and story hooks for tabletop RPGs and fiction. Rule-based, no AI.',
+    h1: 'NPC character sheet generator',
+    intro:
+      'Results render as Markdown: headings, bold labels, and a quoted hook. Edit the grammar to add skills, bonds, or inventory lines. Copy the raw markdown or read the preview below.',
+    outro:
+      'Paste output into Obsidian, Notion, or your VTT notes. For crunch-heavy stats, extend the grammar with tables or lists using standard Markdown syntax in rule strings.',
+    cardSummary: 'Markdown NPC sheets — preview + copy.',
+    ui: {
+      primaryColor: 'orange',
+      defaultProcessModifiers: false,
+      resultsContentVariant: 'markdown',
+      maxGenerateMany: 4,
+      showGenerateAll: false,
+      exampleFixtureNames: [CHARACTER_SHEET_DEFAULT_FIXTURE_NAME, 'Simple'],
+      defaultFixtureName: CHARACTER_SHEET_DEFAULT_FIXTURE_NAME,
+    },
   },
 ];
 
@@ -143,14 +223,4 @@ export const ALLOWED_PATHNAMES = ['/', ...USE_CASES.map((u) => u.path)] as const
 
 export function isAllowedPath(pathname: string): boolean {
   return (ALLOWED_PATHNAMES as readonly string[]).includes(pathname);
-}
-
-/** Old URLs → canonical use-case paths (client-side redirect for bookmarks). */
-export const LEGACY_USE_CASE_REDIRECTS: Record<string, string> = {
-  '/usecase1': '/writing-prompts',
-  '/usecase2': '/fantasy-names',
-};
-
-export function getLegacyUseCaseRedirect(pathname: string): string | undefined {
-  return LEGACY_USE_CASE_REDIRECTS[pathname];
 }

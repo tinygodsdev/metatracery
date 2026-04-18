@@ -518,6 +518,25 @@ describe('GrammarEngine', () => {
     });
   });
 
+  describe('Template escaping', () => {
+    test('outputs literal # and backslash from escapes', () => {
+      const g: GrammarRule = {
+        origin: [String.raw`fill=\#ff0000\# and \\`],
+      };
+      const engine = new GrammarProcessor(g);
+      expect(engine.generateWithParameters('origin', {}).content).toBe('fill=#ff0000# and \\');
+    });
+
+    test('mixes escaped hashes with real placeholders', () => {
+      const g: GrammarRule = {
+        origin: [String.raw`Hello \# #x#`],
+        x: ['world'],
+      };
+      const engine = new GrammarProcessor(g);
+      expect(engine.generateWithParameters('origin', {}).content).toBe('Hello # world');
+    });
+  });
+
   describe('Error Handling', () => {
     test('does not throw when a #ref# has no rule entry (counts 0)', () => {
       const broken: GrammarRule = {

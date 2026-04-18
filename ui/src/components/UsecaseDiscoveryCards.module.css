@@ -18,7 +18,7 @@
 
 .cardLink:hover {
   transform: translateY(-2px);
-  border-color: var(--mantine-color-teal-filled-hover);
+  border-color: var(--uc-accent, var(--mantine-color-default-border));
   box-shadow: var(--mantine-shadow-md);
   background-color: var(--mantine-color-default-hover);
 }
@@ -28,7 +28,7 @@
 }
 
 .cardLink:focus-visible {
-  outline: 2px solid var(--mantine-color-teal-6);
+  outline: 2px solid var(--uc-accent, var(--mantine-primary-color-filled));
   outline-offset: 2px;
 }
 

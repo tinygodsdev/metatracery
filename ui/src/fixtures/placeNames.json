@@ -1,0 +1,8 @@
+{
+  "prefix": ["Old", "North", "East", "River", "Stone", "Silver", "High", "Deep"],
+  "core": ["mere", "wick", "ford", "bury", "haven", "dale", "moor", "wick", "fen"],
+  "suffix": ["town", "burg", "stead", "moor", "vale", "ford", "gate", "watch"],
+  "place": ["#prefix##core#", "#core##suffix#", "#prefix# #core#", "#core#-#suffix#"],
+  "realm": ["Kingdom of #place#", "Duchy of #place#", "Realm of #place#"],
+  "origin": ["#place#", "#realm#"]
+}

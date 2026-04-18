@@ -1,14 +1,21 @@
-import { Box, Grid, Stack, Text, Title } from '@mantine/core';
+import { Box, Flex, Grid, Stack, Text, Title } from '@mantine/core';
+import type { MantineColor } from '@mantine/core';
+import { UsecaseCardOrnament, useUseCaseAccentColor } from './usecaseOrnaments';
+import classes from './UsecaseHero.module.css';
 
 interface UsecaseHeroProps {
+  path: string;
+  primaryColor: MantineColor;
   h1: string;
   intro: string;
 }
 
 /**
- * Wide use-case landing strip: copy on the left, reserved banner area on the right (placeholder).
+ * Wide use-case landing strip: copy on the left, vector ornament banner on the right (same motif as discovery cards).
  */
-export function UsecaseHero({ h1, intro }: UsecaseHeroProps) {
+export function UsecaseHero({ path, primaryColor, h1, intro }: UsecaseHeroProps) {
+  const accent = useUseCaseAccentColor(primaryColor);
+
   return (
     <Box
       component="header"
@@ -40,16 +47,19 @@ export function UsecaseHero({ h1, intro }: UsecaseHeroProps) {
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Box
-            aria-label="Banner placeholder"
-            h={{ base: 160, sm: 180, md: 220 }}
+            aria-hidden
+            pos="relative"
             w="100%"
-            miw={0}
+            h={{ base: 160, sm: 180, md: 220 }}
+            className={classes.heroBanner}
             style={{
-              border: '1px dashed var(--mantine-color-default-border)',
-              borderRadius: 'var(--mantine-radius-md)',
-              backgroundColor: 'var(--mantine-color-default-hover)',
+              color: accent,
             }}
-          />
+          >
+            <Flex className={classes.heroBannerInner}>
+              <UsecaseCardOrnament path={path} variant="hero" className={classes.heroOrnament} />
+            </Flex>
+          </Box>
         </Grid.Col>
       </Grid>
     </Box>

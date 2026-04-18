@@ -1,21 +1,19 @@
 /**
- * Graph helpers for grammar visualization. Regex must stay in sync with Engine.ts parseTemplate.
+ * Graph helpers for grammar visualization. Uses splitTemplateSegments (same as Engine.parseTemplate).
  */
 
 import type { GrammarRule } from './types';
-import { FULL_PLACEHOLDER, parsePlaceholderInner } from './placeholderParse';
-
-/** Same pattern as Engine.ts — keep in sync */
-export { FULL_PLACEHOLDER as GRAMMAR_PLACEHOLDER };
+import { decodePlaceholderInner, parsePlaceholderInner, splitTemplateSegments } from './placeholderParse';
 
 /**
  * All rule names referenced by #name# or #name.mod# in a template (order of first occurrence).
  */
 export function extractRefNamesFromTemplate(template: string): string[] {
   const names: string[] = [];
-  for (const m of template.matchAll(FULL_PLACEHOLDER)) {
+  for (const seg of splitTemplateSegments(template)) {
+    if (seg.kind !== 'placeholder') continue;
     try {
-      names.push(parsePlaceholderInner(m[1]!).ruleName);
+      names.push(parsePlaceholderInner(decodePlaceholderInner(seg.innerRaw)).ruleName);
     } catch {
       // skip invalid tags
     }

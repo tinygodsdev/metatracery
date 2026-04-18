@@ -16,17 +16,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://grammar.tinygods.dev/usecase3</loc>
+    <loc>https://grammar.tinygods.dev/place-names</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://grammar.tinygods.dev/usecase4</loc>
+    <loc>https://grammar.tinygods.dev/random-sentences</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://grammar.tinygods.dev/usecase5</loc>
+    <loc>https://grammar.tinygods.dev/svg-generator</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://grammar.tinygods.dev/character-sheet</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
