@@ -1,0 +1,11 @@
+{
+  "origin": ["#line#"],
+  "line": [
+    "Article: #noun.a#",
+    "Capitalize: #phrase.capitalize#",
+    "Plural: #item.s#"
+  ],
+  "noun": ["apple", "owl", "car", "hour"],
+  "phrase": ["hello world", "test"],
+  "item": ["cat", "city", "box"]
+}

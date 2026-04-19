@@ -1,0 +1,6 @@
+{
+  "origin": ["#head##stem#", "#head##stem##tail#"],
+  "head": ["dor", "grim", "bar", "thur", "bal", "nor", "dur", "thra", "bor", "kil"],
+  "stem": ["in", "ek", "om", "un", "ar", "ok", "is", "en"],
+  "tail": ["in", "ek", "rim", "nak", "stone", "beard", "iron", "forge"]
+}

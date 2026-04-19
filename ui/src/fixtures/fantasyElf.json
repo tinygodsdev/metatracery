@@ -1,0 +1,6 @@
+{
+  "origin": ["#prefix##core##suffix#", "#prefix##core#"],
+  "prefix": ["ael", "gal", "sil", "elen", "thal", "cae", "lor", "fae", "nim", "vel"],
+  "core": ["rin", "thas", "wyn", "riel", "mir", "dil", "sar", "vorn", "las", "thil"],
+  "suffix": ["iel", "wen", "ya", "as", "is", "on", "eth", "ae", "ara", "ion"]
+}

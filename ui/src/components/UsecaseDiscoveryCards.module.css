@@ -1,0 +1,61 @@
+/* Hover on the real <a> — avoids Mantine Card + polymorphic Link overriding :hover */
+.cardLink {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--app-surface-1);
+  border: none;
+  box-shadow: var(--mantine-shadow-xs);
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    background-color 150ms ease;
+  cursor: pointer;
+}
+
+.cardLink:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mantine-shadow-sm);
+  background-color: var(--mantine-color-default-hover);
+}
+
+.cardLink:hover .cardIconChip {
+  filter: brightness(0.96);
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--mantine-color-dimmed);
+  outline-offset: 2px;
+}
+
+.cardBody {
+  min-height: 112px;
+}
+
+.cardIconChip {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--mantine-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  transition: filter 150ms ease;
+  background-color: rgba(128, 128, 128, 0.12);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  .cardIconChip {
+    background-color: color-mix(in srgb, var(--uc-accent) 14%, transparent);
+  }
+}
+
+.cardTitle {
+  flex: 1;
+  min-width: 0;
+}

@@ -1,0 +1,35 @@
+.svgEmbed :global(svg) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  margin: 0 auto;
+}
+
+.markdownBody {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--mantine-font-size-md);
+  line-height: 1.55;
+}
+
+.markdownBody :global(h2) {
+  margin: 0 0 var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 600;
+}
+
+.markdownBody :global(p) {
+  margin: 0 0 var(--mantine-spacing-xs);
+}
+
+.markdownBody :global(strong) {
+  font-weight: 600;
+}
+
+.markdownBody :global(blockquote) {
+  margin: var(--mantine-spacing-xs) 0 0;
+  padding-left: var(--mantine-spacing-sm);
+  border-left: 3px solid var(--mantine-color-default-border);
+  color: var(--mantine-color-dimmed);
+}

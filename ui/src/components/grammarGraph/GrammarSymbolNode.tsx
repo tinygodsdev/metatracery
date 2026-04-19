@@ -6,15 +6,17 @@ import {
   TextInput,
   Button,
   Group,
-  Badge,
   ActionIcon,
   Text,
+  Tooltip,
+  Box,
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconTrash, IconPlus, IconX } from '@tabler/icons-react';
+import { IconTrash, IconPlus, IconX, IconTypography, IconBraces } from '@tabler/icons-react';
 import { isStaticAlternative } from '../../engine/grammarGraphModel';
-import type { GrammarSymbolNodeData } from '../../lib/grammarToFlow';
+import { GRAMMAR_FLOW_NODE_WIDTH, type GrammarSymbolNodeData } from '../../lib/grammarToFlow';
+import classes from './GrammarSymbolNode.module.css';
 
 /** Stops React Flow from capturing pointer events for pan/drag on inputs and buttons. */
 const stopFlowPointer = (e: PointerEvent) => {
@@ -78,34 +80,20 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
 
   return (
     <div
-      className="nodrag nopan"
+      className={`nodrag nopan ${classes.node}`}
       onPointerDown={stopFlowPointer}
       style={{
         position: 'relative',
-        minWidth: 240,
-        maxWidth: 300,
+        boxSizing: 'border-box',
+        width: GRAMMAR_FLOW_NODE_WIDTH,
+        minWidth: GRAMMAR_FLOW_NODE_WIDTH,
+        maxWidth: GRAMMAR_FLOW_NODE_WIDTH,
         padding: 8,
-        paddingRight: symbol !== 'origin' ? 30 : 8,
         border: `1px solid ${nodeBorder}`,
         borderRadius: 8,
-        background: 'var(--mantine-color-body)',
+        background: 'var(--app-surface-2)',
       }}
     >
-      {symbol !== 'origin' && (
-        <ActionIcon
-          className="nodrag nopan"
-          size="sm"
-          variant="subtle"
-          color="gray"
-          aria-label="Delete rule"
-          title="Delete rule"
-          onPointerDown={stopFlowPointer}
-          onClick={() => onDeleteRule(symbol)}
-          style={{ position: 'absolute', top: 6, right: 6, zIndex: 1 }}
-        >
-          <IconX size={14} />
-        </ActionIcon>
-      )}
       <Handle type="target" position={Position.Top} />
       {symbol === 'origin' ? (
         <Text fw={700} size="sm" mb="xs">
@@ -116,73 +104,109 @@ export function GrammarSymbolNode({ data }: NodeProps<Node<GrammarSymbolNodeData
           </Text>
         </Text>
       ) : (
-        <TextInput
-          className="nodrag nopan"
-          size="xs"
-          mb={6}
-          ff="monospace"
-          value={nameDraft}
-          onPointerDown={stopFlowPointer}
-          onChange={(e) => setNameDraft(e.currentTarget.value)}
-          onBlur={commitRename}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.currentTarget.blur();
-            }
-          }}
-          styles={{ input: { fontWeight: 700 } }}
-        />
+        <Group gap={6} wrap="nowrap" align="center" w="100%" mb={6} style={{ minWidth: 0 }}>
+          <TextInput
+            className="nodrag nopan"
+            size="xs"
+            ff="monospace"
+            style={{ flex: 1, minWidth: 0 }}
+            value={nameDraft}
+            onPointerDown={stopFlowPointer}
+            onChange={(e) => setNameDraft(e.currentTarget.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.currentTarget.blur();
+              }
+            }}
+            styles={{ input: { fontWeight: 700 } }}
+          />
+          <ActionIcon
+            className={`nodrag nopan ${classes.nodeAction}`}
+            size="input-xs"
+            variant="subtle"
+            color="gray"
+            aria-label="Delete rule"
+            title="Delete rule"
+            onPointerDown={stopFlowPointer}
+            onClick={() => onDeleteRule(symbol)}
+            style={{ flexShrink: 0 }}
+          >
+            <IconX size={14} />
+          </ActionIcon>
+        </Group>
       )}
-      <Stack gap={5}>
-        {alternatives.map((alt, i) => (
-          <Group key={i} gap={6} wrap="nowrap" align="center" justify="flex-start">
-            <Badge
-              size="xs"
-              variant="light"
-              color={isStaticAlternative(alt) ? 'gray' : 'teal'}
-              style={{ flexShrink: 0 }}
-            >
-              {isStaticAlternative(alt) ? 'static' : 'dynamic'}
-            </Badge>
-            <TextInput
-              className="nodrag nopan"
-              size="xs"
-              style={{ flex: 1, minWidth: 0 }}
-              value={alt}
-              onChange={(e) => updateAlt(i, e.currentTarget.value)}
-              onPointerDown={stopFlowPointer}
-              ff="monospace"
-              placeholder='e.g. hello or #OtherRule#'
-              ref={(el) => {
-                altInputRefs.current[i] = el;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  insertAlternativeAfter(i);
-                }
-              }}
-            />
-            <ActionIcon
-              className="nodrag nopan"
-              size="input-xs"
-              variant="subtle"
-              color="red"
-              onPointerDown={stopFlowPointer}
-              onClick={() => removeAlt(i)}
-              aria-label="Remove alternative"
-              style={{ flexShrink: 0 }}
-            >
-              <IconTrash size={14} />
-            </ActionIcon>
+      <Stack gap={5} w="100%">
+        {alternatives.map((alt, i) => {
+          const isStatic = isStaticAlternative(alt);
+          return (
+            <Group key={i} gap={6} wrap="nowrap" align="center" w="100%" style={{ minWidth: 0 }}>
+              <Box
+                component="span"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 22,
+                  flexShrink: 0,
+                  color: isStatic ? 'var(--mantine-color-dimmed)' : 'var(--mantine-primary-color-filled)',
+                }}
+              >
+                <Tooltip
+                  label={isStatic ? 'Literal text (no #references#)' : 'Contains #rule# references'}
+                  position="top"
+                  withArrow
+                >
+                  <Box
+                    component="span"
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {isStatic ? <IconTypography size={15} stroke={1.5} /> : <IconBraces size={15} stroke={1.5} />}
+                  </Box>
+                </Tooltip>
+              </Box>
+              <TextInput
+                className="nodrag nopan"
+                size="xs"
+                style={{ flex: 1, minWidth: 0 }}
+                value={alt}
+                onChange={(e) => updateAlt(i, e.currentTarget.value)}
+                onPointerDown={stopFlowPointer}
+                ff="monospace"
+                placeholder='e.g. hello or #OtherRule#'
+                ref={(el) => {
+                  altInputRefs.current[i] = el;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    insertAlternativeAfter(i);
+                  }
+                }}
+              />
+              <ActionIcon
+                className={`nodrag nopan ${classes.altRemove}`}
+                size="input-xs"
+                variant="subtle"
+                color="red"
+                onPointerDown={stopFlowPointer}
+                onClick={() => removeAlt(i)}
+                aria-label="Remove alternative"
+                style={{ flexShrink: 0 }}
+              >
+                <IconTrash size={14} />
+              </ActionIcon>
           </Group>
-        ))}
+          );
+        })}
       </Stack>
       <Button
-        className="nodrag nopan"
-        size="xs"
+        className={`nodrag nopan ${classes.addAltBtn}`}
+        size="compact-xs"
         variant="light"
+        fullWidth
+        justify="center"
         leftSection={<IconPlus size={14} />}
         mt="sm"
         onPointerDown={stopFlowPointer}

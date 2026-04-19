@@ -12,7 +12,7 @@ help:
 	@echo "  make test-watch   - Run tests in watch mode"
 	@echo "  make test-coverage - Run tests with coverage report"
 	@echo "  make ui-dev       - Start UI development server"
-	@echo "  make ui-build     - Build UI for production"
+	@echo "  make ui-build     - Build UI for production (see ui/DEPLOY.md for SPA hosting)"
 	@echo "  make clean        - Clean build artifacts"
 	@echo ""
 	@echo "  make dev          - Development mode (test + ui-dev)"

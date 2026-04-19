@@ -1,4 +1,9 @@
 import type { GrammarRule, ExtractedParameters, ExtractedParameter } from './types';
+import {
+  decodePlaceholderInner,
+  parsePlaceholderInner,
+  splitTemplateSegments,
+} from './placeholderParse';
 
 export type { ExtractedParameters, ExtractedParameter };
 
@@ -54,14 +59,17 @@ export class ParameterExtractor {
    * Keeps complex patterns (with spaces or multiple refs) as-is
    */
   private normalizeValue(value: string): string {
-    // Check if it's a simple reference pattern like #NAME#
-    const simpleRefMatch = /^#([A-Za-z_][A-Za-z0-9_]*)#$/.exec(value);
-    if (simpleRefMatch) {
-      return simpleRefMatch[1]; // Return just the name without #
+    try {
+      const segs = splitTemplateSegments(value);
+      if (segs.length !== 1 || segs[0]!.kind !== 'placeholder') return value;
+      const { ruleName, modifierSegments } = parsePlaceholderInner(
+        decodePlaceholderInner(segs[0].innerRaw),
+      );
+      if (modifierSegments.length > 0) return value;
+      return ruleName;
+    } catch {
+      return value;
     }
-    
-    // For complex patterns or literals, return as-is
-    return value;
   }
 
   /**
@@ -106,13 +114,14 @@ export class ParameterExtractor {
    */
   private extractSymbolReferences(rule: string): string[] {
     const references: string[] = [];
-    const regex = /#([^#]+)#/g;
-    let match;
-    
-    while ((match = regex.exec(rule)) !== null) {
-      references.push(match[1]);
+    for (const seg of splitTemplateSegments(rule)) {
+      if (seg.kind !== 'placeholder') continue;
+      try {
+        references.push(parsePlaceholderInner(decodePlaceholderInner(seg.innerRaw)).ruleName);
+      } catch {
+        // invalid placeholder — ignore
+      }
     }
-    
     return references;
   }
   

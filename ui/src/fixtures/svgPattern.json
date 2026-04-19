@@ -1,0 +1,8 @@
+{
+  "bg": ["rgb(227,242,253)", "rgb(252,228,236)", "rgb(243,229,245)", "rgb(232,245,233)", "rgb(255,243,224)"],
+  "muted": ["rgb(84,110,122)"],
+  "gridStroke": ["rgb(144,164,174)"],
+  "dots": ["<svg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'><rect width='64' height='64' fill='#bg#'/><circle cx='8' cy='8' r='2' fill='#muted#'/><circle cx='24' cy='24' r='2' fill='#muted#'/><circle cx='40' cy='40' r='2' fill='#muted#'/><circle cx='56' cy='56' r='2' fill='#muted#'/></svg>"],
+  "grid": ["<svg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'><rect width='64' height='64' fill='#bg#'/><path d='M0 16 H64 M0 32 H64 M0 48 H64 M16 0 V64 M32 0 V64 M48 0 V64' stroke='#gridStroke#' stroke-width='0.6' fill='none'/></svg>"],
+  "origin": ["#dots#", "#grid#"]
+}

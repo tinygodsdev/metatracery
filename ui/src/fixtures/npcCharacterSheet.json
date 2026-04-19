@@ -1,0 +1,8 @@
+{
+  "name": ["Aldric", "Mira", "Gorn", "Seren", "Kael"],
+  "race": ["Human", "Elf", "Dwarf", "Tiefling", "Halfling"],
+  "klass": ["Fighter", "Wizard", "Rogue", "Cleric", "Ranger"],
+  "trait": ["never sits with their back to the door", "collects small iron charms", "speaks only in questions", "maps every room they enter"],
+  "hook": ["Owes a debt to the harbor guild.", "Carries a letter with no seal.", "Looking for someone who shares their birthmark.", "Flees a name they will not say."],
+  "origin": ["**#name#**\n\n**Race:** #race#\n**Class:** #klass#\n**Quirk:** #trait#\n\n> #hook#\n"]
+}

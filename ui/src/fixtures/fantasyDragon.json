@@ -1,0 +1,6 @@
+{
+  "origin": ["#first##second##third#", "#first##second#"],
+  "first": ["zy", "mor", "rax", "vyr", "thor", "ser", "xan", "pyr", "kae", "drae"],
+  "second": ["rax", "morn", "thyn", "zir", "vorn", "sael", "nyx", "rion"],
+  "third": ["ax", "ion", "yth", "os", "is", "ara", "uun", "eth"]
+}

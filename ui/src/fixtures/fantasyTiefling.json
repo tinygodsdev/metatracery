@@ -1,0 +1,7 @@
+{
+  "origin": ["#stem##maleEnd#", "#stem##femaleEnd#", "#stem##mid##maleEnd#"],
+  "stem": ["ak", "dam", "mel", "kai", "mor", "zar", "vel", "neth", "bel", "skam", "xe", "phel", "iados", "morth"],
+  "mid": ["men", "rak", "phi", "thar", "lex", "dre", "kair", "nephm", "bar", "kos"],
+  "maleEnd": ["os", "on", "is", "ai", "ech", "thos", "akos", "emon", "aios"],
+  "femaleEnd": ["a", "eis", "ia", "issa", "aia", "ea", "ista", "oria", "seis", "yne"]
+}

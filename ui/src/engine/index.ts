@@ -3,6 +3,7 @@
  */
 
 export { GrammarProcessor as ScientificGrammarEngine } from './GrammarEngine';
+export { DEFAULT_ENGLISH_MODIFIERS, applyModifierPipeline } from './baseEngModifiers';
 export { ParameterExtractor } from './ParameterExtractor';
 export { GenericStructureExtractor } from './GenericStructureExtractor';
 export type * from './types';

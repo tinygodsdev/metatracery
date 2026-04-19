@@ -1,0 +1,5 @@
+{
+  "origin": ["#given##family#", "#given#"],
+  "given": ["ald", "ric", "mar", "wyn", "gar", "elen", "os", "ber", "cass", "jor"],
+  "family": ["mont", "stone", "river", "dale", "ford", "wick", "helm", "croft", "ash", "moor"]
+}

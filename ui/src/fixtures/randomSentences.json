@@ -1,0 +1,8 @@
+{
+  "subject": ["The cat", "A weary knight", "The storm", "Someone unseen"],
+  "verb": ["reads", "whispers", "lingers", "waits"],
+  "object": ["in the tavern.", "under bruised clouds.", "beside the empty road.", "until dawn."],
+  "line": ["#subject# #verb# #object#"],
+  "para": ["#subject# #verb# #object#\n\nThen silence again."],
+  "origin": ["#line#", "#para#"]
+}

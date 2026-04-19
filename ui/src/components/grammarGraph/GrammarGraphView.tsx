@@ -115,7 +115,8 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme('light');
   const isDark = colorScheme === 'dark';
-  const canvasSurface = isDark ? theme.colors.dark[7] : theme.colors.gray[0];
+  // Light: white canvas so the graph reads clearly against the gray panel (--app-surface-2).
+  const canvasSurface = isDark ? theme.colors.dark[7] : theme.white;
   const canvasBorder = isDark ? theme.colors.dark[4] : theme.colors.gray[3];
   const gridPattern = isDark ? theme.colors.dark[5] : theme.colors.gray[4];
 
@@ -313,7 +314,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
 
       {missing.length > 0 && (
         <Alert color="yellow" title="Unknown references">
-          <Text size="xs">These #symbols# have no rule: {missing.join(', ')}</Text>
+          <Text size="sm">These #symbols# have no rule: {missing.join(', ')}</Text>
         </Alert>
       )}
       <div
@@ -356,7 +357,7 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           </Panel>
         </ReactFlow>
       </div>
-      <Text size="xs" c="dimmed">
+      <Text size="sm" c="dimmed">
         Type <code>#Name#</code> in an alternative to link or create a rule with that name. Rename a rule in its title
         field; all <code>#Name#</code> references update. Multiple references in one line (e.g.{' '}
         <code>#SP# #VP# #OP#</code>) are supported.

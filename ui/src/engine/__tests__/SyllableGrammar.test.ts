@@ -160,7 +160,8 @@ describe('Syllable Grammar', () => {
       // because A can generate 2 strings (x, y) while B generates 1 string (z)
       expect(patternCounts.A).toBeGreaterThan(600);
       expect(patternCounts.B).toBeLessThan(400);
-      expect(patternCounts.A / patternCounts.B).toBeCloseTo(2, 0.1);
+      // Jest: 2nd arg is decimal digit count (0 => |ratio-2| < 0.5), not an epsilon
+      expect(patternCounts.A / patternCounts.B).toBeCloseTo(2, 0);
     });
 
     test('uniform strategy should give equal probability to syllable patterns', () => {

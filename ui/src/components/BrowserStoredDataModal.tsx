@@ -90,9 +90,9 @@ export function BrowserStoredDataModal({
             <Stack gap="sm">
               {libraryState.items.map((it) => (
                 <div key={it.id}>
-                  <Text size="xs" c="dimmed" mb={4}>
+                  <Text size="sm" c="dimmed" mb={4}>
                     {it.name}{' '}
-                    <Text component="span" size="xs" c="dimmed">
+                    <Text component="span" size="sm" c="dimmed">
                       ({it.updatedAt})
                     </Text>
                   </Text>
@@ -120,7 +120,7 @@ export function BrowserStoredDataModal({
           <ScrollArea.Autosize mah={200} mt="sm">
             <Code block>{fullLibraryJson}</Code>
           </ScrollArea.Autosize>
-          <Text size="xs" c="dimmed" mt="xs">
+          <Text size="sm" c="dimmed" mt="xs">
             Storage key: <Code>{GRAMMAR_LIBRARY_STORAGE_KEY}</Code>
           </Text>
         </div>
@@ -144,7 +144,7 @@ export function BrowserStoredDataModal({
               </Button>
             )}
           </Group>
-          <Text size="xs" c="dimmed" mt="xs">
+          <Text size="sm" c="dimmed" mt="xs">
             Key: <Code>{COLOR_SCHEME_STORAGE_KEY}</Code>
           </Text>
         </div>

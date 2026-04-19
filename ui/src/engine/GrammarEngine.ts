@@ -25,14 +25,24 @@ export class GrammarProcessor {
       maxDepth: 10,
       enableTracking: true,
       enableStatistics: true,
-      ...config
+      processModifiers: false,
+      ...config,
     };
     
     this.parameterExtractor = new ParameterExtractor();
     this.parameters = this.parameterExtractor.extractParameters(grammar);
     this.engine = new GrammarEngine(grammar);
   }
-  
+
+  /** Updates engine options without rebuilding the grammar (e.g. processModifiers toggle). */
+  setConfig(partial: Partial<EngineConfig>): void {
+    this.config = { ...this.config, ...partial };
+  }
+
+  getConfig(): EngineConfig {
+    return { ...this.config };
+  }
+
   /**
    * Generates text with specific parameters
    */
@@ -43,7 +53,14 @@ export class GrammarProcessor {
   ): GenerationResult {
     const startTime = Date.now();
     
-    const generated = this.engine.generate(rule, parameterValues, undefined, Math.random, strategy);
+    const generated = this.engine.generate(
+      rule,
+      parameterValues,
+      undefined,
+      Math.random,
+      strategy,
+      this.config.processModifiers ?? false,
+    );
 
     const result = rawToGenerationResult([generated]);
     
@@ -59,7 +76,13 @@ export class GrammarProcessor {
    */
   generateAllCombinations(rule: string, constraints?: Record<string, string>): GenerationResult[] {
     // Get all generation paths from GrammarAnalyzer with constraints
-    const generated = this.engine.expandAll(rule, constraints);
+    const generated = this.engine.expandAll(
+      rule,
+      constraints,
+      Infinity,
+      Infinity,
+      this.config.processModifiers ?? false,
+    );
     
     // Convert GenerationPath to GenerationResult
     const results = rawToGenerationResult(generated);

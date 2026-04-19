@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Textarea,
   TextInput,
@@ -11,6 +11,7 @@ import {
   SegmentedControl,
   ActionIcon,
   Tooltip,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconAlertCircle, IconCircleCheck, IconDeviceFloppy, IconHelp } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
@@ -34,6 +35,8 @@ interface GrammarEditorProps {
   onNewUserGrammar: () => void;
   onSaveGrammar: () => void;
   onRenameUserGrammar: (name: string) => void;
+  /** If set, "Load example" lists only fixtures whose `name` is in this list. */
+  allowedFixtureNames?: string[];
 }
 
 export function GrammarEditor({
@@ -50,7 +53,9 @@ export function GrammarEditor({
   onNewUserGrammar,
   onSaveGrammar,
   onRenameUserGrammar,
+  allowedFixtureNames,
 }: GrammarEditorProps) {
+  const theme = useMantineTheme();
   const [jsonText, setJsonText] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +95,28 @@ export function GrammarEditor({
   useEffect(() => {
     setGrammarNameDraft(activeUserItem?.name ?? '');
   }, [activeUserItem?.id, activeUserItem?.name]);
+
+  const fixtureSelectData = useMemo(() => {
+    const list =
+      allowedFixtureNames && allowedFixtureNames.length > 0
+        ? fixtures.filter((f) => allowedFixtureNames.includes(f.name))
+        : fixtures;
+    return list.map((f) => ({ value: f.name, label: f.name }));
+  }, [allowedFixtureNames]);
+
+  useEffect(() => {
+    if (!allowedFixtureNames?.length) return;
+    if (librarySource !== 'fixture' || !selectedFixtureName) return;
+    if (allowedFixtureNames.includes(selectedFixtureName)) return;
+    const first = fixtureSelectData[0]?.value;
+    if (first) onFixtureLoad(first);
+  }, [
+    allowedFixtureNames,
+    fixtureSelectData,
+    librarySource,
+    onFixtureLoad,
+    selectedFixtureName,
+  ]);
 
   return (
     <Stack gap="sm">
@@ -143,7 +170,7 @@ export function GrammarEditor({
           </Tooltip>
           <Select
             placeholder="Load example"
-            data={fixtures.map((f) => ({ value: f.name, label: f.name }))}
+            data={fixtureSelectData}
             value={librarySource === 'fixture' ? selectedFixtureName : null}
             onChange={(value) => value && onFixtureLoad(value)}
             size="xs"
@@ -175,7 +202,7 @@ export function GrammarEditor({
             variant="subtle"
             size="md"
             radius="xl"
-            color={isValid ? 'teal' : 'red'}
+            color={isValid ? theme.primaryColor : 'red'}
             aria-label={isValid ? 'Grammar valid' : 'Grammar invalid'}
           >
             {isValid ? (
@@ -188,7 +215,7 @@ export function GrammarEditor({
       </Group>
 
       {librarySource === 'fixture' && selectedFixtureName && (
-        <Text size="xs" c="dimmed" lh={1.4}>
+        <Text size="sm" c="dimmed" lh={1.4}>
           {fixtures.find((f) => f.name === selectedFixtureName)?.description}
         </Text>
       )}
@@ -216,7 +243,7 @@ export function GrammarEditor({
               },
             }}
           />
-          <Text size="xs" c="dimmed">
+          <Text size="sm" c="dimmed">
             <Code>#symbol#</Code> references other symbols. Use <Code>origin</Code> as the starting point.
           </Text>
         </>
