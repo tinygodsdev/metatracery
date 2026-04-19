@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Box, useComputedColorScheme } from '@mantine/core';
+import { Box, Text, UnstyledButton, useComputedColorScheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
+import { IconChevronLeft, IconChevronUp } from '@tabler/icons-react';
 
 const STORAGE_KEY = 'gge-workspace-split-v1';
 const MIN_LEFT = 300;
 const MIN_RIGHT = 280;
 const HANDLE_PX = 5;
+const STRIP_W = 44;
+const STRIP_H = 48;
 
 function readInitialSplitPx(): number {
   if (typeof window === 'undefined') return 560;
@@ -28,9 +31,22 @@ export interface EditorWorkspaceColumnsProps {
   minHeight?: number | string;
   /** Merged into the root row (e.g. `flex: 1, minHeight: 0` to fill the main column). */
   style?: CSSProperties;
+  /** When false, results collapse to a narrow strip (edge on desktop, bottom on mobile stack). */
+  resultsExpanded?: boolean;
+  onResultsExpandedChange?: (expanded: boolean) => void;
+  /** Optional short note on the collapsed strip (e.g. result count). */
+  resultsStripDetail?: string;
 }
 
-export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style }: EditorWorkspaceColumnsProps) {
+export function EditorWorkspaceColumns({
+  left,
+  right,
+  minHeight = '72vh',
+  style,
+  resultsExpanded = true,
+  onResultsExpandedChange,
+  resultsStripDetail,
+}: EditorWorkspaceColumnsProps) {
   const isRow = useMediaQuery('(min-width: 62em)');
   const colorScheme = useComputedColorScheme('light');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,6 +56,8 @@ export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style 
 
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ originX: number; originW: number } | null>(null);
+
+  const expanded = !onResultsExpandedChange || resultsExpanded;
 
   const persist = useCallback((w: number) => {
     try {
@@ -103,39 +121,95 @@ export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style 
     ...style,
   };
 
-  const colShell = (child: React.ReactNode, opts: { isLeft: boolean }) => {
-    const sizeStyles: CSSProperties = isRow
-      ? opts.isLeft
-        ? { flex: `0 0 ${splitPx}px`, minWidth: MIN_LEFT }
-        : { flex: '1 1 0%', minWidth: MIN_RIGHT }
-      : { flex: '1 1 0%', minHeight: 0, width: '100%', minWidth: 0 };
+  const leftBg = 'var(--app-surface-1)';
+  const rightBg =
+    colorScheme === 'dark' ? 'var(--app-surface-1)' : 'var(--app-surface-0)';
 
-    const columnBg =
-      opts.isLeft || colorScheme === 'dark' ? 'var(--app-surface-1)' : 'var(--app-surface-0)';
+  const leftSize: CSSProperties = isRow
+    ? expanded
+      ? { flex: `0 0 ${splitPx}px`, minWidth: MIN_LEFT }
+      : { flex: '1 1 0%', minWidth: 0, minHeight: 0 }
+    : { flex: '1 1 0%', minHeight: 0, width: '100%', minWidth: 0 };
 
-    return (
-      <Box
+  const rightSize: CSSProperties = isRow
+    ? { flex: '1 1 0%', minWidth: MIN_RIGHT }
+    : { flex: '1 1 0%', minHeight: 0, width: '100%', minWidth: 0 };
+
+  const leftShell = (
+    <Box
+      style={{
+        ...leftSize,
+        maxWidth: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+        overflow: 'hidden',
+        background: leftBg,
+        borderRight: isRow && expanded ? '1px solid var(--app-soft-border)' : undefined,
+        borderBottom: !isRow && expanded ? '1px solid var(--app-soft-border)' : undefined,
+      }}
+    >
+      {left}
+    </Box>
+  );
+
+  const rightShell = (
+    <Box
+      style={{
+        ...rightSize,
+        maxWidth: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+        overflow: 'hidden',
+        background: rightBg,
+      }}
+    >
+      {right}
+    </Box>
+  );
+
+  const collapsedStrip =
+    onResultsExpandedChange && !expanded ? (
+      <UnstyledButton
+        type="button"
+        onClick={() => onResultsExpandedChange(true)}
         style={{
-          ...sizeStyles,
-          maxWidth: '100%',
+          flexShrink: 0,
+          height: isRow ? 'auto' : STRIP_H,
+          minHeight: isRow ? 0 : STRIP_H,
+          width: isRow ? STRIP_W : '100%',
+          alignSelf: isRow ? 'stretch' : undefined,
           display: 'flex',
-          flexDirection: 'column',
-          minWidth: 0,
-          overflow: 'hidden',
-          background: columnBg,
-          borderRight: isRow && opts.isLeft ? '1px solid var(--app-soft-border)' : undefined,
-          borderBottom: !isRow && opts.isLeft ? '1px solid var(--app-soft-border)' : undefined,
+          flexDirection: isRow ? 'column' : 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          padding: isRow ? 'var(--mantine-spacing-xs) 4px' : '0 var(--mantine-spacing-md)',
+          borderLeft: isRow ? '1px solid var(--app-soft-border)' : undefined,
+          borderTop: !isRow ? '1px solid var(--app-soft-border)' : undefined,
+          background: 'var(--app-surface-1)',
+          color: 'var(--mantine-color-dimmed)',
         }}
+        aria-label="Show results panel"
       >
-        {child}
-      </Box>
-    );
-  };
+        {isRow ? <IconChevronLeft size={18} stroke={1.5} aria-hidden /> : <IconChevronUp size={18} stroke={1.5} aria-hidden />}
+        <Text
+          size="xs"
+          fw={600}
+          ta="center"
+          lh={1.25}
+          style={isRow ? { textOrientation: 'mixed' as const, writingMode: 'vertical-rl' as const } : undefined}
+        >
+          Results{resultsStripDetail ? ` · ${resultsStripDetail}` : ''}
+        </Text>
+      </UnstyledButton>
+    ) : null;
 
   return (
     <Box ref={containerRef} style={rowStyle}>
-      {colShell(left, { isLeft: true })}
-      {isRow && (
+      {leftShell}
+      {isRow && expanded && (
         <Box
           onPointerDown={onResizeHandleDown}
           role="separator"
@@ -151,7 +225,7 @@ export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style 
           }}
         />
       )}
-      {colShell(right, { isLeft: false })}
+      {expanded ? rightShell : collapsedStrip}
     </Box>
   );
 }

@@ -12,9 +12,17 @@ import {
   ActionIcon,
   Tooltip,
   Box,
+  Menu,
   useMantineTheme,
 } from '@mantine/core';
-import { IconAlertCircle, IconCircleCheck, IconDeviceFloppy, IconHelp } from '@tabler/icons-react';
+import { useResizeObserver } from '@mantine/hooks';
+import {
+  IconAlertCircle,
+  IconCircleCheck,
+  IconDeviceFloppy,
+  IconHelp,
+  IconMenu2,
+} from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
 import { fixtures } from '../fixtures';
 import type { GrammarLibraryState, GrammarLibrarySource } from '../grammarLibraryStorage';
@@ -125,17 +133,20 @@ export function GrammarEditor({
     selectedFixtureName,
   ]);
 
-  const toolbarControls = (
+  const viewModeSegmented = (
+    <SegmentedControl
+      size="xs"
+      value={viewMode}
+      onChange={(v) => onViewModeChange(v as 'json' | 'graph')}
+      data={[
+        { label: 'Graph', value: 'graph' },
+        { label: 'JSON', value: 'json' },
+      ]}
+    />
+  );
+
+  const libraryAndExamplesControls = (
     <>
-      <SegmentedControl
-        size="xs"
-        value={viewMode}
-        onChange={(v) => onViewModeChange(v as 'json' | 'graph')}
-        data={[
-          { label: 'Graph', value: 'graph' },
-          { label: 'JSON', value: 'json' },
-        ]}
-      />
       <Select
         placeholder="My grammars"
         data={userGrammarData}
@@ -181,18 +192,88 @@ export function GrammarEditor({
         size="xs"
         w={128}
       />
-      <ActionIcon
-        variant="subtle"
-        color="gray"
-        size="md"
-        radius="xl"
-        aria-label="Open documentation"
-        title="How to use"
-        onClick={onOpenHelp}
-      >
-        <IconHelp size={18} />
-      </ActionIcon>
     </>
+  );
+
+  const helpAction = (
+    <ActionIcon
+      variant="subtle"
+      color="gray"
+      size="md"
+      radius="xl"
+      aria-label="Open documentation"
+      title="How to use"
+      onClick={onOpenHelp}
+    >
+      <IconHelp size={18} />
+    </ActionIcon>
+  );
+
+  const toolbarControls = (
+    <>
+      {viewModeSegmented}
+      {libraryAndExamplesControls}
+      {helpAction}
+    </>
+  );
+
+  const [workspaceToolbarMeasureRef, workspaceToolbarRect] = useResizeObserver();
+  const compactWorkspaceToolbar = (workspaceToolbarRect.width ?? 1080) < 520;
+
+  const libraryMenuDropdown = (
+    <Menu.Dropdown>
+      <Stack gap="sm" p="xs">
+        <Select
+          label="My grammars"
+          placeholder="My grammars"
+          data={userGrammarData}
+          value={myGrammarValue}
+          onChange={(value) => {
+            if (!value) return;
+            if (value === NEW_GRAMMAR_VALUE) onNewUserGrammar();
+            else onSelectUserGrammar(value);
+          }}
+          size="xs"
+          comboboxProps={{ withinPortal: true }}
+        />
+        {activeUserItem && (
+          <TextInput
+            label="Grammar name"
+            size="xs"
+            placeholder="Grammar name"
+            aria-label="Grammar display name"
+            value={grammarNameDraft}
+            onChange={(e) => setGrammarNameDraft(e.target.value)}
+            onBlur={() => onRenameUserGrammar(grammarNameDraft)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+            }}
+          />
+        )}
+        <Group justify="flex-start" gap="xs">
+          <Tooltip label="Save grammar">
+            <ActionIcon
+              size="lg"
+              variant="default"
+              radius="md"
+              aria-label="Save grammar"
+              onClick={onSaveGrammar}
+            >
+              <IconDeviceFloppy size={18} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+        <Select
+          label="Load example"
+          placeholder="Load example"
+          data={fixtureSelectData}
+          value={librarySource === 'fixture' ? selectedFixtureName : null}
+          onChange={(value) => value && onFixtureLoad(value)}
+          size="xs"
+          comboboxProps={{ withinPortal: true }}
+        />
+      </Stack>
+    </Menu.Dropdown>
   );
 
   const validityControl = (
@@ -261,16 +342,36 @@ export function GrammarEditor({
           >
             <Box style={{ flexShrink: 0 }}>{workspaceHeading}</Box>
             <Box
+              ref={workspaceToolbarMeasureRef}
               style={{
                 flex: 1,
                 minWidth: 0,
-                overflowX: 'auto',
                 display: 'flex',
                 justifyContent: 'flex-end',
               }}
             >
-              <Group gap="xs" align="center" wrap="nowrap" style={{ width: 'max-content' }}>
-                {toolbarControls}
+              <Group gap="xs" align="center" wrap="nowrap" justify="flex-end" style={{ width: '100%', minWidth: 0 }}>
+                {viewModeSegmented}
+                {compactWorkspaceToolbar ? (
+                  <Menu shadow="md" width={300} position="bottom-end" withinPortal trapFocus={false}>
+                    <Menu.Target>
+                      <ActionIcon
+                        variant="default"
+                        radius="md"
+                        size="md"
+                        aria-label="Grammar library and examples"
+                      >
+                        <IconMenu2 size={18} stroke={1.5} aria-hidden />
+                      </ActionIcon>
+                    </Menu.Target>
+                    {libraryMenuDropdown}
+                  </Menu>
+                ) : (
+                  <Group gap="xs" wrap="nowrap" style={{ minWidth: 0, overflowX: 'auto' }}>
+                    {libraryAndExamplesControls}
+                  </Group>
+                )}
+                {helpAction}
                 {validityControl}
               </Group>
             </Box>

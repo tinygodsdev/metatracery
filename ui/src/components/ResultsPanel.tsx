@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Stack,
@@ -69,6 +69,8 @@ interface ResultsPanelProps {
   showResultDisplayModeControl?: boolean;
   homeResultDisplayMode?: UseCaseResultsContentVariant;
   onHomeResultDisplayModeChange?: (value: UseCaseResultsContentVariant) => void;
+  /** Shown next to the Results title (e.g. minimize to strip). */
+  workspaceMinimizeControl?: ReactNode;
 }
 
 export function ResultsPanel({
@@ -90,8 +92,11 @@ export function ResultsPanel({
   showResultDisplayModeControl = false,
   homeResultDisplayMode = 'line',
   onHomeResultDisplayModeChange,
+  workspaceMinimizeControl,
 }: ResultsPanelProps) {
   const theme = useMantineTheme();
+  const h3Heading = theme.headings.sizes.h3;
+  const resultsTitleRowHeight = `calc(${h3Heading.fontSize} * ${h3Heading.lineHeight})`;
   const { pathname } = useLocation();
   const ornamentPath = pathname === '/' ? '/writing-prompts' : pathname;
 
@@ -288,9 +293,32 @@ export function ResultsPanel({
     <Stack gap="md">
       <Group justify="space-between" align="flex-start" gap="md" wrap="wrap">
         <Group gap="md" align="center" wrap="wrap">
-          <Title order={2} size="h3" fw={600} style={{ lineHeight: 1.2 }}>
-            Results
-          </Title>
+          <Group gap={6} align="center" wrap="nowrap">
+            {workspaceMinimizeControl ? (
+              <Box
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  height: resultsTitleRowHeight,
+                }}
+              >
+                {workspaceMinimizeControl}
+              </Box>
+            ) : null}
+            <Title
+              order={2}
+              size="h3"
+              fw={600}
+              style={{
+                lineHeight: h3Heading.lineHeight,
+                margin: 0,
+              }}
+            >
+              Results
+            </Title>
+          </Group>
           {showResultDisplayModeControl && onHomeResultDisplayModeChange && (
             <Group gap={6} align="center" wrap="nowrap">
               <Text size="sm" c="dimmed">

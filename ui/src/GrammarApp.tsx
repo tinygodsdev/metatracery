@@ -11,8 +11,12 @@ import {
   Button,
   MantineThemeProvider,
   Box,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 
 import { GrammarEditor } from './components/GrammarEditor';
 import { HelpDocumentationModal } from './components/HelpDocumentationModal';
@@ -44,6 +48,25 @@ import {
 import { SeoHead } from './seo/SeoHead';
 import type { UseCasePreviewConfig, UseCaseResultsContentVariant } from './seo/useCases';
 import { getUseCaseByPath, isAllowedPath } from './seo/useCases';
+
+const RESULTS_WORKSPACE_EXPANDED_KEY = 'gge-workspace-results-expanded';
+
+function readResultsWorkspaceExpanded(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    return localStorage.getItem(RESULTS_WORKSPACE_EXPANDED_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+function writeResultsWorkspaceExpanded(value: boolean) {
+  try {
+    localStorage.setItem(RESULTS_WORKSPACE_EXPANDED_KEY, value ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
 
 const HOME_RICH_RESULT_PREVIEW: UseCasePreviewConfig = {
   aspectRatio: 1,
@@ -136,6 +159,13 @@ export default function GrammarApp() {
   const [storedDataModalOpen, setStoredDataModalOpen] = useState(false);
   const [baselineSerialized, setBaselineSerialized] = useState<string | null>(null);
   const [draftDialog, setDraftDialog] = useState<{ path: string; json: string } | null>(null);
+  const [resultsWorkspaceExpanded, setResultsWorkspaceExpandedState] = useState(readResultsWorkspaceExpanded);
+  const setResultsWorkspaceExpanded = useCallback((value: boolean) => {
+    setResultsWorkspaceExpandedState(value);
+    writeResultsWorkspaceExpanded(value);
+  }, []);
+
+  const layoutIsRow = useMediaQuery('(min-width: 62em)');
 
   const pendingAfterDisclaimerRef = useRef<(() => void) | null>(null);
   const libraryStateRef = useRef(libraryState);
@@ -534,6 +564,9 @@ export default function GrammarApp() {
     <EditorWorkspaceColumns
       style={{ flex: 1, minHeight: 0 }}
       minHeight={0}
+      resultsExpanded={resultsWorkspaceExpanded}
+      onResultsExpandedChange={setResultsWorkspaceExpanded}
+      resultsStripDetail={results.length > 0 ? String(results.length) : undefined}
       left={
         <Box
           style={{
@@ -603,6 +636,24 @@ export default function GrammarApp() {
             showResultDisplayModeControl={isHome}
             homeResultDisplayMode={homeResultsContentVariant}
             onHomeResultDisplayModeChange={setHomeResultsContentVariant}
+            workspaceMinimizeControl={
+              <Tooltip label={layoutIsRow ? 'Minimize results to edge' : 'Minimize results strip'}>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="md"
+                  radius="xl"
+                  onClick={() => setResultsWorkspaceExpanded(false)}
+                  aria-label="Minimize results panel"
+                >
+                  {layoutIsRow ? (
+                    <IconChevronRight size={18} stroke={1.5} aria-hidden />
+                  ) : (
+                    <IconChevronDown size={18} stroke={1.5} aria-hidden />
+                  )}
+                </ActionIcon>
+              </Tooltip>
+            }
           />
         </Box>
       }
