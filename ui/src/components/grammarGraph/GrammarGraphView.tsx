@@ -106,12 +106,17 @@ function FitViewButton() {
   );
 }
 
-interface GrammarGraphViewProps {
+export interface GrammarGraphViewProps {
   grammar: GrammarRule;
   onChange: (g: GrammarRule) => void;
+  /**
+   * Expand the graph to fill the parent flex area (fixed 620px height when false).
+   * Omits side borders and footer hint so the canvas can sit flush in a column.
+   */
+  fillHeight?: boolean;
 }
 
-function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
+function GrammarGraphInner({ grammar, onChange, fillHeight }: GrammarGraphViewProps) {
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme('light');
   const isDark = colorScheme === 'dark';
@@ -277,7 +282,10 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
 
   if (keys.length === 0) {
     return (
-      <Stack gap="sm">
+      <Stack
+        gap="sm"
+        style={fillHeight ? { flex: 1, minHeight: 0, justifyContent: 'center' } : undefined}
+      >
         <Text size="sm" c="dimmed">
           No grammar yet. Start with a single <strong>origin</strong> node, then add alternatives. Type{' '}
           <code>#RuleName#</code> in a line to create or link another rule.
@@ -290,7 +298,14 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
   }
 
   return (
-    <Stack gap="sm">
+    <Stack
+      gap="sm"
+      style={
+        fillHeight
+          ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }
+          : undefined
+      }
+    >
       <Modal
         opened={deleteModalSymbol !== null}
         onClose={() => setDeleteModalSymbol(null)}
@@ -319,11 +334,22 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
       )}
       <div
         style={{
-          height: 620,
-          border: `1px solid ${canvasBorder}`,
-          borderRadius: 8,
+          flex: fillHeight ? 1 : undefined,
+          flexShrink: fillHeight ? 1 : undefined,
+          minHeight: fillHeight ? 200 : undefined,
+          height: fillHeight ? undefined : 620,
           overflow: 'hidden',
           background: canvasSurface,
+          ...(fillHeight
+            ? {
+                borderTop: `1px solid ${canvasBorder}`,
+                borderBottom: `1px solid ${canvasBorder}`,
+                borderRadius: 0,
+              }
+            : {
+                border: `1px solid ${canvasBorder}`,
+                borderRadius: 8,
+              }),
         }}
       >
         <ReactFlow
@@ -357,11 +383,13 @@ function GrammarGraphInner({ grammar, onChange }: GrammarGraphViewProps) {
           </Panel>
         </ReactFlow>
       </div>
-      <Text size="sm" c="dimmed">
-        Type <code>#Name#</code> in an alternative to link or create a rule with that name. Rename a rule in its title
-        field; all <code>#Name#</code> references update. Multiple references in one line (e.g.{' '}
-        <code>#SP# #VP# #OP#</code>) are supported.
-      </Text>
+      {!fillHeight && (
+        <Text size="sm" c="dimmed">
+          Type <code>#Name#</code> in an alternative to link or create a rule with that name. Rename a rule in its title
+          field; all <code>#Name#</code> references update. Multiple references in one line (e.g.{' '}
+          <code>#SP# #VP# #OP#</code>) are supported.
+        </Text>
+      )}
     </Stack>
   );
 }

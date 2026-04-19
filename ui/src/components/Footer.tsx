@@ -1,81 +1,89 @@
 import {
-  Container,
   Group,
-  Text,
   Anchor,
+  Text,
+  Box,
   SegmentedControl,
   useMantineColorScheme,
   useComputedColorScheme,
   Center,
   ActionIcon,
 } from '@mantine/core';
-import { IconDatabase, IconMoon, IconSun } from '@tabler/icons-react';
+import { IconBrandGithub, IconDatabase, IconMoon, IconSun } from '@tabler/icons-react';
 
-interface FooterProps {
-  onOpenStoredData: () => void;
-}
-
-export function Footer({ onOpenStoredData }: FooterProps) {
+/** Theme, stored data, GitHub icon, and attribution — for the top slim bar. */
+export function AppChromeSlimFooter({ onOpenStoredData }: { onOpenStoredData: () => void }) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedScheme = useComputedColorScheme('light');
   const themeMode = colorScheme === 'auto' ? computedScheme : colorScheme;
 
   return (
-    <Container fluid px="sm" py="md" mt="md">
-      <Group justify="space-between" align="center" wrap="wrap" gap="md">
-        <Text size="sm" c="dimmed">
+    <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+      <Box visibleFrom="sm" miw={0} style={{ maxWidth: 200 }}>
+        <Text size="xs" c="dimmed" truncate>
           Created by{' '}
-          <Anchor href="https://danipolani.github.io/en/" target="_blank" rel="noopener noreferrer" fw={500}>
-            Dani Polani
-          </Anchor>
-          {' · '}
-          Inspired by{' '}
-          <Anchor href="https://github.com/galaxykate/tracery" target="_blank" rel="noopener noreferrer">
-            Tracery.js
+          <Anchor
+            href="https://danipolani.github.io/en/"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="xs"
+            fw={500}
+            c="dimmed"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            Dani
           </Anchor>
         </Text>
-
-        <Group gap="xs" wrap="nowrap">
-          <SegmentedControl
-            size="xs"
-            value={themeMode}
-            onChange={(value) => setColorScheme(value as 'light' | 'dark')}
-            data={[
-              {
-                value: 'light',
-                label: (
-                  <Center>
-                    <IconSun size={14} stroke={1.5} aria-hidden />
-                  </Center>
-                ),
-              },
-              {
-                value: 'dark',
-                label: (
-                  <Center>
-                    <IconMoon size={14} stroke={1.5} aria-hidden />
-                  </Center>
-                ),
-              },
-            ]}
-            aria-label="Color scheme"
-          />
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="lg"
-            radius="xl"
-            aria-label="Data stored in this browser"
-            title="Data stored in this browser"
-            onClick={onOpenStoredData}
-          >
-            <IconDatabase size={18} stroke={1.5} />
-          </ActionIcon>
-          <Anchor href="https://github.com/tinygodsdev" target="_blank" rel="noopener noreferrer" size="sm">
-            View on GitHub
-          </Anchor>
-        </Group>
-      </Group>
-    </Container>
+      </Box>
+      <SegmentedControl
+        size="xs"
+        value={themeMode}
+        onChange={(value) => setColorScheme(value as 'light' | 'dark')}
+        data={[
+          {
+            value: 'light',
+            label: (
+              <Center>
+                <IconSun size={14} stroke={1.5} aria-hidden />
+              </Center>
+            ),
+          },
+          {
+            value: 'dark',
+            label: (
+              <Center>
+                <IconMoon size={14} stroke={1.5} aria-hidden />
+              </Center>
+            ),
+          },
+        ]}
+        aria-label="Color scheme"
+      />
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
+        radius="xl"
+        aria-label="Data stored in this browser"
+        title="Data stored in this browser"
+        onClick={onOpenStoredData}
+      >
+        <IconDatabase size={16} stroke={1.5} />
+      </ActionIcon>
+      <ActionIcon
+        component="a"
+        href="https://github.com/tinygodsdev"
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="subtle"
+        color="gray"
+        size="sm"
+        radius="xl"
+        aria-label="GitHub repository"
+        title="GitHub"
+      >
+        <IconBrandGithub size={18} stroke={1.2} aria-hidden />
+      </ActionIcon>
+    </Group>
   );
 }

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import {
   Stack,
   Button,
+  ButtonGroup,
   Group,
   Text,
   Title,
@@ -21,6 +22,7 @@ import {
   Paper,
   Box,
   Checkbox,
+  Menu,
 } from '@mantine/core';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { GrammarProcessor } from '../engine/GrammarEngine';
@@ -97,6 +99,8 @@ export function ResultsPanel({
   const [generateCount, setGenerateCount] = useState<number>(10);
   const [parameterControlsOpen, setParameterControlsOpen] = useState(parameterControlsDefaultExpanded);
   const [showResultParameters, setShowResultParameters] = useState(false);
+  /** Shown after “sample from large space” from the ▼ menu; cleared on other generates / parameter changes. */
+  const [largeSpaceSampleNote, setLargeSpaceSampleNote] = useState<string | null>(null);
 
   const parameters = engine?.getParameters() || {};
   const stats = engine?.getParameterStatistics();
@@ -143,6 +147,10 @@ export function ResultsPanel({
     setGenerateCount((c) => Math.min(Math.max(1, c), generateManyMax));
   }, [generateManyMax, engine]);
 
+  useEffect(() => {
+    setLargeSpaceSampleNote(null);
+  }, [selectedParameters, engine]);
+
   const handleParameterChange = (paramName: string, value: string) => {
     setSelectedParameters((prev) => {
       if (value === '') {
@@ -153,21 +161,35 @@ export function ResultsPanel({
     });
   };
 
-  const handleGenerateWithParams = () => {
+  const buildParameterPayload = () => {
     const allParameters = { ...validatedParameterConstraints };
     singleValueParameters.forEach(([name, param]) => {
       allParameters[name] = param.values[0];
     });
-    onGenerate(allParameters);
+    return allParameters;
   };
 
-  const handleGenerateMany = () => {
-    const allParameters = { ...validatedParameterConstraints };
-    singleValueParameters.forEach(([name, param]) => {
-      allParameters[name] = param.values[0];
-    });
-    const n = Math.min(Math.max(1, generateCount), generateManyMax);
-    onGenerateMany(allParameters, n);
+  const clampedGenerateCount = Math.min(Math.max(1, generateCount), generateManyMax);
+
+  const handlePrimaryGenerate = () => {
+    setLargeSpaceSampleNote(null);
+    if (clampedGenerateCount === 1) {
+      onGenerate(buildParameterPayload());
+    } else {
+      onGenerateMany(buildParameterPayload(), clampedGenerateCount);
+    }
+  };
+
+  const handleGenerateAllFromMenu = () => {
+    setLargeSpaceSampleNote(null);
+    onGenerateAll(validatedParameterConstraints);
+  };
+
+  const handleLargeSpaceSampleFromMenu = () => {
+    onGenerateMany(buildParameterPayload(), generateManyMax);
+    setLargeSpaceSampleNote(
+      `${generateManyMax} random · full space ${actualCombinations.toLocaleString()} combinations`,
+    );
   };
 
   const exportResults = () => {
@@ -303,45 +325,81 @@ export function ResultsPanel({
 
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="xs" align="center" wrap="wrap">
-          <Button size="sm" variant="filled" onClick={handleGenerateWithParams} disabled={isLoading}>
-            Generate
-          </Button>
-          <Group gap="xs" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap" align="center">
             <NumberInput
               size="sm"
               value={generateCount}
               onChange={(value) => setGenerateCount(typeof value === 'number' ? value : generateManyMax)}
               min={1}
               max={generateManyMax}
-              w={80}
-              placeholder="Count"
-              title={`Generate multiple results (1–${generateManyMax})`}
+              w={72}
+              aria-label="Number of results to generate"
+              title={`How many independent random samples to produce (1–${generateManyMax}). With count 1, runs a single generation.`}
             />
-            <Button
-              size="sm"
-              variant="default"
-              onClick={handleGenerateMany}
-              disabled={isLoading || generateCount < 1 || generateCount > generateManyMax}
-              title={`Generate ${Math.min(generateCount, generateManyMax)} results`}
-            >
-              Generate Many ({Math.min(generateCount, generateManyMax)})
-            </Button>
+            {showGenerateAll ? (
+              <ButtonGroup>
+                <Button
+                  size="sm"
+                  variant="filled"
+                  onClick={handlePrimaryGenerate}
+                  disabled={isLoading}
+                  title={
+                    clampedGenerateCount === 1
+                      ? 'Generate one output with the current parameters'
+                      : `Generate ${clampedGenerateCount} independent random samples (not every combination)`
+                  }
+                >
+                  {clampedGenerateCount === 1 ? 'Generate' : `Generate (${clampedGenerateCount})`}
+                </Button>
+                <Menu position="bottom-start" withinPortal>
+                  <Menu.Target>
+                    <Button
+                      size="sm"
+                      variant="filled"
+                      px="xs"
+                      disabled={isLoading}
+                      aria-label="List all combinations (when available)"
+                    >
+                      <IconChevronDown size={16} stroke={1.5} aria-hidden />
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {actualCombinations > 1 && actualCombinations <= 100 ? (
+                      <Menu.Item onClick={handleGenerateAllFromMenu} disabled={isLoading}>
+                        All {actualCombinations.toLocaleString()} — list every combination
+                      </Menu.Item>
+                    ) : actualCombinations > 100 ? (
+                      <Menu.Item
+                        onClick={handleLargeSpaceSampleFromMenu}
+                        disabled={isLoading}
+                        title={`${generateManyMax} independent random samples; full enumeration would be ${actualCombinations.toLocaleString()}`}
+                      >
+                        {generateManyMax} of {actualCombinations.toLocaleString()} (random sample)
+                      </Menu.Item>
+                    ) : (
+                      <Menu.Item disabled>
+                        Only one outcome — use Generate
+                      </Menu.Item>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              </ButtonGroup>
+            ) : (
+              <Button
+                size="sm"
+                variant="filled"
+                onClick={handlePrimaryGenerate}
+                disabled={isLoading}
+                title={
+                  clampedGenerateCount === 1
+                    ? 'Generate one output with the current parameters'
+                    : `Generate ${clampedGenerateCount} independent random samples`
+                }
+              >
+                {clampedGenerateCount === 1 ? 'Generate' : `Generate (${clampedGenerateCount})`}
+              </Button>
+            )}
           </Group>
-          {showGenerateAll && (
-            <Button
-              size="sm"
-              variant="subtle"
-              onClick={() => onGenerateAll(validatedParameterConstraints)}
-              disabled={isLoading || actualCombinations > 100}
-              title={
-                actualCombinations > 100
-                  ? `Too many combinations (${actualCombinations}). Use more specific parameters.`
-                  : undefined
-              }
-            >
-              Generate All ({actualCombinations})
-            </Button>
-          )}
         </Group>
 
         <Button
@@ -358,42 +416,34 @@ export function ResultsPanel({
         </Button>
       </Group>
 
+      {largeSpaceSampleNote && (
+        <Text size="xs" c="dimmed">
+          {largeSpaceSampleNote}
+        </Text>
+      )}
+
       <Collapse in={parameterControlsOpen}>
         <Stack gap="md" pt="xs">
-          <Group justify="space-between" align="center" wrap="wrap" gap="md">
-            {singleValueParameters.length > 0 ? (
-              <Text
-                size="sm"
-                c="dimmed"
-                lh={1.4}
-                title={`Fixed parameters: ${singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}`}
-              >
-                {singleValueParameters.length} fixed parameter{singleValueParameters.length !== 1 ? 's' : ''}
-              </Text>
-            ) : (
-              <div />
-            )}
-            <Group gap={6} align="center" wrap="wrap">
-              <NativeSelect
+          <Group justify="flex-end" align="center" wrap="wrap" gap={6}>
+            <NativeSelect
+              size="xs"
+              w={120}
+              value={strategy}
+              onChange={(e) => onStrategyChange(e.currentTarget.value as GenerationStrategy)}
+              title="Generation strategy: Uniform gives equal probability to each option, Weighted favors options that generate more strings"
+              data={[
+                { value: 'uniform', label: 'Uniform' },
+                { value: 'weighted', label: 'Weighted' },
+              ]}
+            />
+            <Tooltip label={MODIFIERS_TOOLTIP} multiline w={280} position="bottom" withArrow>
+              <Switch
                 size="xs"
-                w={120}
-                value={strategy}
-                onChange={(e) => onStrategyChange(e.currentTarget.value as GenerationStrategy)}
-                title="Generation strategy: Uniform gives equal probability to each option, Weighted favors options that generate more strings"
-                data={[
-                  { value: 'uniform', label: 'Uniform' },
-                  { value: 'weighted', label: 'Weighted' },
-                ]}
+                checked={processModifiers}
+                onChange={(e) => onProcessModifiersChange(e.currentTarget.checked)}
+                label="Modifiers"
               />
-              <Tooltip label={MODIFIERS_TOOLTIP} multiline w={280} position="bottom" withArrow>
-                <Switch
-                  size="xs"
-                  checked={processModifiers}
-                  onChange={(e) => onProcessModifiersChange(e.currentTarget.checked)}
-                  label="Modifiers"
-                />
-              </Tooltip>
-            </Group>
+            </Tooltip>
           </Group>
 
           <Stack gap="xs">
@@ -404,19 +454,27 @@ export function ResultsPanel({
           </Stack>
 
           {stats && (
-            <Stack gap="xs">
-              <Text size="sm" c="dimmed">
-                Total combinations: {totalCombinations}
-              </Text>
-              <Text
-                size="sm"
-                c={actualCombinations !== totalCombinations ? 'primary' : 'dimmed'}
-              >
-                With selected parameters: {actualCombinations}
-              </Text>
+            <Stack gap={6}>
+              <Group gap={6} wrap="wrap" align="baseline">
+                <Text size="sm" c="dimmed" span>
+                  Total combinations: {totalCombinations}
+                </Text>
+                <Text size="sm" c="dimmed" span>
+                  /
+                </Text>
+                <Text
+                  size="sm"
+                  span
+                  c={actualCombinations !== totalCombinations ? 'primary' : 'dimmed'}
+                >
+                  With selected parameters: {actualCombinations}
+                </Text>
+              </Group>
               {singleValueParameters.length > 0 && (
-                <Text size="sm" c="dimmed">
-                  Fixed: {singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}
+                <Text size="sm" c="dimmed" lh={1.45}>
+                  {singleValueParameters.length} fixed parameter
+                  {singleValueParameters.length !== 1 ? 's' : ''}:{' '}
+                  {singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}
                 </Text>
               )}
             </Stack>

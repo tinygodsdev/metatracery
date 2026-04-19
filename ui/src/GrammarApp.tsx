@@ -3,8 +3,6 @@ import { Navigate, useLocation, useBlocker } from 'react-router-dom';
 import {
   AppShell,
   Title,
-  Container,
-  Grid,
   Stack,
   Group,
   Alert,
@@ -12,18 +10,18 @@ import {
   Modal,
   Button,
   MantineThemeProvider,
-  Paper,
+  Box,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
 import { GrammarEditor } from './components/GrammarEditor';
 import { HelpDocumentationModal } from './components/HelpDocumentationModal';
 import { ResultsPanel } from './components/ResultsPanel';
-import { Footer } from './components/Footer';
 import { SaveGrammarDisclaimerModal } from './components/SaveGrammarDisclaimerModal';
 import { SaveGrammarNameModal } from './components/SaveGrammarNameModal';
 import { BrowserStoredDataModal } from './components/BrowserStoredDataModal';
-import { AppHeader } from './components/AppHeader';
+import { CollapsibleWorkspaceChrome } from './components/CollapsibleWorkspaceChrome';
+import { EditorWorkspaceColumns } from './components/EditorWorkspaceColumns';
 import { RoutePrimaryCssScope } from './components/RoutePrimaryCssScope';
 import { UsecaseDiscoveryCards } from './components/UsecaseDiscoveryCards';
 import { UsecaseHero } from './components/UsecaseHero';
@@ -532,98 +530,126 @@ export default function GrammarApp() {
       ? HOME_RICH_RESULT_PREVIEW
       : undefined);
 
-  const shellBody = (
-    <>
-      <Container fluid pt="xs" pb="md" px="sm">
-        {isHome && <UsecaseDiscoveryCards placement="top" />}
-
-        {useCase && (
-          <UsecaseHero
-            path={useCase.path}
-            primaryColor={useCase.ui?.primaryColor ?? 'blue'}
-            h1={useCase.h1}
-            intro={useCase.intro}
+  const workspaceMain = (
+    <EditorWorkspaceColumns
+      style={{ flex: 1, minHeight: 0 }}
+      minHeight={0}
+      left={
+        <Box
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <GrammarEditor
+            grammar={grammar}
+            onChange={handleGrammarChange}
+            viewMode={grammarViewMode}
+            onViewModeChange={setGrammarViewMode}
+            onOpenHelp={() => setHelpOpen(true)}
+            libraryState={libraryState}
+            librarySource={librarySource}
+            selectedFixtureName={selectedFixtureName}
+            onFixtureLoad={handleFixtureLoad}
+            onSelectUserGrammar={handleSelectUserGrammar}
+            onNewUserGrammar={handleNewUserGrammar}
+            onSaveGrammar={handleSaveRequest}
+            onRenameUserGrammar={handleRenameUserGrammar}
+            allowedFixtureNames={useCase?.ui?.exampleFixtureNames}
+            variant="workspace"
+            workspaceHeading={
+              <Title
+                order={isHome ? 1 : 2}
+                size="h3"
+                component={isHome ? 'h1' : 'h2'}
+                style={{ lineHeight: 1.2 }}
+              >
+                Edit
+              </Title>
+            }
           />
-        )}
+        </Box>
+      }
+      right={
+        <Box
+          p="md"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <ResultsPanel
+            key={pathname}
+            engine={engine}
+            results={results}
+            isLoading={isLoading}
+            onGenerate={handleGenerate}
+            onGenerateAll={handleGenerateAll}
+            onGenerateMany={handleGenerateMany}
+            strategy={strategy}
+            onStrategyChange={setStrategy}
+            processModifiers={processModifiers}
+            onProcessModifiersChange={setProcessModifiers}
+            contentVariant={resultsContentVariant}
+            preview={resultsPreview}
+            maxGenerateMany={useCase?.ui?.maxGenerateMany}
+            showGenerateAll={useCase?.ui?.showGenerateAll ?? true}
+            parameterControlsDefaultExpanded={isHome}
+            showResultDisplayModeControl={isHome}
+            homeResultDisplayMode={homeResultsContentVariant}
+            onHomeResultDisplayModeChange={setHomeResultsContentVariant}
+          />
+        </Box>
+      }
+    />
+  );
 
-        {error && (
-          <Alert color="red" mb="md">
-            {error}
-          </Alert>
-        )}
-
-        <Grid gutter={{ base: 'xs', md: 'sm' }}>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Paper p={{ base: 'sm', md: 'md' }} radius="md" withBorder={false} shadow="xs" bg="var(--app-surface-2)">
-              <Stack gap="md">
-                <Group align="center">
-                  <Title
-                    order={isHome ? 1 : 2}
-                    size="h3"
-                    component={isHome ? 'h1' : 'h2'}
-                    style={{ lineHeight: 1.2 }}
-                  >
-                    Grammar Editor
-                  </Title>
-                </Group>
-                <GrammarEditor
-                  grammar={grammar}
-                  onChange={handleGrammarChange}
-                  viewMode={grammarViewMode}
-                  onViewModeChange={setGrammarViewMode}
-                  onOpenHelp={() => setHelpOpen(true)}
-                  libraryState={libraryState}
-                  librarySource={librarySource}
-                  selectedFixtureName={selectedFixtureName}
-                  onFixtureLoad={handleFixtureLoad}
-                  onSelectUserGrammar={handleSelectUserGrammar}
-                  onNewUserGrammar={handleNewUserGrammar}
-                  onSaveGrammar={handleSaveRequest}
-                  onRenameUserGrammar={handleRenameUserGrammar}
-                  allowedFixtureNames={useCase?.ui?.exampleFixtureNames}
-                />
-              </Stack>
-            </Paper>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Paper p={{ base: 'sm', md: 'md' }} radius="md" withBorder={false} shadow="xs" bg="var(--app-surface-2)">
-              <Stack gap="md">
-                <ResultsPanel
-                  key={pathname}
-                  engine={engine}
-                  results={results}
-                  isLoading={isLoading}
-                  onGenerate={handleGenerate}
-                  onGenerateAll={handleGenerateAll}
-                  onGenerateMany={handleGenerateMany}
-                  strategy={strategy}
-                  onStrategyChange={setStrategy}
-                  processModifiers={processModifiers}
-                  onProcessModifiersChange={setProcessModifiers}
-                  contentVariant={resultsContentVariant}
-                  preview={resultsPreview}
-                  maxGenerateMany={useCase?.ui?.maxGenerateMany}
-                  showGenerateAll={useCase?.ui?.showGenerateAll ?? true}
-                  parameterControlsDefaultExpanded={isHome}
-                  showResultDisplayModeControl={isHome}
-                  homeResultDisplayMode={homeResultsContentVariant}
-                  onHomeResultDisplayModeChange={setHomeResultsContentVariant}
-                />
-              </Stack>
-            </Paper>
-          </Grid.Col>
-        </Grid>
-
-        {!isHome && <UsecaseDiscoveryCards placement="bottom" />}
-      </Container>
-
-      <Footer onOpenStoredData={() => setStoredDataModalOpen(true)} />
+  const expandedChrome = (
+    <>
+      {isHome && <UsecaseDiscoveryCards placement="top" compact />}
+      {useCase && (
+        <UsecaseHero
+          path={useCase.path}
+          primaryColor={useCase.ui?.primaryColor ?? 'blue'}
+          h1={useCase.h1}
+          intro={useCase.intro}
+          compact
+        />
+      )}
+      {error && (
+        <Alert color="red" mt="xs" variant="light">
+          {error}
+        </Alert>
+      )}
+      {!isHome && <UsecaseDiscoveryCards placement="bottom" compact />}
     </>
   );
 
+  const shellBody = (
+    <CollapsibleWorkspaceChrome
+      expandedContent={expandedChrome}
+      workspace={workspaceMain}
+      onOpenStoredData={() => setStoredDataModalOpen(true)}
+      collapsedErrorMessage={error}
+    />
+  );
+
   return (
-    <>
+    <Box
+      style={{
+        height: '100dvh',
+        maxHeight: '100dvh',
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
       <SeoHead />
       <HelpDocumentationModal opened={helpOpen} onClose={() => setHelpOpen(false)} />
       <SaveGrammarDisclaimerModal
@@ -698,9 +724,20 @@ export default function GrammarApp() {
           </Group>
         </Stack>
       </Modal>
-      <AppShell padding={0}>
-        <AppShell.Main style={{ minHeight: '100vh', overflow: 'auto' }}>
-          <AppHeader />
+      <AppShell
+        padding={0}
+        styles={{
+          root: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
+          main: {
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <AppShell.Main>
           {routePrimary ? (
             <MantineThemeProvider inherit theme={{ primaryColor: routePrimary }}>
               <RoutePrimaryCssScope primaryColor={routePrimary}>{shellBody}</RoutePrimaryCssScope>
@@ -710,6 +747,6 @@ export default function GrammarApp() {
           )}
         </AppShell.Main>
       </AppShell>
-    </>
+    </Box>
   );
 }

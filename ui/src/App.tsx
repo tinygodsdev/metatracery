@@ -50,7 +50,18 @@ export default function App() {
         })}
       >
         <Notifications />
-        <RouterProvider router={router} />
+        <div
+          style={{
+            height: '100dvh',
+            maxHeight: '100dvh',
+            minHeight: 0,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <RouterProvider router={router} />
+        </div>
       </MantineProvider>
     </>
   );

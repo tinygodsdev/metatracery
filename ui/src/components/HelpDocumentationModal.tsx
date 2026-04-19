@@ -1,4 +1,6 @@
 import { Modal, Stack, Text, Title, List, Anchor, Code, Tabs } from '@mantine/core';
+import { Link } from 'react-router-dom';
+import { USE_CASES } from '../seo/useCases';
 
 interface HelpDocumentationModalProps {
   opened: boolean;
@@ -67,10 +69,12 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
               <Text size="sm" mb="xs">
                 The right column runs the engine on your grammar. Symbols with more than one alternative may appear as{' '}
                 <strong>parameters</strong>: you can fix them to specific values or leave them random. Use{' '}
-                <strong>Advanced</strong> (next to the generate buttons) to expand or collapse strategy, modifiers,
+                <strong>Advanced</strong> (next to the generate control) to expand or collapse strategy, modifiers,
                 parameter dropdowns, and combination counts; on the home page it starts open, on dedicated use-case pages
-                it starts collapsed. The <strong>Generate</strong> / <strong>Generate Many</strong> /{' '}
-                <strong>Generate All</strong> buttons stay visible; combination stats are inside Advanced.
+                it starts collapsed. The main <strong>Generate</strong> action stays visible with a count field; when
+                the <strong>▼</strong> menu next to <strong>Generate</strong> lists every combination when the space is
+                small enough (≤100), or samples up to the usual batch cap with a short note when the full space is larger.
+                Combination stats are inside Advanced.
               </Text>
 
               <Title order={6} mb="xs">
@@ -114,21 +118,21 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
               </List>
 
               <Title order={6} mb="xs">
-                Generate, Generate Many, Generate All
+                Generate and “generate all”
               </Title>
               <List size="sm" spacing="xs">
                 <List.Item>
-                  <strong>Generate</strong> — one output using the current parameter dropdowns. <strong>Random</strong>{' '}
-                  in a dropdown means the engine may pick any listed value for that symbol when expanding.
+                  Set the <strong>count</strong> next to the button, then press <strong>Generate</strong>. With count{' '}
+                  <strong>1</strong>, you get one random output using the current parameter dropdowns. With a higher
+                  count, the engine runs that many <em>independent</em> random generations (same cap as before: the smaller
+                  of the page limit, the current combination count, and 100). <strong>Random</strong> in a parameter
+                  dropdown means the engine may pick any listed value for that symbol when expanding.
                 </List.Item>
                 <List.Item>
-                  <strong>Generate Many</strong> — repeats generation up to the number in the adjacent field. The cap is
-                  the smaller of the page limit, the current combination count, and 100.
-                </List.Item>
-                <List.Item>
-                  <strong>Generate All</strong> — lists every combination consistent with your parameter selections, up
-                  to 100 total. It is disabled when the count would exceed 100. Some use-case pages hide this button
-                  entirely.
+                  The <strong>▼</strong> menu beside <strong>Generate</strong> offers <strong>list all</strong> when
+                  there are 2–100 combinations. If there are more, choose <strong>N of total (random sample)</strong> to
+                  fill up to the usual batch limit with random rows; a one-line note shows the full combination count.
+                  Some use-case pages hide the menu entirely.
                 </List.Item>
               </List>
 
@@ -139,8 +143,8 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 In <strong>Advanced</strong> (when expanded), <strong>Total combinations</strong> is the full output space
                 of the grammar (with no parameter locks). <strong>With selected parameters</strong> reflects your
                 dropdown choices: picking a specific value fixes that symbol; <strong>Random</strong> leaves it
-                unconstrained in the count. If the filtered count exceeds 100, <strong>Generate All</strong> stays
-                disabled and a warning explains that you should narrow parameters.
+                unconstrained in the count. If the filtered count exceeds 100, use the <strong>▼</strong> menu for a capped
+                random batch or narrow parameters to list all.
               </Text>
 
               <Title order={6} mb="xs">
@@ -167,9 +171,9 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 Per-page defaults (use-case routes)
               </Title>
               <Text size="sm" mb="xs">
-                Each route under <strong>Use cases</strong> (not the home page) can ship with its own default example
-                grammar, fixed result display mode, default on/off for <strong>Modifiers</strong>, a cap on{' '}
-                <strong>Generate Many</strong>, and a default of JSON or Graph in the editor. The home page keeps result
+                Each dedicated use-case route (not the home page) can ship with its own default example
+                grammar, fixed result display mode, default on/off for <strong>Modifiers</strong>, a cap on the{' '}
+                <strong>generate count</strong> (batch size), and a default of JSON or Graph in the editor. The home page keeps result
                 display mode and examples under your control.
               </Text>
 
@@ -188,7 +192,7 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 Theme and data in this browser
               </Title>
               <Text size="sm" mb="xs">
-                The footer includes a light/dark theme control (stored in this browser). The database icon opens{' '}
+                The top bar includes a light/dark theme control (stored in this browser). The database icon opens{' '}
                 <strong>Data stored in this browser</strong>: copy individual saved grammars, copy the full library JSON,
                 inspect the raw theme value and storage keys, or clear all saved grammars after confirmation.
               </Text>
@@ -238,12 +242,53 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 durable backup, copy the JSON (from the save dialog or the JSON editor) into a file or note.
               </Text>
               <Text size="sm">
-                The database icon in the footer opens <strong>Data stored in this browser</strong>: review and copy raw
+                The database icon in the top bar opens <strong>Data stored in this browser</strong>: review and copy raw
                 JSON for each saved grammar, copy the entire library, see the theme preference value and storage keys,
                 or clear saved grammars after a second confirmation click. Clearing site data in the browser removes this
                 storage like any other site data. See also <strong>Theme and data in this browser</strong> under Results
                 panel above.
               </Text>
+            </div>
+
+            <div>
+              <Title order={5} mb="xs">
+                About & links
+              </Title>
+              <Text size="sm" mb="md">
+                Created by{' '}
+                <Anchor href="https://danipolani.github.io/en/" target="_blank" rel="noopener noreferrer" fw={500}>
+                  Dani Polani
+                </Anchor>
+                . Inspired by{' '}
+                <Anchor href="https://github.com/galaxykate/tracery" target="_blank" rel="noopener noreferrer">
+                  Tracery.js
+                </Anchor>
+                . Source:{' '}
+                <Anchor href="https://github.com/tinygodsdev" target="_blank" rel="noopener noreferrer">
+                  GitHub
+                </Anchor>
+                .
+              </Text>
+              <Title order={6} mb="xs">
+                Preset pages
+              </Title>
+              <Text size="sm" mb="xs">
+                Jump to the home page or a dedicated use-case route (also listed on the expanded page header):
+              </Text>
+              <List size="sm" spacing="xs">
+                <List.Item>
+                  <Anchor component={Link} to="/" onClick={onClose}>
+                    Home — Generative Grammar Engine
+                  </Anchor>
+                </List.Item>
+                {USE_CASES.map((uc) => (
+                  <List.Item key={uc.path}>
+                    <Anchor component={Link} to={uc.path} onClick={onClose}>
+                      {uc.cardTitle ?? uc.h1}
+                    </Anchor>
+                  </List.Item>
+                ))}
+              </List>
             </div>
           </Stack>
         </Tabs.Panel>

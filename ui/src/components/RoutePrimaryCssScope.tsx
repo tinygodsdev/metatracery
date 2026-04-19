@@ -24,7 +24,16 @@ export function RoutePrimaryCssScope({
   } as CSSProperties;
 
   return (
-    <Box style={style} display="block">
+    <Box
+      style={{
+        ...style,
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
       {children}
     </Box>
   );

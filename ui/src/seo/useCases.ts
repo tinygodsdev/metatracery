@@ -48,8 +48,10 @@ export interface UseCaseDefinition {
   metaDescription: string;
   h1: string;
   intro: string;
-  /** Short blurb for discovery cards */
+  /** Short blurb for discovery cards (legacy / meta; not shown in compact cards). */
   cardSummary: string;
+  /** Discovery card label; defaults to `h1` when omitted. */
+  cardTitle?: string;
   /** Per-route tool defaults and result layout; omit for generic placeholder pages. */
   ui?: UseCaseUiConfig;
 }
@@ -76,6 +78,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     metaDescription:
       'Free writing prompt generator: short scenes, story seeds, and daily warm-ups built from Tracery-style grammar rules. Runs in your browser.',
     h1: 'Writing prompt generator',
+    cardTitle: 'Writing prompts — story seeds & warm-ups',
     intro:
       'A writing prompt generator for daily warm-ups, story sparks, and scene seeds. The page ships with a multi-line prompt grammar; tweak word lists or load other examples to match your genre. Edit the grammar or load bundled examples tuned for this page. Your draft for this route can be saved when you leave; the next visit may offer to restore it.',
     cardSummary: 'Story seeds, scene starters and daily warm-ups for writers.',
@@ -84,7 +87,6 @@ export const USE_CASES: UseCaseDefinition[] = [
       defaultProcessModifiers: true,
       resultsContentVariant: 'multiline',
       maxGenerateMany: 5,
-      showGenerateAll: false,
       exampleFixtureNames: [WRITING_PROMPTS_FIXTURE_NAME, 'Modifiers (Tracery)', 'Simple'],
       defaultFixtureName: WRITING_PROMPTS_FIXTURE_NAME,
     },
@@ -95,6 +97,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     metaDescription:
       'Fantasy name generator for D&D-style games: tiefling, elf, orc, dwarf, dragon, human, halfling. Syllable grammars in your browser.',
     h1: 'Fantasy name generator',
+    cardTitle: 'Fantasy names — elves, orcs, dwarves & more',
     intro:
       'A fantasy name generator for tabletop characters and fiction. Switch between elf, orc, dwarf, dragon, human, halfling, and tiefling presets, then roll a batch and pick the ones that fit your world. Combine or fork the bundled examples to add surnames, clans, or honorifics. Modifiers stay optional here; names are meant to read cleanly as plain text.',
     cardSummary: 'Names for elves, orcs, dwarves, dragons, halflings, tieflings.',
@@ -103,7 +106,6 @@ export const USE_CASES: UseCaseDefinition[] = [
       defaultProcessModifiers: false,
       resultsContentVariant: 'line',
       maxGenerateMany: 12,
-      showGenerateAll: false,
       exampleFixtureNames: [
         FANTASY_NAMES_DEFAULT_FIXTURE_NAME,
         'Orc names',
@@ -122,6 +124,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     metaDescription:
       'Place name generator for fantasy maps: towns, cities, kingdoms, and realm titles. Old-English and elvish-flavored syllables — browser-based.',
     h1: 'Place name generator',
+    cardTitle: 'Place names — towns, cities & kingdoms',
     intro:
       'Name fantasy towns, cities, and kingdoms for maps, campaigns, and stories. Mix prefixes, cores, and suffixes from the bundled grammar, or fork it for regional styles. Duplicate a preset to build regional styles (coastal vs mountain) or add rivers and roads in the grammar. Export CSV when you need a batch for a map key.',
     cardSummary: 'Towns, cities, kingdoms and realms for maps and fiction.',
@@ -130,7 +133,6 @@ export const USE_CASES: UseCaseDefinition[] = [
       defaultProcessModifiers: false,
       resultsContentVariant: 'line',
       maxGenerateMany: 20,
-      showGenerateAll: false,
       exampleFixtureNames: [PLACE_NAMES_DEFAULT_FIXTURE_NAME, 'Simple'],
       defaultFixtureName: PLACE_NAMES_DEFAULT_FIXTURE_NAME,
     },
@@ -141,6 +143,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     metaDescription:
       'Random sentence generator for writers: short lines and tiny scenes from composable grammar rules. Optional Tracery modifiers. Runs entirely in the browser.',
     h1: 'Random sentence generator',
+    cardTitle: 'Random sentences & short scenes',
     intro:
       'Generate random sentences and tiny scenes from composable subjects, verbs, and tails. Useful for warm-up writing, copy mockups, and quick filler when you need readable strings. Swap in your own word lists for genre (noir, cozy, sci-fi) or chain multiple rules into longer passages in the JSON view.',
     cardSummary: 'Random sentences and bite-sized scenes from your word lists.',
@@ -149,7 +152,6 @@ export const USE_CASES: UseCaseDefinition[] = [
       defaultProcessModifiers: false,
       resultsContentVariant: 'multiline',
       maxGenerateMany: 10,
-      showGenerateAll: false,
       exampleFixtureNames: [RANDOM_SENTENCES_DEFAULT_FIXTURE_NAME, 'Modifiers (Tracery)', 'Simple'],
       defaultFixtureName: RANDOM_SENTENCES_DEFAULT_FIXTURE_NAME,
     },
@@ -160,6 +162,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     metaDescription:
       'Generate SVG in the browser from grammar rules: heraldry-style sigils, emblems, and tiled dot or grid patterns. Copy or download each result.',
     h1: 'SVG generator',
+    cardTitle: 'SVG — sigils, emblems & patterns',
     intro:
       'Generate SVG from grammar rules: emblem-style sigils for factions, or tiled dot and grid patterns for backgrounds. Switch between bundled examples and edit JSON to change geometry, colors, or repeat size. Pair with place or character pages for factions and houses, or export patterns for UI mockups — keep viewBox and defs consistent when you scale or tile.',
     cardSummary: 'Heraldry-style sigils and tiled vector patterns, ready to copy.',
@@ -168,7 +171,6 @@ export const USE_CASES: UseCaseDefinition[] = [
       defaultProcessModifiers: false,
       resultsContentVariant: 'svg',
       maxGenerateMany: 6,
-      showGenerateAll: false,
       defaultGrammarViewMode: 'json',
       exampleFixtureNames: [
         SIMPLE_SIGIL_FIXTURE_NAME,
@@ -185,6 +187,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     metaDescription:
       'Generate lightweight NPC character sheets in Markdown: name, race, class, traits, and story hooks for tabletop RPGs and fiction. Rule-based, no AI.',
     h1: 'NPC character sheet generator',
+    cardTitle: 'NPC character sheets — Markdown blocks',
     intro:
       'Roll lightweight NPC character sheets as Markdown — name, race, class, traits, and a short hook. Paste straight into Obsidian, Notion, or your VTT notes. For crunch-heavy stats, extend the grammar with tables or lists using standard Markdown syntax in rule strings.',
     cardSummary: 'Lightweight NPC stat blocks rendered as Markdown.',
@@ -193,7 +196,6 @@ export const USE_CASES: UseCaseDefinition[] = [
       defaultProcessModifiers: false,
       resultsContentVariant: 'markdown',
       maxGenerateMany: 4,
-      showGenerateAll: false,
       exampleFixtureNames: [CHARACTER_SHEET_DEFAULT_FIXTURE_NAME, 'Simple'],
       defaultFixtureName: CHARACTER_SHEET_DEFAULT_FIXTURE_NAME,
     },

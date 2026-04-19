@@ -74,3 +74,51 @@
   inset: 0;
   pointer-events: none;
 }
+
+/* Collapsible chrome: short hero, smaller ornament slot, no tall min-heights (avoids inner scroll). */
+.heroCompact.heroPanel {
+  border-radius: var(--mantine-radius-md);
+}
+
+.heroCompact .heroInner {
+  gap: var(--mantine-spacing-sm);
+  min-height: 0;
+}
+
+@media (min-width: 48em) {
+  .heroCompact .heroInner {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 62em) {
+  .heroCompact .heroInner {
+    align-items: center;
+    min-height: 108px;
+    padding-right: clamp(140px, 28%, 280px);
+  }
+}
+
+.heroCompact .heroOrnamentSlot {
+  height: 100px;
+}
+
+@media (min-width: 62em) {
+  .heroCompact .heroOrnamentSlot {
+    width: clamp(140px, 28%, 280px);
+  }
+}
+
+.heroOrnamentSlotInnerCompact {
+  padding: 4px;
+}
+
+.heroCompact .heroOrnament {
+  max-height: 92px;
+}
+
+@media (min-width: 62em) {
+  .heroCompact .heroOrnament {
+    max-height: 100%;
+  }
+}

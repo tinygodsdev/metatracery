@@ -35,7 +35,7 @@ describe('useCases routes and UI config', () => {
     expect(u1?.ui?.defaultProcessModifiers).toBe(true);
     expect(u1?.ui?.resultsContentVariant).toBe('multiline');
     expect(u1?.ui?.maxGenerateMany).toBe(5);
-    expect(u1?.ui?.showGenerateAll).toBe(false);
+    expect(u1?.ui?.showGenerateAll ?? true).toBe(true);
     expect(u1?.ui?.defaultFixtureName).toBe(WRITING_PROMPTS_FIXTURE_NAME);
     expect(u1?.ui?.exampleFixtureNames).toContain(WRITING_PROMPTS_FIXTURE_NAME);
   });
