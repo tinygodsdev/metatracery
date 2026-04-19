@@ -66,18 +66,18 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
               </Title>
               <Text size="sm" mb="xs">
                 The right column runs the engine on your grammar. Symbols with more than one alternative may appear as{' '}
-                <strong>parameters</strong>: you can fix them to specific values or leave them random. Use the{' '}
-                <strong>Parameter Controls</strong> header to expand or collapse strategy, modifiers, and parameter
-                dropdowns; on the home page it starts open, on dedicated use-case pages it starts collapsed. The{' '}
-                <strong>Generate</strong> / <strong>Generate Many</strong> / <strong>Generate All</strong> buttons and
-                combination summary stay visible even when Parameter Controls is collapsed.
+                <strong>parameters</strong>: you can fix them to specific values or leave them random. Use{' '}
+                <strong>Advanced</strong> (next to the generate buttons) to expand or collapse strategy, modifiers,
+                parameter dropdowns, and combination counts; on the home page it starts open, on dedicated use-case pages
+                it starts collapsed. The <strong>Generate</strong> / <strong>Generate Many</strong> /{' '}
+                <strong>Generate All</strong> buttons stay visible; combination stats are inside Advanced.
               </Text>
 
               <Title order={6} mb="xs">
                 Modifiers
               </Title>
               <Text size="sm" mb="xs">
-                The <strong>Modifiers</strong> switch (in Parameter Controls) controls post-processing of placeholders
+                The <strong>Modifiers</strong> switch (under Advanced) controls post-processing of placeholders
                 written as <Code>#ruleName.modifier#</Code> or <Code>#ruleName.mod1.mod2#</Code>. When enabled, the engine
                 applies the built-in English modifier set after expansion (listed in detail under{' '}
                 <strong>Syntax reference</strong> → <strong>English modifiers</strong>). When disabled, only plain rule
@@ -112,6 +112,85 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                   <strong>Markdown</strong> — rendered preview (sanitized), with raw Markdown available to copy.
                 </List.Item>
               </List>
+
+              <Title order={6} mb="xs">
+                Generate, Generate Many, Generate All
+              </Title>
+              <List size="sm" spacing="xs">
+                <List.Item>
+                  <strong>Generate</strong> — one output using the current parameter dropdowns. <strong>Random</strong>{' '}
+                  in a dropdown means the engine may pick any listed value for that symbol when expanding.
+                </List.Item>
+                <List.Item>
+                  <strong>Generate Many</strong> — repeats generation up to the number in the adjacent field. The cap is
+                  the smaller of the page limit, the current combination count, and 100.
+                </List.Item>
+                <List.Item>
+                  <strong>Generate All</strong> — lists every combination consistent with your parameter selections, up
+                  to 100 total. It is disabled when the count would exceed 100. Some use-case pages hide this button
+                  entirely.
+                </List.Item>
+              </List>
+
+              <Title order={6} mb="xs">
+                Combination counts
+              </Title>
+              <Text size="sm" mb="xs">
+                In <strong>Advanced</strong> (when expanded), <strong>Total combinations</strong> is the full output space
+                of the grammar (with no parameter locks). <strong>With selected parameters</strong> reflects your
+                dropdown choices: picking a specific value fixes that symbol; <strong>Random</strong> leaves it
+                unconstrained in the count. If the filtered count exceeds 100, <strong>Generate All</strong> stays
+                disabled and a warning explains that you should narrow parameters.
+              </Text>
+
+              <Title order={6} mb="xs">
+                Export CSV
+              </Title>
+              <Text size="sm" mb="xs">
+                When at least one result exists, <strong>Export CSV</strong> appears next to the Results heading. The file
+                includes columns <Code>index</Code>, <Code>generated_text</Code>, one column per relevant parameter name
+                (sorted), <Code>generation_time_ms</Code>, and <Code>generation_path</Code> (the rule expansion path as
+                text).
+              </Text>
+
+              <Title order={6} mb="xs">
+                Generation Details
+              </Title>
+              <Text size="sm" mb="xs">
+                Below the results table, an accordion opens per-result metadata: generation path, which parameters
+                applied, modifier steps (when Modifiers are on), applied rule count, and optional structure stats. It is
+                mainly for debugging and understanding how a string was built.
+              </Text>
+
+              <Title order={6} mb="xs">
+                Per-page defaults (use-case routes)
+              </Title>
+              <Text size="sm" mb="xs">
+                Each route under <strong>Use cases</strong> (not the home page) can ship with its own default example
+                grammar, fixed result display mode, default on/off for <strong>Modifiers</strong>, a cap on{' '}
+                <strong>Generate Many</strong>, and a default of JSON or Graph in the editor. The home page keeps result
+                display mode and examples under your control.
+              </Text>
+
+              <Title order={6} mb="xs">
+                Saved drafts when leaving a page
+              </Title>
+              <Text size="sm" mb="xs">
+                If you change the loaded example on a use-case page and navigate away, you may see <strong>
+                  Leave this page?
+                </strong>
+                — confirming saves the current grammar JSON in <Code>localStorage</Code> for that route. On the next
+                visit, <strong>Saved draft</strong> lets you restore it or load the default example again.
+              </Text>
+
+              <Title order={6} mb="xs">
+                Theme and data in this browser
+              </Title>
+              <Text size="sm" mb="xs">
+                The footer includes a light/dark theme control (stored in this browser). The database icon opens{' '}
+                <strong>Data stored in this browser</strong>: copy individual saved grammars, copy the full library JSON,
+                inspect the raw theme value and storage keys, or clear all saved grammars after confirmation.
+              </Text>
 
               <Title order={6} mb="xs">
                 Uniform vs Weighted
@@ -158,9 +237,11 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 durable backup, copy the JSON (from the save dialog or the JSON editor) into a file or note.
               </Text>
               <Text size="sm">
-                The database icon in the footer opens <strong>Data stored in this browser</strong>: you can review raw
-                JSON, copy it, or clear saved grammars. Theme preference is listed there too. Clearing site data in the
-                browser removes this storage like any other site data.
+                The database icon in the footer opens <strong>Data stored in this browser</strong>: review and copy raw
+                JSON for each saved grammar, copy the entire library, see the theme preference value and storage keys,
+                or clear saved grammars after a second confirmation click. Clearing site data in the browser removes this
+                storage like any other site data. See also <strong>Theme and data in this browser</strong> under Results
+                panel above.
               </Text>
             </div>
           </Stack>

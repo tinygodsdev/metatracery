@@ -59,10 +59,6 @@ export function UsecaseDiscoveryCards({ placement = 'bottom' }: UsecaseDiscovery
       <Title order={2} size="h4">
         Use cases
       </Title>
-      <Text size="sm" c="dimmed">
-        One generator everywhere—pick a page that fits what you are doing. Each offers its own starter grammars and
-        layout; open a card to load an example and edit it.
-      </Text>
       <SimpleGrid
         cols={{ base: 2, xs: 3, sm: 3, md: 4, lg: 5, xl: 6 }}
         spacing={{ base: 'xs', sm: 'xs' }}

@@ -76,4 +76,25 @@ describe('useCases routes and UI config', () => {
     expect(isAllowedPath('/fantasy-names')).toBe(true);
     expect(isAllowedPath('/unknown')).toBe(false);
   });
+
+  test('each use case has concise SEO fields (title ≤60 chars, description ≤160 chars)', () => {
+    for (const u of USE_CASES) {
+      expect(u.pageTitle.length).toBeLessThanOrEqual(60);
+      expect(u.metaDescription.length).toBeLessThanOrEqual(160);
+    }
+  });
+
+  test('writing-prompts and fantasy-names page titles use SEO modifiers without brand suffix', () => {
+    expect(getUseCaseByPath('/writing-prompts')?.pageTitle).toBe(
+      'Writing prompt generator — story seeds & warm-ups',
+    );
+    expect(getUseCaseByPath('/fantasy-names')?.pageTitle).toBe(
+      'Fantasy name generator — D&D-style races & syllables',
+    );
+  });
+
+  test('card summaries are benefit-led (sample)', () => {
+    expect(getUseCaseByPath('/writing-prompts')?.cardSummary).toContain('Story seeds');
+    expect(getUseCaseByPath('/svg-generator')?.cardSummary).toContain('sigils');
+  });
 });

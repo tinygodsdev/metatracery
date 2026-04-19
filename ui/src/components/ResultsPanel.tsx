@@ -17,9 +17,7 @@ import {
   Switch,
   useMantineTheme,
   Collapse,
-  ActionIcon,
   Tooltip,
-  Box,
 } from '@mantine/core';
 import { IconAlertTriangle, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { GrammarProcessor } from '../engine/GrammarEngine';
@@ -235,33 +233,69 @@ export function ResultsPanel({
 
   return (
     <Stack gap="xl">
-      <Box>
-        <Group
-          justify="space-between"
-          align="center"
-          wrap="nowrap"
-          gap="xs"
-          mb={parameterControlsOpen ? 'sm' : 0}
-        >
-          <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
-            <ActionIcon
-              variant="subtle"
+      <Stack gap="sm">
+        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+          <Group gap="xs" align="flex-start" wrap="wrap">
+            <Button
               size="sm"
-              aria-expanded={parameterControlsOpen}
-              aria-label={parameterControlsOpen ? 'Collapse parameter controls' : 'Expand parameter controls'}
-              onClick={() => setParameterControlsOpen((o) => !o)}
+              variant="filled"
+              onClick={handleGenerateWithParams}
+              disabled={isLoading}
             >
-              {parameterControlsOpen ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
-            </ActionIcon>
-            <Text
-              size="sm"
-              fw={500}
-              style={{ cursor: 'pointer' }}
-              onClick={() => setParameterControlsOpen((o) => !o)}
-            >
-              Parameter Controls
-            </Text>
+              Generate
+            </Button>
+            <Group gap="xs" wrap="nowrap">
+              <NumberInput
+                size="sm"
+                value={generateCount}
+                onChange={(value) =>
+                  setGenerateCount(typeof value === 'number' ? value : generateManyMax)
+                }
+                min={1}
+                max={generateManyMax}
+                w={80}
+                placeholder="Count"
+                title={`Generate multiple results (1–${generateManyMax})`}
+              />
+              <Button
+                size="sm"
+                variant="light"
+                onClick={handleGenerateMany}
+                disabled={isLoading || generateCount < 1 || generateCount > generateManyMax}
+                title={`Generate ${Math.min(generateCount, generateManyMax)} results`}
+              >
+                Generate Many ({Math.min(generateCount, generateManyMax)})
+              </Button>
+            </Group>
+            {showGenerateAll && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onGenerateAll(validatedParameterConstraints)}
+                disabled={isLoading || actualCombinations > 100}
+                title={
+                  actualCombinations > 100
+                    ? `Too many combinations (${actualCombinations}). Use more specific parameters.`
+                    : undefined
+                }
+              >
+                Generate All ({actualCombinations})
+              </Button>
+            )}
           </Group>
+
+          <Button
+            variant="default"
+            size="xs"
+            leftSection={
+              parameterControlsOpen ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />
+            }
+            aria-expanded={parameterControlsOpen}
+            aria-label={parameterControlsOpen ? 'Collapse Advanced' : 'Expand Advanced'}
+            onClick={() => setParameterControlsOpen((o) => !o)}
+          >
+            Advanced
+          </Button>
         </Group>
 
         <Collapse in={parameterControlsOpen}>
@@ -339,93 +373,42 @@ export function ResultsPanel({
                 ))}
               </div>
             )}
+
+            {stats && (
+              <Stack gap={2}>
+                <Text size="xs" c="dimmed">
+                  Total combinations: {engine ? engine.getTotalCombinations('origin') : 0}
+                </Text>
+                <Text
+                  size="xs"
+                  c={
+                    actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0)
+                      ? 'primary'
+                      : 'dimmed'
+                  }
+                >
+                  With selected parameters: {actualCombinations}
+                </Text>
+                {actualCombinations > 100 && (
+                  <Group gap={6} align="flex-start" wrap="nowrap">
+                    <IconAlertTriangle
+                      size={14}
+                      style={{ flexShrink: 0, color: 'var(--mantine-color-orange-6)' }}
+                    />
+                    <Text size="xs" c="orange">
+                      Too many combinations ({actualCombinations}). Use more specific parameters to reduce results.
+                    </Text>
+                  </Group>
+                )}
+                {singleValueParameters.length > 0 && (
+                  <Text size="xs" c="dimmed">
+                    Fixed: {singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}
+                  </Text>
+                )}
+              </Stack>
+            )}
           </Stack>
         </Collapse>
-      </Box>
-
-      <Stack gap="sm">
-        <Group gap="xs" align="flex-start" wrap="wrap">
-          <Button
-            size="sm"
-            variant="filled"
-            onClick={handleGenerateWithParams}
-            disabled={isLoading}
-          >
-            Generate
-          </Button>
-          <Group gap="xs" wrap="nowrap">
-            <NumberInput
-              size="sm"
-              value={generateCount}
-              onChange={(value) =>
-                setGenerateCount(typeof value === 'number' ? value : generateManyMax)
-              }
-              min={1}
-              max={generateManyMax}
-              w={80}
-              placeholder="Count"
-              title={`Generate multiple results (1–${generateManyMax})`}
-            />
-            <Button
-              size="sm"
-              variant="light"
-              onClick={handleGenerateMany}
-              disabled={isLoading || generateCount < 1 || generateCount > generateManyMax}
-              title={`Generate ${Math.min(generateCount, generateManyMax)} results`}
-            >
-              Generate Many ({Math.min(generateCount, generateManyMax)})
-            </Button>
-          </Group>
-          {showGenerateAll && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onGenerateAll(validatedParameterConstraints)}
-              disabled={isLoading || actualCombinations > 100}
-              title={
-                actualCombinations > 100
-                  ? `Too many combinations (${actualCombinations}). Use more specific parameters.`
-                  : undefined
-              }
-            >
-              Generate All ({actualCombinations})
-            </Button>
-          )}
-        </Group>
-
-        {stats && (
-          <Stack gap={2}>
-            <Text size="xs" c="dimmed">
-              Total combinations: {engine ? engine.getTotalCombinations('origin') : 0}
-            </Text>
-            <Text
-              size="xs"
-              c={
-                actualCombinations !== (engine ? engine.getTotalCombinations('origin') : 0)
-                  ? 'primary'
-                  : 'dimmed'
-              }
-            >
-              With selected parameters: {actualCombinations}
-            </Text>
-            {actualCombinations > 100 && (
-              <Group gap={6} align="flex-start" wrap="nowrap">
-                <IconAlertTriangle
-                  size={14}
-                  style={{ flexShrink: 0, color: 'var(--mantine-color-orange-6)' }}
-                />
-                <Text size="xs" c="orange">
-                  Too many combinations ({actualCombinations}). Use more specific parameters to reduce results.
-                </Text>
-              </Group>
-            )}
-            {singleValueParameters.length > 0 && (
-              <Text size="xs" c="dimmed">
-                Fixed: {singleValueParameters.map(([name, param]) => `${name}=${param.values[0]}`).join(', ')}
-              </Text>
-            )}
-          </Stack>
-        )}
       </Stack>
 
       <Divider />
@@ -474,7 +457,7 @@ export function ResultsPanel({
           </Center>
         ) : results.length === 0 ? (
           <Alert color="gray">
-            <Text size="sm">No results yet. Use the controls above to generate some.</Text>
+            <Text size="sm">No results yet — press Generate to start.</Text>
           </Alert>
         ) : (
           <ResultsRenderer

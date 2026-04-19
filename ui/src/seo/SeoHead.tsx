@@ -3,9 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { absoluteUrl, getSiteOrigin } from './siteUrl';
 import { getUseCaseByPath } from './useCases';
 
-const HOME_TITLE = 'Generative Grammar Engine';
+const HOME_TITLE = 'Generative Grammar Engine — names, prompts, SVG & markdown';
 const HOME_DESCRIPTION =
-  'A universal, domain-agnostic grammar generation engine for research and creative work. Define rules, expand symbols, and track generation metadata in the browser.';
+  'Browser-based generative grammar engine: random names, writing prompts, sentences, place names, NPC sheets, and SVG patterns from your own rules.';
 
 /** Prefer /og.png; fallback to large PWA icon until a dedicated 1200×630 asset exists. */
 function ogImageUrl(): string {

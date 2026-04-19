@@ -73,15 +73,15 @@ export const CHARACTER_SHEET_DEFAULT_FIXTURE_NAME = 'NPC character sheet';
 export const USE_CASES: UseCaseDefinition[] = [
   {
     path: '/writing-prompts',
-    pageTitle: 'Writing prompt generator — Generative Grammar Engine',
+    pageTitle: 'Writing prompt generator — story seeds & warm-ups',
     metaDescription:
-      'Free writing prompt generator and random prompt ideas: short scenes, story seeds, and warm-ups with Tracery-style rules and modifiers. Browser-based grammar engine.',
+      'Free writing prompt generator: short scenes, story seeds, and daily warm-ups built from Tracery-style grammar rules. Runs in your browser.',
     h1: 'Writing prompt generator',
     intro:
-      'Draft quick prompts, random writing prompts, and tiny narrative hooks using generative rules. Turn on modifiers in Results to apply chains like #noun.a# or #phrase.capitalize#. Generate a handful of variants at a time and read multiline output in the table.',
+      'A writing prompt generator for daily warm-ups, story sparks, and scene seeds. The page ships with a multi-line prompt grammar; tweak word lists or load other examples to match your genre.',
     outro:
       'Edit the grammar or load bundled examples tuned for this page. Your draft for this route can be saved when you leave; the next visit may offer to restore it.',
-    cardSummary: 'Prompts & random prompt ideas — multiline results, modifiers optional.',
+    cardSummary: 'Story seeds, scene starters and daily warm-ups for writers.',
     ui: {
       primaryColor: 'lime',
       defaultProcessModifiers: true,
@@ -94,15 +94,15 @@ export const USE_CASES: UseCaseDefinition[] = [
   },
   {
     path: '/fantasy-names',
-    pageTitle: 'Fantasy name generator — Generative Grammar Engine',
+    pageTitle: 'Fantasy name generator — D&D-style races & syllables',
     metaDescription:
-      'Fantasy name generator and character name ideas for D&D-style games: tiefling, elf, orc, dwarf, dragon, human, halfling. Rule-based syllable grammars in your browser.',
+      'Fantasy name generator for D&D-style games: tiefling, elf, orc, dwarf, dragon, human, halfling. Syllable grammars in your browser.',
     h1: 'Fantasy name generator',
     intro:
-      'Roll character names for players or NPCs using small grammars tuned per fantasy type — including tiefling names and elf name generator-style syllables (plain a–z). Pick a race preset, adjust rules, then generate variants in Results.',
+      'A fantasy name generator for tabletop characters and fiction. Switch between elf, orc, dwarf, dragon, human, halfling, and tiefling presets, then roll a batch and pick the ones that fit your world.',
     outro:
       'Combine or fork the bundled examples to add surnames, clans, or honorifics. Modifiers stay optional here; names are meant to read cleanly as plain text.',
-    cardSummary: 'Character & fantasy names — races presets, line output.',
+    cardSummary: 'Names for elves, orcs, dwarves, dragons, halflings, tieflings.',
     ui: {
       primaryColor: 'violet',
       defaultProcessModifiers: false,
@@ -125,13 +125,13 @@ export const USE_CASES: UseCaseDefinition[] = [
     path: '/place-names',
     pageTitle: 'Place name generator — fantasy towns & kingdoms',
     metaDescription:
-      'Place name generator for fantasy maps and fiction: random town names, city names, kingdoms, and realm titles. Old-English and elvish-flavored syllable rules — browser-based.',
+      'Place name generator for fantasy maps: towns, cities, kingdoms, and realm titles. Old-English and elvish-flavored syllables — browser-based.',
     h1: 'Place name generator',
     intro:
-      'Name cities, towns, hamlets, and kingdoms for maps and stories. Mix prefixes, cores, and suffixes into settlement names, or roll realm-style titles. Output is one place per line — tweak the JSON to match your world.',
+      'Name fantasy towns, cities, and kingdoms for maps, campaigns, and stories. Mix prefixes, cores, and suffixes from the bundled grammar, or fork it for regional styles.',
     outro:
       'Duplicate a preset to build regional styles (coastal vs mountain) or add rivers and roads in the grammar. Export CSV when you need a batch for a map key.',
-    cardSummary: 'Towns, cities, kingdoms — line results.',
+    cardSummary: 'Towns, cities, kingdoms and realms for maps and fiction.',
     ui: {
       primaryColor: 'cyan',
       defaultProcessModifiers: false,
@@ -149,10 +149,10 @@ export const USE_CASES: UseCaseDefinition[] = [
       'Random sentence generator for writers: short lines and tiny scenes from composable grammar rules. Optional Tracery modifiers. Runs entirely in the browser.',
     h1: 'Random sentence generator',
     intro:
-      'Generate random sentences and bite-sized paragraphs by composing subjects, verbs, and tails. Use multiline results to scan several variants; enable Modifiers for #word.a#-style chains on compatible grammars.',
+      'Generate random sentences and tiny scenes from composable subjects, verbs, and tails. Useful for warm-up writing, copy mockups, and quick filler when you need readable strings.',
     outro:
       'Swap in your own word lists for genre (noir, cozy, sci-fi) or chain multiple rules into longer passages in the JSON view.',
-    cardSummary: 'Sentences & micro-scenes — multiline.',
+    cardSummary: 'Random sentences and bite-sized scenes from your word lists.',
     ui: {
       primaryColor: 'indigo',
       defaultProcessModifiers: false,
@@ -167,13 +167,13 @@ export const USE_CASES: UseCaseDefinition[] = [
     path: '/svg-generator',
     pageTitle: 'SVG generator — sigils, patterns & vector snippets',
     metaDescription:
-      'Generate SVG in the browser from grammar rules: heraldry-style sigils and emblems, or tiled dot/grid patterns for CSS backgrounds. Copy or download each SVG; JSON editor with graph mode.',
+      'Generate SVG in the browser from grammar rules: heraldry-style sigils, emblems, and tiled dot or grid patterns. Copy or download each result.',
     h1: 'SVG generator',
     intro:
-      'Use this page for vector output from your rules: single emblem-style sigils (circles, polygons, palettes) and repeatable tiled patterns (dots, grids) for CSS backgrounds or design tools. Load the bundled examples to switch between styles; edit JSON to change geometry, colors, or repeat size. Each card supports Copy / Download; previews are sanitized.',
+      'Generate SVG from grammar rules: emblem-style sigils for factions, or tiled dot and grid patterns for backgrounds. Switch between bundled examples and edit JSON to change geometry, colors, or repeat size.',
     outro:
       'Pair with place or character pages for factions and houses, or export patterns for UI mockups — keep viewBox and defs consistent when you scale or tile.',
-    cardSummary: 'Sigils, emblems & tiled patterns — SVG copy & download.',
+    cardSummary: 'Heraldry-style sigils and tiled vector patterns, ready to copy.',
     ui: {
       primaryColor: 'grape',
       defaultProcessModifiers: false,
@@ -197,10 +197,10 @@ export const USE_CASES: UseCaseDefinition[] = [
       'Generate lightweight NPC character sheets in Markdown: name, race, class, traits, and story hooks for tabletop RPGs and fiction. Rule-based, no AI.',
     h1: 'NPC character sheet generator',
     intro:
-      'Results render as Markdown: headings, bold labels, and a quoted hook. Edit the grammar to add skills, bonds, or inventory lines. Copy the raw markdown or read the preview below.',
+      'Roll lightweight NPC character sheets as Markdown — name, race, class, traits, and a short hook. Paste straight into Obsidian, Notion, or your VTT notes.',
     outro:
       'Paste output into Obsidian, Notion, or your VTT notes. For crunch-heavy stats, extend the grammar with tables or lists using standard Markdown syntax in rule strings.',
-    cardSummary: 'Markdown NPC sheets — preview + copy.',
+    cardSummary: 'Lightweight NPC stat blocks rendered as Markdown.',
     ui: {
       primaryColor: 'orange',
       defaultProcessModifiers: false,
