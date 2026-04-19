@@ -95,7 +95,7 @@ export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style 
 
   const rowStyle: CSSProperties = {
     display: 'flex',
-    flexDirection: 'row',
+    flexDirection: isRow ? 'row' : 'column',
     alignItems: 'stretch',
     width: '100%',
     minHeight,
@@ -104,12 +104,11 @@ export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style 
   };
 
   const colShell = (child: React.ReactNode, opts: { isLeft: boolean }) => {
-    const rowFlex =
-      isRow && opts.isLeft
-        ? { flex: `0 0 ${splitPx}px` as const, minWidth: MIN_LEFT }
-        : isRow && !opts.isLeft
-          ? { flex: '1 1 0%', minWidth: MIN_RIGHT }
-          : { width: '100%' as const };
+    const sizeStyles: CSSProperties = isRow
+      ? opts.isLeft
+        ? { flex: `0 0 ${splitPx}px`, minWidth: MIN_LEFT }
+        : { flex: '1 1 0%', minWidth: MIN_RIGHT }
+      : { flex: '1 1 0%', minHeight: 0, width: '100%', minWidth: 0 };
 
     const columnBg =
       opts.isLeft || colorScheme === 'dark' ? 'var(--app-surface-1)' : 'var(--app-surface-0)';
@@ -117,11 +116,10 @@ export function EditorWorkspaceColumns({ left, right, minHeight = '72vh', style 
     return (
       <Box
         style={{
-          ...rowFlex,
+          ...sizeStyles,
           maxWidth: '100%',
           display: 'flex',
           flexDirection: 'column',
-          minHeight: opts.isLeft ? minHeight : isRow ? minHeight : undefined,
           minWidth: 0,
           overflow: 'hidden',
           background: columnBg,
