@@ -1,0 +1,27 @@
+.node {
+  position: relative;
+}
+
+.node .nodeAction,
+.node .altRemove,
+.node .addAltBtn {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.node:hover .nodeAction,
+.node:hover .altRemove,
+.node:hover .addAltBtn,
+.node:focus-within .nodeAction,
+.node:focus-within .altRemove,
+.node:focus-within .addAltBtn {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .node .nodeAction,
+  .node .altRemove,
+  .node .addAltBtn {
+    opacity: 1;
+  }
+}

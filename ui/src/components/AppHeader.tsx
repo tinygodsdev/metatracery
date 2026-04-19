@@ -1,20 +1,33 @@
-import { Group, Anchor, Menu, Box } from '@mantine/core';
+import { Group, Anchor, Menu, Box, useMantineTheme, useComputedColorScheme } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 import { IconChevronDown } from '@tabler/icons-react';
-import { USE_CASES } from '../seo/useCases';
+import { USE_CASES, getUseCaseByPath } from '../seo/useCases';
+import { UsecaseCardOrnament } from './usecaseOrnaments';
+import classes from './AppHeader.module.css';
 
 export function AppHeader() {
   const { pathname } = useLocation();
+  const theme = useMantineTheme();
+  const colorScheme = useComputedColorScheme('light');
+  const useCase = getUseCaseByPath(pathname);
+  const ornamentPath = pathname === '/' ? '/writing-prompts' : pathname;
+  const primaryColor = useCase?.ui?.primaryColor ?? 'teal';
+  const shade = colorScheme === 'dark' ? 5 : 6;
+  const accentStripBg =
+    theme.colors[primaryColor]?.[shade] ?? theme.colors.teal[shade];
 
   return (
-    <Box
-      component="header"
-      py="xs"
-      px="sm"
-      style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
-    >
-      <Group justify="space-between" wrap="nowrap">
-        <Anchor component={Link} to="/" fw={700} size="sm" c="var(--mantine-color-text)">
+    <Box component="header" bg="var(--app-surface-1)">
+      <Group justify="space-between" wrap="nowrap" align="center" py="sm" px="sm">
+        <Anchor
+          component={Link}
+          to="/"
+          fw={700}
+          size="md"
+          c="var(--mantine-color-text)"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        >
+          <UsecaseCardOrnament path={ornamentPath} width={24} height={20} />
           Generative Grammar Engine
         </Anchor>
         <Menu shadow="md" width={220}>
@@ -22,7 +35,7 @@ export function AppHeader() {
             <Anchor
               component="button"
               type="button"
-              size="sm"
+              size="md"
               c="dimmed"
               style={{
                 background: 'none',
@@ -34,7 +47,7 @@ export function AppHeader() {
               }}
             >
               Use cases
-              <IconChevronDown size={14} stroke={1.5} />
+              <IconChevronDown size={16} stroke={1.5} />
             </Anchor>
           </Menu.Target>
           <Menu.Dropdown>
@@ -56,6 +69,13 @@ export function AppHeader() {
           </Menu.Dropdown>
         </Menu>
       </Group>
+      <Box
+        style={{
+          height: 1,
+          background: 'var(--app-soft-border)',
+        }}
+      />
+      {useCase && <Box className={classes.accentStrip} style={{ background: accentStripBg }} />}
     </Box>
   );
 }

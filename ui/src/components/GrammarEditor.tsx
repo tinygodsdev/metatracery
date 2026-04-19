@@ -215,7 +215,7 @@ export function GrammarEditor({
       </Group>
 
       {librarySource === 'fixture' && selectedFixtureName && (
-        <Text size="xs" c="dimmed" lh={1.4}>
+        <Text size="sm" c="dimmed" lh={1.4}>
           {fixtures.find((f) => f.name === selectedFixtureName)?.description}
         </Text>
       )}
@@ -243,7 +243,7 @@ export function GrammarEditor({
               },
             }}
           />
-          <Text size="xs" c="dimmed">
+          <Text size="sm" c="dimmed">
             <Code>#symbol#</Code> references other symbols. Use <Code>origin</Code> as the starting point.
           </Text>
         </>

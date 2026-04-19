@@ -147,8 +147,9 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 Export CSV
               </Title>
               <Text size="sm" mb="xs">
-                When at least one result exists, <strong>Export CSV</strong> appears next to the Results heading. The file
-                includes columns <Code>index</Code>, <Code>generated_text</Code>, one column per relevant parameter name
+                When at least one result exists, <strong>Export CSV (N)</strong> appears next to the Results heading —{' '}
+                <Code>N</Code> is the number of rows. The file includes columns <Code>index</Code>,{' '}
+                <Code>generated_text</Code>, one column per relevant parameter name
                 (sorted), <Code>generation_time_ms</Code>, and <Code>generation_path</Code> (the rule expansion path as
                 text).
               </Text>

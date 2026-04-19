@@ -1,6 +1,7 @@
-/* Global styles for Generative Grammar Engine UI — Mantine handles component styling */
+/* Global layout — semantic surface colors come from MantineProvider (appSurfaceVariablesResolver). */
 
 body {
   margin: 0;
   padding: 0;
+  background: var(--app-surface-0);
 }

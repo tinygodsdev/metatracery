@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { appSurfaceVariablesResolver } from './appSurfaceVariablesResolver';
 import { COLOR_SCHEME_STORAGE_KEY } from './colorSchemeStorage';
 import GrammarApp from './GrammarApp';
 
@@ -28,6 +29,12 @@ const theme = createTheme({
     lg: '75em',
     xl: '88em',
   },
+  components: {
+    Text: { defaultProps: { size: 'sm' } },
+    Anchor: { defaultProps: { size: 'sm' } },
+    List: { defaultProps: { size: 'sm' } },
+    Code: { defaultProps: { fz: 'sm' } },
+  },
 });
 
 export default function App() {
@@ -37,6 +44,7 @@ export default function App() {
       <MantineProvider
         theme={theme}
         defaultColorScheme="light"
+        cssVariablesResolver={appSurfaceVariablesResolver}
         colorSchemeManager={localStorageColorSchemeManager({
           key: COLOR_SCHEME_STORAGE_KEY,
         })}

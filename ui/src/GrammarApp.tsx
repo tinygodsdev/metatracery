@@ -12,6 +12,7 @@ import {
   Modal,
   Button,
   MantineThemeProvider,
+  Paper,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 
@@ -553,68 +554,66 @@ export default function GrammarApp() {
 
         <Grid gutter={{ base: 'xs', md: 'sm' }}>
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <Stack gap="md">
-              <Group align="center">
-                <Title
-                  order={isHome ? 1 : 2}
-                  size="h3"
-                  component={isHome ? 'h1' : 'h2'}
-                  style={{ lineHeight: 1.2 }}
-                >
-                  {isHome ? 'Generative Grammar Engine' : 'Grammar'}
-                </Title>
-              </Group>
-              <GrammarEditor
-                grammar={grammar}
-                onChange={handleGrammarChange}
-                viewMode={grammarViewMode}
-                onViewModeChange={setGrammarViewMode}
-                onOpenHelp={() => setHelpOpen(true)}
-                libraryState={libraryState}
-                librarySource={librarySource}
-                selectedFixtureName={selectedFixtureName}
-                onFixtureLoad={handleFixtureLoad}
-                onSelectUserGrammar={handleSelectUserGrammar}
-                onNewUserGrammar={handleNewUserGrammar}
-                onSaveGrammar={handleSaveRequest}
-                onRenameUserGrammar={handleRenameUserGrammar}
-                allowedFixtureNames={useCase?.ui?.exampleFixtureNames}
-              />
-            </Stack>
+            <Paper p={{ base: 'sm', md: 'md' }} radius="md" withBorder={false} shadow="xs" bg="var(--app-surface-2)">
+              <Stack gap="md">
+                <Group align="center">
+                  <Title
+                    order={isHome ? 1 : 2}
+                    size="h3"
+                    component={isHome ? 'h1' : 'h2'}
+                    style={{ lineHeight: 1.2 }}
+                  >
+                    Grammar Editor
+                  </Title>
+                </Group>
+                <GrammarEditor
+                  grammar={grammar}
+                  onChange={handleGrammarChange}
+                  viewMode={grammarViewMode}
+                  onViewModeChange={setGrammarViewMode}
+                  onOpenHelp={() => setHelpOpen(true)}
+                  libraryState={libraryState}
+                  librarySource={librarySource}
+                  selectedFixtureName={selectedFixtureName}
+                  onFixtureLoad={handleFixtureLoad}
+                  onSelectUserGrammar={handleSelectUserGrammar}
+                  onNewUserGrammar={handleNewUserGrammar}
+                  onSaveGrammar={handleSaveRequest}
+                  onRenameUserGrammar={handleRenameUserGrammar}
+                  allowedFixtureNames={useCase?.ui?.exampleFixtureNames}
+                />
+              </Stack>
+            </Paper>
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <Stack gap="md">
-              <ResultsPanel
-                key={pathname}
-                engine={engine}
-                results={results}
-                isLoading={isLoading}
-                onGenerate={handleGenerate}
-                onGenerateAll={handleGenerateAll}
-                onGenerateMany={handleGenerateMany}
-                strategy={strategy}
-                onStrategyChange={setStrategy}
-                processModifiers={processModifiers}
-                onProcessModifiersChange={setProcessModifiers}
-                contentVariant={resultsContentVariant}
-                preview={resultsPreview}
-                maxGenerateMany={useCase?.ui?.maxGenerateMany}
-                showGenerateAll={useCase?.ui?.showGenerateAll ?? true}
-                parameterControlsDefaultExpanded={isHome}
-                showResultDisplayModeControl={isHome}
-                homeResultDisplayMode={homeResultsContentVariant}
-                onHomeResultDisplayModeChange={setHomeResultsContentVariant}
-              />
-            </Stack>
+            <Paper p={{ base: 'sm', md: 'md' }} radius="md" withBorder={false} shadow="xs" bg="var(--app-surface-2)">
+              <Stack gap="md">
+                <ResultsPanel
+                  key={pathname}
+                  engine={engine}
+                  results={results}
+                  isLoading={isLoading}
+                  onGenerate={handleGenerate}
+                  onGenerateAll={handleGenerateAll}
+                  onGenerateMany={handleGenerateMany}
+                  strategy={strategy}
+                  onStrategyChange={setStrategy}
+                  processModifiers={processModifiers}
+                  onProcessModifiersChange={setProcessModifiers}
+                  contentVariant={resultsContentVariant}
+                  preview={resultsPreview}
+                  maxGenerateMany={useCase?.ui?.maxGenerateMany}
+                  showGenerateAll={useCase?.ui?.showGenerateAll ?? true}
+                  parameterControlsDefaultExpanded={isHome}
+                  showResultDisplayModeControl={isHome}
+                  homeResultDisplayMode={homeResultsContentVariant}
+                  onHomeResultDisplayModeChange={setHomeResultsContentVariant}
+                />
+              </Stack>
+            </Paper>
           </Grid.Col>
         </Grid>
-
-        {useCase && (
-          <Text size="sm" c="dimmed" mt="lg" maw={900}>
-            {useCase.outro}
-          </Text>
-        )}
 
         {!isHome && <UsecaseDiscoveryCards placement="bottom" />}
       </Container>

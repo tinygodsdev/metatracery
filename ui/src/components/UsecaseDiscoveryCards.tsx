@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { SimpleGrid, Text, Title, Stack, Box, Center } from '@mantine/core';
+import { SimpleGrid, Text, Title, Stack, Box, Group } from '@mantine/core';
 import type { MantineColor } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import type { UseCaseDefinition } from '../seo/useCases';
@@ -21,23 +21,16 @@ function UseCaseCard({ uc }: { uc: UseCaseDefinition }) {
         } as CSSProperties
       }
     >
-      <Box
-        className={classes.cardMedia}
-        pt="xs"
-        style={{
-          backgroundColor: 'transparent',
-          color: accent,
-        }}
-      >
-        <Center h={44}>
-          <UsecaseCardOrnament path={uc.path} />
-        </Center>
-      </Box>
-      <Stack gap={4} p="sm">
-        <Text fw={600} size="xs" lh={1.35} lineClamp={2}>
-          {uc.h1}
-        </Text>
-        <Text fz={11} c="dimmed" lineClamp={2} lh={1.35}>
+      <Stack gap="sm" p="md" className={classes.cardBody}>
+        <Group gap="sm" align="flex-start" wrap="nowrap">
+          <Box className={classes.cardIconChip} style={{ color: accent }} aria-hidden>
+            <UsecaseCardOrnament path={uc.path} width={36} height={30} />
+          </Box>
+          <Text fw={600} size="sm" lh={1.35} lineClamp={2} className={classes.cardTitle}>
+            {uc.h1}
+          </Text>
+        </Group>
+        <Text size="sm" c="dimmed" lineClamp={2} lh={1.4}>
           {uc.cardSummary}
         </Text>
       </Stack>
@@ -60,7 +53,7 @@ export function UsecaseDiscoveryCards({ placement = 'bottom' }: UsecaseDiscovery
         Use cases
       </Title>
       <SimpleGrid
-        cols={{ base: 2, xs: 3, sm: 3, md: 4, lg: 5, xl: 6 }}
+        cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 3, xl: 6 }}
         spacing={{ base: 'xs', sm: 'xs' }}
       >
         {USE_CASES.map((uc) => (
