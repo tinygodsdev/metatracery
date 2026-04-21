@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactNode } from 'react';
-import { ActionIcon, Box, Collapse, Group, Tooltip } from '@mantine/core';
+import { ActionIcon, Anchor, Box, Collapse, Group, Text, Tooltip } from '@mantine/core';
 import { IconAlertCircle, IconChevronDown } from '@tabler/icons-react';
 import { AppHeaderAccentStrip, SiteBrandLink } from './AppHeader';
 import { AppChromeSlimFooter } from './Footer';
@@ -68,7 +68,7 @@ export function CollapsibleWorkspaceChrome({
         }}
       >
         <Group justify="space-between" wrap="nowrap" align="center" gap="xs" px="xs" h={40}>
-          <Group gap={4} wrap="nowrap" align="center" style={{ minWidth: 0, flex: 1 }}>
+          <Group gap={4} wrap="nowrap" align="center" style={{ minWidth: 0, flexShrink: 1 }}>
             <ActionIcon
               variant="subtle"
               color="gray"
@@ -89,6 +89,48 @@ export function CollapsibleWorkspaceChrome({
             </ActionIcon>
             <SiteBrandLink compact />
           </Group>
+          <Box
+            visibleFrom="sm"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              paddingInline: 4,
+            }}
+          >
+            <Text
+              size="xs"
+              ta="center"
+              lh={1.25}
+              truncate
+              maw="min(42vw, 28rem)"
+            >
+              Created by{' '}
+              <Anchor
+                href="https://danipolani.github.io/en/"
+                target="_blank"
+                rel="noopener noreferrer"
+                size="xs"
+                fw={500}
+                c="primary"
+              >
+                Dani
+              </Anchor>
+              . See{' '}
+              <Anchor
+                href="https://danipolani.github.io/en/blog/tools/"
+                target="_blank"
+                rel="noopener noreferrer"
+                size="xs"
+                fw={500}
+                c="primary"
+              >
+                other tools
+              </Anchor>{' '}
+              for linguistics and conlanging.
+            </Text>
+          </Box>
           <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
             {collapsedErrorMessage && !expanded && (
               <Tooltip label={collapsedErrorMessage} multiline maw={320} withArrow>

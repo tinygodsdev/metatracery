@@ -1,8 +1,5 @@
 import {
   Group,
-  Anchor,
-  Text,
-  Box,
   SegmentedControl,
   useMantineColorScheme,
   useComputedColorScheme,
@@ -19,22 +16,6 @@ export function AppChromeSlimFooter({ onOpenStoredData }: { onOpenStoredData: ()
 
   return (
     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-      <Box visibleFrom="sm" miw={0} style={{ maxWidth: 200 }}>
-        <Text size="xs" c="dimmed" truncate>
-          Created by{' '}
-          <Anchor
-            href="https://danipolani.github.io/en/"
-            target="_blank"
-            rel="noopener noreferrer"
-            size="xs"
-            fw={500}
-            c="dimmed"
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            Dani
-          </Anchor>
-        </Text>
-      </Box>
       <SegmentedControl
         size="xs"
         value={themeMode}
