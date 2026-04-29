@@ -1,30 +1,26 @@
-/* Hover on the real <a> — avoids Mantine Card + polymorphic Link overriding :hover */
+/* Flat row: no card chrome; hover uses same pale tint as icon area (per use-case accent). */
 .cardLink {
   display: block;
   width: 100%;
   min-height: 0;
   text-decoration: none;
   color: inherit;
-  overflow: hidden;
-  border-radius: var(--mantine-radius-md);
-  background-color: var(--app-surface-1);
+  border-radius: 0;
+  background-color: transparent;
   border: none;
-  box-shadow: var(--mantine-shadow-xs);
-  transition:
-    box-shadow 150ms ease,
-    transform 150ms ease,
-    background-color 150ms ease;
+  box-shadow: none;
+  transition: background-color 140ms ease;
   cursor: pointer;
 }
 
 .cardLink:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--mantine-shadow-sm);
-  background-color: var(--mantine-color-default-hover);
+  background-color: rgba(128, 128, 128, 0.1);
 }
 
-.cardLink:hover .cardIconChip {
-  filter: brightness(0.96);
+@supports (color: color-mix(in srgb, red, blue)) {
+  .cardLink:hover {
+    background-color: color-mix(in srgb, var(--uc-accent) 16%, transparent);
+  }
 }
 
 .cardLink:focus-visible {
@@ -33,26 +29,19 @@
 }
 
 .cardBody {
-  min-height: 64px;
+  min-height: 56px;
 }
 
 .cardIconChip {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: var(--mantine-radius-sm);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 0;
-  transition: filter 150ms ease;
-  background-color: rgba(128, 128, 128, 0.12);
-}
-
-@supports (color: color-mix(in srgb, red, blue)) {
-  .cardIconChip {
-    background-color: color-mix(in srgb, var(--uc-accent) 14%, transparent);
-  }
+  background-color: transparent;
 }
 
 .cardTitle {

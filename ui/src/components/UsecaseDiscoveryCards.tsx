@@ -51,15 +51,8 @@ interface UsecaseDiscoveryCardsProps {
 export function UsecaseDiscoveryCards({ placement = 'bottom', compact }: UsecaseDiscoveryCardsProps) {
   const isTop = placement === 'top';
   return (
-    <Stack
-      gap="sm"
-      mt={compact ? (isTop ? 0 : 'sm') : isTop ? 0 : 'xl'}
-      mb={compact ? 'sm' : isTop ? { base: 'md', md: 'lg' } : 'md'}
-    >
-      <SimpleGrid
-        cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 3, xl: 6 }}
-        spacing={{ base: 'xs', sm: 'xs' }}
-      >
+    <Stack gap={0} mt={0} mb={compact ? 0 : isTop ? { base: 'md', md: 'lg' } : 'md'}>
+      <SimpleGrid cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 3, xl: 6 }} spacing={0}>
         {USE_CASES.map((uc) => (
           <UseCaseCard key={uc.path} uc={uc} compact={compact} />
         ))}
