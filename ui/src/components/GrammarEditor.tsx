@@ -20,7 +20,6 @@ import {
   IconAlertCircle,
   IconCircleCheck,
   IconDeviceFloppy,
-  IconHelp,
   IconMenu2,
 } from '@tabler/icons-react';
 import type { GrammarRule } from '../engine/types';
@@ -35,7 +34,6 @@ interface GrammarEditorProps {
   onChange: (grammar: GrammarRule) => void;
   viewMode: 'json' | 'graph';
   onViewModeChange: (mode: 'json' | 'graph') => void;
-  onOpenHelp: () => void;
   libraryState: GrammarLibraryState;
   librarySource: GrammarLibrarySource;
   selectedFixtureName: string | null;
@@ -57,7 +55,6 @@ export function GrammarEditor({
   onChange,
   viewMode,
   onViewModeChange,
-  onOpenHelp,
   libraryState,
   librarySource,
   selectedFixtureName,
@@ -195,25 +192,10 @@ export function GrammarEditor({
     </>
   );
 
-  const helpAction = (
-    <ActionIcon
-      variant="subtle"
-      color="gray"
-      size="md"
-      radius="xl"
-      aria-label="Open documentation"
-      title="How to use"
-      onClick={onOpenHelp}
-    >
-      <IconHelp size={18} />
-    </ActionIcon>
-  );
-
   const toolbarControls = (
     <>
       {viewModeSegmented}
       {libraryAndExamplesControls}
-      {helpAction}
     </>
   );
 
@@ -371,7 +353,6 @@ export function GrammarEditor({
                     {libraryAndExamplesControls}
                   </Group>
                 )}
-                {helpAction}
                 {validityControl}
               </Group>
             </Box>

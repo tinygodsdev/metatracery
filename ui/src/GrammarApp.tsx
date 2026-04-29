@@ -581,7 +581,6 @@ export default function GrammarApp() {
             onChange={handleGrammarChange}
             viewMode={grammarViewMode}
             onViewModeChange={setGrammarViewMode}
-            onOpenHelp={() => setHelpOpen(true)}
             libraryState={libraryState}
             librarySource={librarySource}
             selectedFixtureName={selectedFixtureName}
@@ -686,6 +685,7 @@ export default function GrammarApp() {
       expandedContent={expandedChrome}
       workspace={workspaceMain}
       onOpenStoredData={() => setStoredDataModalOpen(true)}
+      onOpenHelp={() => setHelpOpen(true)}
       collapsedErrorMessage={error}
     />
   );

@@ -1,21 +1,40 @@
 import {
   Group,
   SegmentedControl,
+  Tooltip,
   useMantineColorScheme,
   useComputedColorScheme,
   Center,
   ActionIcon,
 } from '@mantine/core';
-import { IconBrandGithub, IconDatabase, IconMoon, IconSun } from '@tabler/icons-react';
+import { IconBrandGithub, IconDatabase, IconHelp, IconMoon, IconSun } from '@tabler/icons-react';
 
-/** Theme, stored data, GitHub icon, and attribution — for the top slim bar. */
-export function AppChromeSlimFooter({ onOpenStoredData }: { onOpenStoredData: () => void }) {
+/** Theme, help, stored data, GitHub — for the top slim bar. */
+export function AppChromeSlimFooter({
+  onOpenStoredData,
+  onOpenHelp,
+}: {
+  onOpenStoredData: () => void;
+  onOpenHelp: () => void;
+}) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedScheme = useComputedColorScheme('light');
   const themeMode = colorScheme === 'auto' ? computedScheme : colorScheme;
 
   return (
     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+      <Tooltip label="How to use this tool">
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="sm"
+          radius="xl"
+          aria-label="Open documentation"
+          onClick={onOpenHelp}
+        >
+          <IconHelp size={18} stroke={1.5} aria-hidden />
+        </ActionIcon>
+      </Tooltip>
       <SegmentedControl
         size="xs"
         value={themeMode}

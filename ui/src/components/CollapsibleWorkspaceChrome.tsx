@@ -29,6 +29,7 @@ export interface CollapsibleWorkspaceChromeProps {
   /** Main workspace: editor + results columns (fills remaining viewport height). */
   workspace: ReactNode;
   onOpenStoredData: () => void;
+  onOpenHelp: () => void;
   /** When set, shows an error hint on the slim bar while chrome is collapsed. */
   collapsedErrorMessage?: string | null;
 }
@@ -37,6 +38,7 @@ export function CollapsibleWorkspaceChrome({
   expandedContent,
   workspace,
   onOpenStoredData,
+  onOpenHelp,
   collapsedErrorMessage,
 }: CollapsibleWorkspaceChromeProps) {
   const [expanded, setExpanded] = useState(readChromeExpanded);
@@ -137,7 +139,7 @@ export function CollapsibleWorkspaceChrome({
                 <IconAlertCircle size={18} color="var(--mantine-color-red-6)" aria-label="Error" />
               </Tooltip>
             )}
-            <AppChromeSlimFooter onOpenStoredData={onOpenStoredData} />
+            <AppChromeSlimFooter onOpenStoredData={onOpenStoredData} onOpenHelp={onOpenHelp} />
           </Group>
         </Group>
         <AppHeaderAccentStrip />
