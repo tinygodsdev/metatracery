@@ -6,6 +6,7 @@ import {
   PLACE_NAMES_DEFAULT_FIXTURE_NAME,
   getUseCaseByPath,
   isAllowedPath,
+  isToolRoute,
 } from '../useCases';
 
 describe('useCases routes and UI config', () => {
@@ -15,13 +16,19 @@ describe('useCases routes and UI config', () => {
     expect(new Set(paths).size).toBe(6);
   });
 
-  test('allowed paths include home and all use case routes', () => {
+  test('allowed paths include home and all workspace routes', () => {
     expect(ALLOWED_PATHNAMES).toContain('/');
+    expect(ALLOWED_PATHNAMES).toContain('/editor');
     expect(ALLOWED_PATHNAMES).toContain('/writing-prompts');
     expect(ALLOWED_PATHNAMES).toContain('/fantasy-names');
     expect(ALLOWED_PATHNAMES).toContain('/place-names');
     expect(ALLOWED_PATHNAMES).toContain('/character-sheet');
     expect(ALLOWED_PATHNAMES).toContain('/svg-generator');
+  });
+
+  test('editor route exists as tool path without USE_CASE entry', () => {
+    expect(getUseCaseByPath('/editor')).toBeUndefined();
+    expect(isToolRoute('/editor')).toBe(true);
   });
 
   test('getUseCaseByPath returns entry for use case routes', () => {
@@ -71,10 +78,17 @@ describe('useCases routes and UI config', () => {
     expect(u?.ui?.resultsContentVariant).toBe('markdown');
   });
 
-  test('isAllowedPath rejects unknown routes', () => {
-    expect(isAllowedPath('/')).toBe(true);
+  test('isAllowedPath includes landing, privacy, plus tools only', () => {
+    expect(isAllowedPath('/editor')).toBe(true);
     expect(isAllowedPath('/fantasy-names')).toBe(true);
+    expect(isAllowedPath('/privacy')).toBe(true);
     expect(isAllowedPath('/unknown')).toBe(false);
+  });
+
+  test('isToolRoute is false for landing and true for workspaces', () => {
+    expect(isToolRoute('/')).toBe(false);
+    expect(isToolRoute('/editor')).toBe(true);
+    expect(isToolRoute('/writing-prompts')).toBe(true);
   });
 
   test('each use case has concise SEO fields (title ≤60 chars, description ≤160 chars)', () => {

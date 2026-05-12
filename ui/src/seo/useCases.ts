@@ -16,7 +16,7 @@ export interface UseCasePreviewConfig {
   background?: UseCasePreviewBackground;
 }
 
-/** Optional UI behavior for a use case route (home `/` has no use case entry). */
+/** Marketing `/`. Workspace routes: `TOOL_PATHNAMES`. Optional UI overrides per `USE_CASES` workspace route. */
 export interface UseCaseUiConfig {
   /**
    * Mantine default palette name for primary (buttons, links, focus rings) on this route.
@@ -50,11 +50,21 @@ export interface UseCaseDefinition {
   intro: string;
   /** Short blurb for discovery cards (legacy / meta; not shown in compact cards). */
   cardSummary: string;
+  /** Static example lines shown on the marketing landing generator cards. */
+  landingSample?: string[];
   /** Discovery card label; defaults to `h1` when omitted. */
   cardTitle?: string;
   /** Per-route tool defaults and result layout; omit for generic placeholder pages. */
   ui?: UseCaseUiConfig;
 }
+
+/** Full universal editor route (formerly app home `/`): flexible UI, bundled `example.json`, no preset hero. */
+export const FLEXIBLE_EDITOR_PATH = '/editor' as const;
+
+export const EDITOR_PAGE_TITLE = 'Grammar editor — graph, JSON & all result modes';
+
+export const EDITOR_META_DESCRIPTION =
+  'Open the full in-browser grammar editor: Tracery-style rules, interactive graph or JSON tab, every result preview mode (line, SVG, Markdown), batches, modifiers, CSV. Starts from the bundled example.';
 
 export const WRITING_PROMPTS_FIXTURE_NAME = 'Writing prompts';
 
@@ -82,6 +92,11 @@ export const USE_CASES: UseCaseDefinition[] = [
     intro:
       'A writing prompt generator for daily warm-ups, story sparks, and scene seeds. The page ships with a multi-line prompt grammar; tweak word lists or load other examples to match your genre. Edit the grammar or load bundled examples tuned for this page. Your draft for this route can be saved when you leave; the next visit may offer to restore it.',
     cardSummary: 'Story seeds, scene starters and daily warm-ups for writers.',
+    landingSample: [
+      'Scene: an orchard. The botanist must cross the bridge before the next storm.',
+      'Twist: everyone assumed the lighthouse was empty. Then the margins filled with warnings.',
+      'Rain wrote patterns on the glass: silence grew heavier than words.',
+    ],
     ui: {
       primaryColor: 'lime',
       defaultProcessModifiers: true,
@@ -101,6 +116,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     intro:
       'A fantasy name generator for tabletop characters and fiction. Switch between elf, orc, dwarf, dragon, human, halfling, and tiefling presets, then roll a batch and pick the ones that fit your world. Combine or fork the bundled examples to add surnames, clans, or honorifics. Modifiers stay optional here; names are meant to read cleanly as plain text.',
     cardSummary: 'Names for elves, orcs, dwarves, dragons, halflings, tieflings.',
+    landingSample: ['Gaelwyn Mirwen', 'Silriel Thalaswen', 'Velmir Dilwen'],
     ui: {
       primaryColor: 'violet',
       defaultProcessModifiers: false,
@@ -128,6 +144,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     intro:
       'Name fantasy towns, cities, and kingdoms for maps, campaigns, and stories. Mix prefixes, cores, and suffixes from the bundled grammar, or fork it for regional styles. Duplicate a preset to build regional styles (coastal vs mountain) or add rivers and roads in the grammar. Export CSV when you need a batch for a map key.',
     cardSummary: 'Towns, cities, kingdoms and realms for maps and fiction.',
+    landingSample: ['Silverhaven', 'Kingdom of Deepmoor', 'Riverwickstead'],
     ui: {
       primaryColor: 'cyan',
       defaultProcessModifiers: false,
@@ -147,6 +164,11 @@ export const USE_CASES: UseCaseDefinition[] = [
     intro:
       'Generate random sentences and tiny scenes from composable subjects, verbs, and tails. Useful for warm-up writing, copy mockups, and quick filler when you need readable strings. Swap in your own word lists for genre (noir, cozy, sci-fi) or chain multiple rules into longer passages in the JSON view.',
     cardSummary: 'Random sentences and bite-sized scenes from your word lists.',
+    landingSample: [
+      'The scholar traces the constellation.',
+      'At dusk, the pilot remembers the harbor.',
+      'Rain taps the glass while the archive sleeps.',
+    ],
     ui: {
       primaryColor: 'indigo',
       defaultProcessModifiers: false,
@@ -166,6 +188,11 @@ export const USE_CASES: UseCaseDefinition[] = [
     intro:
       'Generate SVG from grammar rules: emblem-style sigils for factions, or tiled dot and grid patterns for backgrounds. Switch between bundled examples and edit JSON to change geometry, colors, or repeat size. Pair with place or character pages for factions and houses, or export patterns for UI mockups — keep viewBox and defs consistent when you scale or tile.',
     cardSummary: 'Heraldry-style sigils and tiled vector patterns, ready to copy.',
+    landingSample: [
+      '<svg viewBox="0 0 100 100">…circle & polygon glyph…</svg>',
+      'Tiled dot-grid pattern for UI backgrounds.',
+      'Palette-swappable emblem snippets.',
+    ],
     ui: {
       primaryColor: 'grape',
       defaultProcessModifiers: false,
@@ -191,6 +218,11 @@ export const USE_CASES: UseCaseDefinition[] = [
     intro:
       'Roll lightweight NPC character sheets as Markdown — name, race, class, traits, and a short hook. Paste straight into Obsidian, Notion, or your VTT notes. For crunch-heavy stats, extend the grammar with tables or lists using standard Markdown syntax in rule strings.',
     cardSummary: 'Lightweight NPC stat blocks rendered as Markdown.',
+    landingSample: [
+      '**Seren** · Elf Ranger · maps every room they enter',
+      '> Carries a letter with no seal.',
+      '**Gorn** · Dwarf Cleric · speaks only in questions',
+    ],
     ui: {
       primaryColor: 'orange',
       defaultProcessModifiers: false,
@@ -208,8 +240,27 @@ export function getUseCaseByPath(pathname: string): UseCaseDefinition | undefine
   return BY_PATH.get(pathname);
 }
 
-export const ALLOWED_PATHNAMES = ['/', ...USE_CASES.map((u) => u.path)] as const;
+/** Workspace routes (`GrammarApp`); excludes marketing `/`. */
+export const TOOL_PATHNAMES = [FLEXIBLE_EDITOR_PATH, ...USE_CASES.map((u) => u.path)] as const;
+
+export type ToolPathname = (typeof TOOL_PATHNAMES)[number];
+
+export function isToolRoute(pathname: string): pathname is ToolPathname {
+  return (TOOL_PATHNAMES as readonly string[]).includes(pathname);
+}
+
+/** Standalone informational route: privacy policy. */
+export const PRIVACY_PATH = '/privacy' as const;
+
+export const PRIVACY_PAGE_TITLE = 'Privacy policy — Generative Grammar Engine';
+
+export const PRIVACY_META_DESCRIPTION =
+  'How the Generative Grammar Engine handles your data: no server-side collection, browser-only generation, Google Analytics and Tally usage details, and contact info.';
+
+/** Known SPA paths: landing + tools + privacy. */
+export const ALLOWED_PATHNAMES = ['/', PRIVACY_PATH, ...TOOL_PATHNAMES] as const;
 
 export function isAllowedPath(pathname: string): boolean {
-  return (ALLOWED_PATHNAMES as readonly string[]).includes(pathname);
+  if (pathname === '/' || pathname === PRIVACY_PATH) return true;
+  return isToolRoute(pathname);
 }

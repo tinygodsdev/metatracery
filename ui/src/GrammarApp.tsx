@@ -47,7 +47,12 @@ import {
 } from './grammarLibraryStorage';
 import { SeoHead } from './seo/SeoHead';
 import type { UseCasePreviewConfig, UseCaseResultsContentVariant } from './seo/useCases';
-import { getUseCaseByPath, isAllowedPath } from './seo/useCases';
+import {
+  getUseCaseByPath,
+  FLEXIBLE_EDITOR_PATH,
+  isToolRoute,
+  WRITING_PROMPTS_FIXTURE_NAME,
+} from './seo/useCases';
 
 const RESULTS_WORKSPACE_EXPANDED_KEY = 'gge-workspace-results-expanded';
 
@@ -120,13 +125,13 @@ function getInitialClientGrammarState(): {
 }
 
 export default function GrammarApp() {
-  const { pathname } = useLocation();
-  if (!isAllowedPath(pathname)) {
+  const { pathname, search } = useLocation();
+  if (!isToolRoute(pathname)) {
     return <Navigate to="/" replace />;
   }
 
   const useCase = getUseCaseByPath(pathname);
-  const isHome = pathname === '/';
+  const isFlexibleWorkspace = pathname === FLEXIBLE_EDITOR_PATH;
 
   const initial = getInitialClientGrammarState();
   const [grammar, setGrammar] = useState<GrammarRule>(() => initial.grammar);
@@ -177,52 +182,28 @@ export default function GrammarApp() {
   grammarRef.current = grammar;
 
   useEffect(() => {
-    let cancelled = false;
-    const snap = getInitialClientGrammarState();
-    if (snap.source === 'user') return;
-
-    const path = window.location.pathname;
-    if (!isAllowedPath(path)) return;
-    const uc = getUseCaseByPath(path);
-    if (path !== '/' && uc?.ui?.defaultFixtureName) return;
-
-    (async () => {
-      try {
-        const response = await fetch('/example.json');
-        const raw = await response.json();
-        const exampleGrammar = ensureRulesForReferences(raw);
-        if (!cancelled) {
-          setGrammar(exampleGrammar);
-          setLibrarySource('example');
-        }
-      } catch (err) {
-        console.error('Failed to load example grammar:', err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
     setDraftDialog(null);
     const uc = getUseCaseByPath(pathname);
+    const fixtureQueryName =
+      pathname === FLEXIBLE_EDITOR_PATH ? new URLSearchParams(search).get('fixture') : null;
+    const fixtureFromLanding =
+      fixtureQueryName != null && fixtureQueryName !== ''
+        ? fixtures.find((f) => f.name === fixtureQueryName)
+        : undefined;
 
     setGrammarViewMode(uc?.ui?.defaultGrammarViewMode ?? 'graph');
 
     if (uc?.ui?.defaultProcessModifiers !== undefined) {
       setProcessModifiers(uc.ui.defaultProcessModifiers);
-    } else if (pathname !== '/') {
+    } else if (pathname !== FLEXIBLE_EDITOR_PATH) {
+      setProcessModifiers(false);
+    } else if (fixtureFromLanding) {
+      setProcessModifiers(fixtureFromLanding.name === WRITING_PROMPTS_FIXTURE_NAME);
+    } else {
       setProcessModifiers(false);
     }
 
-    if (pathname === '/') {
-      setBaselineSerialized(null);
-      return;
-    }
-
-    if (librarySourceRef.current === 'user') {
+    if (librarySourceRef.current === 'user' && !fixtureFromLanding) {
       setBaselineSerialized(grammarSignature(grammarRef.current));
       return;
     }
@@ -250,6 +231,18 @@ export default function GrammarApp() {
         return;
       }
 
+      if (pathname === FLEXIBLE_EDITOR_PATH && fixtureFromLanding) {
+        const g = ensureRulesForReferences(fixtureFromLanding.grammar as GrammarRule);
+        if (cancelled) return;
+        setGrammar(g);
+        setLibrarySource('fixture');
+        setSelectedFixtureName(fixtureFromLanding.name);
+        setProcessModifiers(fixtureFromLanding.name === WRITING_PROMPTS_FIXTURE_NAME);
+        setError(null);
+        setBaselineSerialized(grammarSignature(g));
+        return;
+      }
+
       try {
         const response = await fetch('/example.json');
         const raw = await response.json();
@@ -267,7 +260,7 @@ export default function GrammarApp() {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, search]);
 
   useEffect(() => {
     if (librarySource !== 'user' || !libraryState.activeId) return;
@@ -278,7 +271,7 @@ export default function GrammarApp() {
   }, [libraryState, librarySource]);
 
   const isDirty =
-    Boolean(useCase?.ui) &&
+    (Boolean(useCase?.ui) || pathname === FLEXIBLE_EDITOR_PATH) &&
     baselineSerialized !== null &&
     grammarSignature(grammar) !== baselineSerialized;
 
@@ -547,13 +540,13 @@ export default function GrammarApp() {
 
   const routePrimary = useCase?.ui?.primaryColor;
 
-  const resultsContentVariant: UseCaseResultsContentVariant = isHome
+  const resultsContentVariant: UseCaseResultsContentVariant = isFlexibleWorkspace
     ? homeResultsContentVariant
     : (useCase?.ui?.resultsContentVariant ?? 'line');
 
   const resultsPreview: UseCasePreviewConfig | undefined =
     useCase?.ui?.preview ??
-    (isHome &&
+    (isFlexibleWorkspace &&
     (homeResultsContentVariant === 'svg' ||
       homeResultsContentVariant === 'html' ||
       homeResultsContentVariant === 'markdown')
@@ -593,9 +586,9 @@ export default function GrammarApp() {
             variant="workspace"
             workspaceHeading={
               <Title
-                order={isHome ? 1 : 2}
+                order={isFlexibleWorkspace ? 1 : 2}
                 size="h3"
-                component={isHome ? 'h1' : 'h2'}
+                component={isFlexibleWorkspace ? 'h1' : 'h2'}
                 style={{ lineHeight: 1.2 }}
               >
                 Edit
@@ -631,8 +624,8 @@ export default function GrammarApp() {
             preview={resultsPreview}
             maxGenerateMany={useCase?.ui?.maxGenerateMany}
             showGenerateAll={useCase?.ui?.showGenerateAll ?? true}
-            parameterControlsDefaultExpanded={isHome}
-            showResultDisplayModeControl={isHome}
+            parameterControlsDefaultExpanded={isFlexibleWorkspace}
+            showResultDisplayModeControl={isFlexibleWorkspace}
             homeResultDisplayMode={homeResultsContentVariant}
             onHomeResultDisplayModeChange={setHomeResultsContentVariant}
             workspaceMinimizeControl={
@@ -661,7 +654,6 @@ export default function GrammarApp() {
 
   const expandedChrome = (
     <>
-      {isHome && <UsecaseDiscoveryCards placement="top" compact />}
       {useCase && (
         <UsecaseHero
           path={useCase.path}
@@ -676,7 +668,7 @@ export default function GrammarApp() {
           {error}
         </Alert>
       )}
-      {!isHome && <UsecaseDiscoveryCards placement="bottom" compact />}
+      <UsecaseDiscoveryCards placement="bottom" compact />
     </>
   );
 

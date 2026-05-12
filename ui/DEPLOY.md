@@ -1,8 +1,8 @@
 # Deploying the UI (grammar.tinygods.dev)
 
-This app is a **single-page application** with client-side routing (`/`, `/writing-prompts`, `/fantasy-names`, `/place-names`, `/random-sentences`, `/svg-generator`, `/character-sheet`, …).
+This app is a **single-page application** with client-side routing (`/`, `/editor`, `/writing-prompts`, `/fantasy-names`, `/place-names`, `/random-sentences`, `/svg-generator`, `/character-sheet`, …).
 
-Configure the web server so **every path** serves **`index.html`** (fallback for `history` API / `BrowserRouter`). Without this, a direct visit or refresh on `/writing-prompts` returns **404** from the server even though the client router knows the route.
+Configure the web server so **every path** serves **`index.html`** (fallback for `history` API / `BrowserRouter`). Without this, a direct visit or refresh on `/editor` or `/writing-prompts` returns **404** from the server even though the client router knows the route.
 
 Examples:
 

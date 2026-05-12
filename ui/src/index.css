@@ -1,15 +1,16 @@
 /* Global layout — semantic surface colors come from MantineProvider (appSurfaceVariablesResolver). */
 
 html,
-body,
-#root {
-  height: 100%;
-  max-height: 100%;
-  overflow: hidden;
-}
-
 body {
   margin: 0;
   padding: 0;
+}
+
+body {
   background: var(--app-surface-0);
+}
+
+/* Let marketing pages scroll; editor routes clip inside GrammarApp (100dvh + internal overflow). */
+#root {
+  min-height: 100dvh;
 }

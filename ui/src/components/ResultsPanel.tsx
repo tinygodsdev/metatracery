@@ -63,7 +63,7 @@ interface ResultsPanelProps {
   maxGenerateMany?: number;
   /** When false, hides "Generate all". Default true. */
   showGenerateAll?: boolean;
-  /** Home page: expanded; use-case routes: collapsed by default. */
+  /** Flexible workspace (/editor): expanded; preset routes: collapsed by default. */
   parameterControlsDefaultExpanded?: boolean;
   /** Home only: show display mode control wired to parent state. */
   showResultDisplayModeControl?: boolean;
@@ -98,7 +98,7 @@ export function ResultsPanel({
   const h3Heading = theme.headings.sizes.h3;
   const resultsTitleRowHeight = `calc(${h3Heading.fontSize} * ${h3Heading.lineHeight})`;
   const { pathname } = useLocation();
-  const ornamentPath = pathname === '/' ? '/writing-prompts' : pathname;
+  const ornamentPath = pathname;
 
   const [selectedParameters, setSelectedParameters] = useState<Record<string, string>>({});
   const [generateCount, setGenerateCount] = useState<number>(10);
@@ -328,7 +328,7 @@ export function ResultsPanel({
                 size="xs"
                 w={160}
                 aria-label="Result display mode"
-                title="How each generated cell is shown (home page only)"
+                title="How each generated cell is shown (/editor only)"
                 value={homeResultDisplayMode}
                 onChange={(e) =>
                   onHomeResultDisplayModeChange(e.currentTarget.value as UseCaseResultsContentVariant)

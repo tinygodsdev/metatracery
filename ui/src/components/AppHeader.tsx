@@ -6,7 +6,7 @@ import classes from './AppHeader.module.css';
 
 export function SiteBrandLink({ compact }: { compact?: boolean }) {
   const { pathname } = useLocation();
-  const ornamentPath = pathname === '/' ? '/writing-prompts' : pathname;
+  const ornamentPath = pathname;
 
   return (
     <Anchor

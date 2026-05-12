@@ -1,6 +1,6 @@
 import { Modal, Stack, Text, Title, List, Anchor, Code, Tabs } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { USE_CASES } from '../seo/useCases';
+import { USE_CASES, FLEXIBLE_EDITOR_PATH } from '../seo/useCases';
 
 interface HelpDocumentationModalProps {
   opened: boolean;
@@ -70,8 +70,8 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 The right column runs the engine on your grammar. Symbols with more than one alternative may appear as{' '}
                 <strong>parameters</strong>: you can fix them to specific values or leave them random. Use{' '}
                 <strong>Advanced</strong> (next to the generate control) to expand or collapse strategy, modifiers,
-                parameter dropdowns, and combination counts; on the home page it starts open, on dedicated use-case pages
-                it starts collapsed. The main <strong>Generate</strong> action stays visible with a count field; when
+                parameter dropdowns, and combination counts; on <strong>/editor</strong> Advanced starts open, while preset
+                routes start collapsed. The main <strong>Generate</strong> action stays visible with a count field; when
                 the <strong>▼</strong> menu next to <strong>Generate</strong> lists every combination when the space is
                 small enough (≤100), or samples up to the usual batch cap with a short note when the full space is larger.
                 Combination stats are inside Advanced.
@@ -92,8 +92,9 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 Result display modes
               </Title>
               <Text size="sm" mb="xs">
-                On the <strong>home page</strong>, use the dropdown next to the <strong>Results</strong> heading to choose
-                how each generated cell is shown. Dedicated use-case routes may fix a mode for their content type.
+                On <strong>/editor</strong> (the standalone universal workspace), use the dropdown next to the{' '}
+                <strong>Results</strong> heading to choose how each generated cell is shown. Presets usually pin one layout
+                (line vs multiline vs SVG preview) for their typical output.
               </Text>
               <List size="sm" spacing="xs">
                 <List.Item>
@@ -171,10 +172,10 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 Per-page defaults (use-case routes)
               </Title>
               <Text size="sm" mb="xs">
-                Each dedicated use-case route (not the home page) can ship with its own default example
-                grammar, fixed result display mode, default on/off for <strong>Modifiers</strong>, a cap on the{' '}
-                <strong>generate count</strong> (batch size), and a default of JSON or Graph in the editor. The home page keeps result
-                display mode and examples under your control.
+                Each preset route ships with its own default example grammar, result display preference, Modifier default,
+                batch cap, and JSON vs Graph starting tab when that helps onboarding. <strong>/editor</strong> keeps every
+                display mode and fuller Advanced controls by default; <strong>/writing-prompts</strong> is a focused preset
+                tuned for multiline warm-up prompts.
               </Text>
 
               <Title order={6} mb="xs">
@@ -273,12 +274,17 @@ export function HelpDocumentationModal({ opened, onClose }: HelpDocumentationMod
                 Preset pages
               </Title>
               <Text size="sm" mb="xs">
-                Jump to the home page or a dedicated use-case route (also listed on the expanded page header):
+                Open the landing overview or jump straight into a preset (these links also mirror the expandable header strip):
               </Text>
               <List size="sm" spacing="xs">
                 <List.Item>
                   <Anchor component={Link} to="/" onClick={onClose}>
-                    Home — Generative Grammar Engine
+                    Landing — overview and curated entry points
+                  </Anchor>
+                </List.Item>
+                <List.Item>
+                  <Anchor component={Link} to={FLEXIBLE_EDITOR_PATH} onClick={onClose}>
+                    /editor — universal workspace
                   </Anchor>
                 </List.Item>
                 {USE_CASES.map((uc) => (

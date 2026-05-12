@@ -10,18 +10,37 @@ import {
 import { Notifications } from '@mantine/notifications';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { appSurfaceVariablesResolver } from './appSurfaceVariablesResolver';
+import HomeLanding from './components/HomeLanding';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { COLOR_SCHEME_STORAGE_KEY } from './colorSchemeStorage';
 import GrammarApp from './GrammarApp';
+import { PRIVACY_PATH } from './seo/useCases';
 
 const router = createBrowserRouter([
   {
-    path: '/*',
+    path: '/',
+    element: <HomeLanding />,
+  },
+  {
+    path: PRIVACY_PATH,
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: '*',
     element: <GrammarApp />,
   },
 ]);
 
 const theme = createTheme({
   primaryColor: 'teal',
+  fontFamily:
+    '"Google Sans", Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica Neue, Arial, sans-serif',
+  fontFamilyMonospace:
+    '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  headings: {
+    fontFamily:
+      '"Google Sans", Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica Neue, Arial, sans-serif',
+  },
   breakpoints: {
     xs: '36em',
     sm: '48em',
@@ -50,16 +69,7 @@ export default function App() {
         })}
       >
         <Notifications />
-        <div
-          style={{
-            height: '100dvh',
-            maxHeight: '100dvh',
-            minHeight: 0,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
+        <div style={{ minHeight: '100dvh' }}>
           <RouterProvider router={router} />
         </div>
       </MantineProvider>

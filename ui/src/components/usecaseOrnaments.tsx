@@ -16,7 +16,7 @@ export interface OrnamentProps {
 const VB_W = 48;
 const VB_H = 40;
 
-const DEFAULT_PATH = '/writing-prompts';
+const DEFAULT_PATH = '/editor';
 
 function SvgShell({
   children,
@@ -81,6 +81,28 @@ function WritingPromptsOrnament({ className, width, height }: OrnamentProps) {
   return (
     <SvgShell width={width} height={height} className={className}>
       <WritingPromptsInner />
+    </SvgShell>
+  );
+}
+
+/** Universal editor — workspace frame */
+function UniversalEditorInner() {
+  return (
+    <g stroke="currentColor" strokeWidth={1.1} fill="none">
+      <rect x={7} y={8} width={34} height={24} rx={2} />
+      <path d="M 7 14 H 41" opacity={0.38} />
+      <circle cx={16} cy={11} r={2.2} fill="currentColor" stroke="none" opacity={0.45} />
+      <circle cx={30} cy={11} r={2.2} fill="currentColor" stroke="none" opacity={0.3} />
+      <rect x={12} y={19} width={10} height={7} rx={1} opacity={0.75} />
+      <rect x={26} y={21} width={10} height={7} rx={1} opacity={0.55} />
+    </g>
+  );
+}
+
+function UniversalEditorOrnament({ className, width, height }: OrnamentProps) {
+  return (
+    <SvgShell width={width} height={height} className={className}>
+      <UniversalEditorInner />
     </SvgShell>
   );
 }
@@ -198,6 +220,7 @@ function CharacterSheetOrnament({ className, width, height }: OrnamentProps) {
 }
 
 const INNER_BY_PATH: Record<string, FC> = {
+  '/editor': UniversalEditorInner,
   '/writing-prompts': WritingPromptsInner,
   '/fantasy-names': FantasyNamesInner,
   '/place-names': PlaceNamesInner,
@@ -207,6 +230,7 @@ const INNER_BY_PATH: Record<string, FC> = {
 };
 
 const ORNAMENTS: Record<string, FC<OrnamentProps>> = {
+  '/editor': UniversalEditorOrnament,
   '/writing-prompts': WritingPromptsOrnament,
   '/fantasy-names': FantasyNamesOrnament,
   '/place-names': PlaceNamesOrnament,

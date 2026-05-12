@@ -9,6 +9,40 @@ import {
 } from '@mantine/core';
 import { IconBrandGithub, IconDatabase, IconHelp, IconMoon, IconSun } from '@tabler/icons-react';
 
+/** Light/dark — shared by editor slim bar and the marketing landing. */
+export function ChromeThemeSegmentedControl() {
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const computedScheme = useComputedColorScheme('light');
+  const themeMode = colorScheme === 'auto' ? computedScheme : colorScheme;
+
+  return (
+    <SegmentedControl
+      size="xs"
+      value={themeMode}
+      onChange={(value) => setColorScheme(value as 'light' | 'dark')}
+      data={[
+        {
+          value: 'light',
+          label: (
+            <Center>
+              <IconSun size={14} stroke={1.5} aria-hidden />
+            </Center>
+          ),
+        },
+        {
+          value: 'dark',
+          label: (
+            <Center>
+              <IconMoon size={14} stroke={1.5} aria-hidden />
+            </Center>
+          ),
+        },
+      ]}
+      aria-label="Color scheme"
+    />
+    );
+}
+
 /** Theme, help, stored data, GitHub — for the top slim bar. */
 export function AppChromeSlimFooter({
   onOpenStoredData,
@@ -17,10 +51,6 @@ export function AppChromeSlimFooter({
   onOpenStoredData: () => void;
   onOpenHelp: () => void;
 }) {
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const computedScheme = useComputedColorScheme('light');
-  const themeMode = colorScheme === 'auto' ? computedScheme : colorScheme;
-
   return (
     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
       <Tooltip label="How to use this tool">
@@ -35,30 +65,7 @@ export function AppChromeSlimFooter({
           <IconHelp size={18} stroke={1.5} aria-hidden />
         </ActionIcon>
       </Tooltip>
-      <SegmentedControl
-        size="xs"
-        value={themeMode}
-        onChange={(value) => setColorScheme(value as 'light' | 'dark')}
-        data={[
-          {
-            value: 'light',
-            label: (
-              <Center>
-                <IconSun size={14} stroke={1.5} aria-hidden />
-              </Center>
-            ),
-          },
-          {
-            value: 'dark',
-            label: (
-              <Center>
-                <IconMoon size={14} stroke={1.5} aria-hidden />
-              </Center>
-            ),
-          },
-        ]}
-        aria-label="Color scheme"
-      />
+      <ChromeThemeSegmentedControl />
       <ActionIcon
         variant="subtle"
         color="gray"
