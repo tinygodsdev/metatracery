@@ -25,6 +25,10 @@ export const appSurfaceVariablesResolver: CSSVariablesResolver = (theme) => {
       '--app-surface-3': theme.colors.gray[1],
       '--app-accent-tint': 'color-mix(in srgb, var(--mantine-primary-color-filled) 3%, transparent)',
       '--app-soft-border': 'color-mix(in srgb, var(--mantine-color-default-border) 55%, transparent)',
+      /** Stronger contrast on light gray backgrounds (landing + panels). */
+      '--mantine-color-text': theme.colors.dark[9],
+      '--mantine-color-dimmed': theme.colors.gray[8],
+      '--mantine-color-placeholder': theme.colors.gray[7],
     },
     dark: {
       ...base.dark,

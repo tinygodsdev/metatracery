@@ -41,27 +41,27 @@ export function LandingForCreators() {
                 <Title order={3} size="h5">
                   {c.title}
                 </Title>
-                <Text size="sm" c="dimmed" lh={1.55}>
+                <Text size="md" c="dimmed" lh={1.55}>
                   {c.body}
                 </Text>
-                <Anchor component={Link} to={c.linkTo} size="sm" fw={600}>
+                <Anchor component={Link} to={c.linkTo} size="md" fw={600}>
                   {c.linkLabel} →
                 </Anchor>
               </Stack>
             </Card>
           ))}
         </SimpleGrid>
-        <Text size="sm" c="dimmed">
+        <Text size="md" c="dimmed" lh={1.55}>
           GMs may also like the{' '}
-          <Anchor component={Link} to="/svg-generator">
+          <Anchor component={Link} to="/svg-generator" size="md">
             SVG generator
           </Anchor>
           ,{' '}
-          <Anchor component={Link} to="/character-sheet">
+          <Anchor component={Link} to="/character-sheet" size="md">
             NPC character sheet generator
           </Anchor>
           , and{' '}
-          <Anchor component={Link} to="/random-sentences">
+          <Anchor component={Link} to="/random-sentences" size="md">
             random sentence generator
           </Anchor>
           .

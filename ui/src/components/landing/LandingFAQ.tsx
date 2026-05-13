@@ -1,4 +1,4 @@
-import { Accordion, Stack, Title } from '@mantine/core';
+import { Accordion, Stack, Text, Title } from '@mantine/core';
 
 export interface LandingFaqItem {
   question: string;
@@ -49,8 +49,16 @@ export function LandingFAQ() {
         <Accordion variant="separated" radius="md">
           {FAQ_ITEMS.map((item) => (
             <Accordion.Item key={item.question} value={item.question}>
-              <Accordion.Control>{item.question}</Accordion.Control>
-              <Accordion.Panel>{item.answer}</Accordion.Panel>
+              <Accordion.Control>
+                <Text fw={600} size="md" component="span">
+                  {item.question}
+                </Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Text size="md" lh={1.55}>
+                  {item.answer}
+                </Text>
+              </Accordion.Panel>
             </Accordion.Item>
           ))}
         </Accordion>

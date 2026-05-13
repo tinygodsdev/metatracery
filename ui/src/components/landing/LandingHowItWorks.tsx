@@ -35,17 +35,17 @@ export function LandingHowItWorks() {
         <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
           {STEPS.map((step, i) => (
             <Stack key={step.title} gap="sm">
-              <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+              <Text size="sm" fw={700} c="dimmed" tt="uppercase">
                 Step {i + 1}
               </Text>
               <Title order={3} size="h5">
                 {step.title}
               </Title>
-              <Text size="sm" c="dimmed" lh={1.55}>
+              <Text size="md" c="dimmed" lh={1.55}>
                 {step.body}
               </Text>
               {step.snippet ? (
-                <Code block fz="xs" style={{ whiteSpace: 'pre-wrap' }}>
+                <Code block fz="sm" style={{ whiteSpace: 'pre-wrap' }}>
                   {step.snippet}
                 </Code>
               ) : null}

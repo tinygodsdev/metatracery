@@ -32,21 +32,21 @@ function GeneratorCard({ uc }: { uc: UseCaseDefinition }) {
         <Title order={3} size="h4" lh={1.25}>
           {heading}
         </Title>
-        <Text size="sm" c="dimmed">
+        <Text size="md" c="dimmed" lh={1.55}>
           {uc.cardSummary}
         </Text>
         {samples.length > 0 ? (
-          <List size="xs" c="dimmed" spacing={4} styles={{ item: { lineHeight: 1.4 } }}>
+          <List size="sm" c="dimmed" spacing={6} styles={{ item: { lineHeight: 1.45 } }}>
             {samples.map((line) => (
               <List.Item key={line}>
-                <Code fz="xs" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                <Code fz="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                   {line}
                 </Code>
               </List.Item>
             ))}
           </List>
         ) : null}
-        <Anchor component={Link} to={uc.path} fw={600} size="sm" c={primaryColor} mt="auto" display="inline-block">
+        <Anchor component={Link} to={uc.path} fw={600} size="md" c={primaryColor} mt="auto" display="inline-block">
           {anchorText} →
         </Anchor>
       </Stack>
@@ -62,7 +62,7 @@ export function LandingGeneratorsGrid() {
           <Title order={2} id="generators-heading" size="h3">
             Random generators ready to use
           </Title>
-          <Text maw={820} c="dimmed">
+          <Text maw={820} size="lg" c="dimmed" lh={1.55}>
             Each shortcut opens the same engine with a preset grammar and layout tuned for the task — names as single
             lines, prompts as paragraphs, SVG with live preview, and Markdown NPC blocks.
           </Text>

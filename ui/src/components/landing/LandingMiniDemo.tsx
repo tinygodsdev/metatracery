@@ -107,7 +107,7 @@ export function LandingMiniDemo() {
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
               minHeight: '6.5rem',
-              fontSize: 'var(--mantine-font-size-sm)',
+              fontSize: 'var(--mantine-font-size-md)',
             }}
           >
             {output}
@@ -126,7 +126,7 @@ export function LandingMiniDemo() {
             Open in editor
           </Button>
         </Group>
-        <Text size="xs" c="dimmed">
+        <Text size="sm" c="dimmed" lh={1.5}>
           Live roll from bundled grammars — same engine as the full workspace.
         </Text>
       </Stack>

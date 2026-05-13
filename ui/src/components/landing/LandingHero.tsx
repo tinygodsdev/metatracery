@@ -41,9 +41,9 @@ export function LandingHero() {
               Browse generators
             </Button>
           </Group>
-          <Text size="xs" c="dimmed">
+          <Text size="sm" c="dimmed">
             Free · No account ·{' '}
-            <Anchor href="https://github.com/tinygodsdev/metatracery" target="_blank" rel="noopener noreferrer" size="xs">
+            <Anchor href="https://github.com/tinygodsdev/metatracery" target="_blank" rel="noopener noreferrer" size="sm">
               MIT license
             </Anchor>
             {' · '}

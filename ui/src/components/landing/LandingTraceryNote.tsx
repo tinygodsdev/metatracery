@@ -10,7 +10,7 @@ export function LandingTraceryNote() {
         <Title order={2} id="tracery-heading" size="h3">
           A modern Tracery alternative
         </Title>
-        <Text c="dimmed" lh={1.55}>
+        <Text size="md" c="dimmed" lh={1.55}>
           If you know{' '}
           <Anchor href="https://github.com/galaxykate/tracery" target="_blank" rel="noopener noreferrer">
             Tracery
@@ -22,7 +22,7 @@ export function LandingTraceryNote() {
           with graph and JSON views, batch tooling, and richer previews — a practical alternative when you want a better
           Tracery UI in the browser.
         </Text>
-        <List spacing="xs" size="sm" c="dimmed">
+        <List spacing="sm" size="md" c="dimmed">
           <List.Item>Interactive grammar graph alongside the JSON editor</List.Item>
           <List.Item>Batch rolls and parameter exploration with CSV export</List.Item>
           <List.Item>SVG, Markdown, and HTML result previews</List.Item>

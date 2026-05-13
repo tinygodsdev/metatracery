@@ -19,7 +19,7 @@ export function LandingFinalCTA() {
         <Title order={2} id="final-cta-heading" size="h3">
           Pick a generator or start blank
         </Title>
-        <Text c="dimmed" maw={720}>
+        <Text size="lg" c="dimmed" maw={720} lh={1.55}>
           Jump into a preset below, or open the full editor for every fixture, the graph, and all display modes.
         </Text>
         <Group>
@@ -35,7 +35,7 @@ export function LandingFinalCTA() {
           {USE_CASES.map((uc) => {
             const anchorText = uc.pageTitle.split(' —')[0].trim();
             return (
-              <Anchor key={uc.path} component={Link} to={uc.path} size="sm" fw={500}>
+              <Anchor key={uc.path} component={Link} to={uc.path} size="md" fw={500}>
                 {anchorText} →
               </Anchor>
             );

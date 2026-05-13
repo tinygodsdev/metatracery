@@ -43,7 +43,7 @@ export function LandingValueProps() {
               <Title order={3} size="h5">
                 {item.title}
               </Title>
-              <Text size="sm" c="dimmed" lh={1.55}>
+              <Text size="md" c="dimmed" lh={1.55}>
                 {item.body}
               </Text>
             </Stack>

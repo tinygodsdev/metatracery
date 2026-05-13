@@ -11,32 +11,32 @@ export function LandingFooter() {
       <Divider mb="xl" />
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="xl">
         <Stack gap="xs">
-          <Text fw={700} size="sm">
+          <Text fw={700} size="md">
             Generators
           </Text>
           {USE_CASES.map((uc) => {
             const label = uc.pageTitle.split(' —')[0].trim();
             return (
-              <Anchor key={uc.path} component={Link} to={uc.path} size="sm">
+              <Anchor key={uc.path} component={Link} to={uc.path} size="md">
                 {label}
               </Anchor>
             );
           })}
-          <Anchor component={Link} to={FLEXIBLE_EDITOR_PATH} size="sm">
+          <Anchor component={Link} to={FLEXIBLE_EDITOR_PATH} size="md">
             Grammar editor
           </Anchor>
         </Stack>
         <Stack gap="xs">
-          <Text fw={700} size="sm">
+          <Text fw={700} size="md">
             About
           </Text>
-          <Text size="sm" c="dimmed" lh={1.5}>
+          <Text size="md" c="dimmed" lh={1.5}>
             Created by{' '}
             <Anchor
               href="https://danipolani.github.io/en/"
               target="_blank"
               rel="noopener noreferrer"
-              size="sm"
+              size="md"
               fw={500}
               c="primary"
             >
@@ -47,7 +47,7 @@ export function LandingFooter() {
               href="https://danipolani.github.io/en/blog/tools/"
               target="_blank"
               rel="noopener noreferrer"
-              size="sm"
+              size="md"
               fw={500}
               c="primary"
             >
@@ -57,22 +57,22 @@ export function LandingFooter() {
           </Text>
         </Stack>
         <Stack gap="xs">
-          <Text fw={700} size="sm">
+          <Text fw={700} size="md">
             Resources
           </Text>
-          <Anchor href="#tally-open=eqKGEx" size="sm">
+          <Anchor href="#tally-open=eqKGEx" size="md">
             Feedback
           </Anchor>
-          <Anchor component={Link} to="/privacy" size="sm">
+          <Anchor component={Link} to="/privacy" size="md">
             Privacy policy
           </Anchor>
-          <Anchor href="https://github.com/tinygodsdev/metatracery" target="_blank" rel="noopener noreferrer" size="sm">
+          <Anchor href="https://github.com/tinygodsdev/metatracery" target="_blank" rel="noopener noreferrer" size="md">
             GitHub repository
           </Anchor>
-          <Anchor href="https://github.com/galaxykate/tracery" target="_blank" rel="noopener noreferrer" size="sm">
+          <Anchor href="https://github.com/galaxykate/tracery" target="_blank" rel="noopener noreferrer" size="md">
             Tracery (original)
           </Anchor>
-          <Text size="xs" c="dimmed">
+          <Text size="sm" c="dimmed">
             MIT License · {year}
           </Text>
         </Stack>
